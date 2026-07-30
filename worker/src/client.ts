@@ -1,5 +1,5 @@
 // Served at GET /client.js and embedded in Webflow via a single
-// <script src="https://api.reflectionpool.us/client.js"></script>
+// <script src="https://api.reflectingpool.us/client.js"></script>
 // (Site Settings > Custom Code, or on just the status page).
 //
 // Wires up three attributes in the Webflow markup:

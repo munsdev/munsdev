@@ -35,7 +35,7 @@ Add this once, in Site Settings > Custom Code (footer), or on just the status
 page:
 
 ```html
-<script src="https://api.reflectionpool.us/client.js"></script>
+<script src="https://api.reflectingpool.us/client.js"></script>
 ```
 
 ## One-time setup
@@ -65,8 +65,8 @@ page:
      respectively).
 
 4. **DNS / route**: the Worker needs to run on a subdomain of the same zone
-   Webflow serves the site on (e.g. `api.reflectionpool.us`), so the session
-   cookie — scoped to `Domain=.reflectionpool.us` — is visible to both. Set
+   Webflow serves the site on (e.g. `api.reflectingpool.us`), so the session
+   cookie — scoped to `Domain=.reflectingpool.us` — is visible to both. Set
    this up as a Worker route/custom domain once the zone is on Cloudflare
    DNS.
 
