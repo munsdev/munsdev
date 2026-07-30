@@ -17,9 +17,9 @@ ALLOWED_ORIGIN = "https://reflectionpool.us"
 # Cookie domain shared between the Worker's subdomain and the Webflow site.
 SESSION_COOKIE_DOMAIN = ".reflectionpool.us"
 
-# --- Webflow config (fill in once the site + collection exist) ---
-WEBFLOW_SITE_ID = "REPLACE_ME"
-WEBFLOW_COLLECTION_ID = "REPLACE_ME"
+# --- Webflow config ---
+WEBFLOW_SITE_ID = "6a6bc31c187a9da9577f9733"
+WEBFLOW_COLLECTION_ID = "6a6bc9f8ccc5c3af78c6e78c"
 PHOTO_FIELD_SLUG = "photo"
 DATE_FIELD_SLUG = "date"
 STATUS_FIELD_SLUG = "status"
