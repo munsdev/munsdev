@@ -1,0 +1,30 @@
+name = "poolman-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Bind this Worker to a subdomain of the same zone Webflow serves the site on,
+# e.g. api.reflectionpool.us, so the session cookie (Domain=.reflectionpool.us)
+# is visible to both. Configure the route/custom domain in the Cloudflare
+# dashboard or with `wrangler deploy --routes`.
+
+kv_namespaces = [
+  { binding = "SESSIONS", id = "REPLACE_WITH_KV_NAMESPACE_ID" }
+]
+
+[vars]
+# Origin allowed to call this Worker with credentials (your Webflow site).
+ALLOWED_ORIGIN = "https://reflectionpool.us"
+# Cookie domain shared between the Worker's subdomain and the Webflow site.
+SESSION_COOKIE_DOMAIN = ".reflectionpool.us"
+
+# --- Webflow config (fill in once the site + collection exist) ---
+WEBFLOW_SITE_ID = "REPLACE_ME"
+WEBFLOW_COLLECTION_ID = "REPLACE_ME"
+PHOTO_FIELD_SLUG = "photo"
+DATE_FIELD_SLUG = "date"
+STATUS_FIELD_SLUG = "status"
+
+# --- Secrets (never put these here) ---
+# Set with `wrangler secret put <NAME>`:
+#   AUTH_PAIRS         e.g. "admin:admin,Poolman:Washington"
+#   WEBFLOW_API_TOKEN   Webflow API token with CMS read/write + Assets scope
