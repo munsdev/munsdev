@@ -2,11 +2,6 @@ name = "poolman-worker"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 
-# Bind this Worker to a subdomain of the same zone Webflow serves the site on,
-# e.g. api.reflectingpool.us, so the session cookie (Domain=.reflectingpool.us)
-# is visible to both. Configure the route/custom domain in the Cloudflare
-# dashboard or with `wrangler deploy --routes`.
-
 kv_namespaces = [
   { binding = "SESSIONS", id = "dc4b5f6d1f2e42b7b6f616b0324af8be" }
 ]
@@ -28,3 +23,15 @@ STATUS_FIELD_SLUG = "status"
 # Set with `wrangler secret put <NAME>`:
 #   AUTH_PAIRS         e.g. "admin:admin,Poolman:Washington"
 #   WEBFLOW_API_TOKEN   Webflow API token with CMS read/write + Assets scope
+
+# Bind this Worker to a subdomain of the same zone Webflow serves the site on,
+# so the session cookie (Domain=.reflectingpool.us) is visible to both.
+# custom_domain = true makes wrangler auto-create the DNS record + cert on
+# deploy -- a plain [routes] pattern does NOT create DNS, which is why
+# api.reflectingpool.us didn't resolve when it was only added as a manual
+# dashboard route. Remove that manual route in the dashboard before
+# deploying this (Workers & Pages > poolman-worker > Settings > Domains &
+# Routes) so the two don't conflict.
+[[routes]]
+pattern = "api.reflectingpool.us"
+custom_domain = true

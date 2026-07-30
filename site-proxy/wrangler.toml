@@ -1,0 +1,19 @@
+name = "reflectingpool-site-proxy"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# Reverse-proxies the apex + www to Webflow's default hosting hostname for
+# this site. Using Custom Domains (not manual Routes) here so Cloudflare
+# auto-creates the DNS record + cert for each hostname on deploy — no
+# manual DNS step needed, same fix that was needed for api.reflectingpool.us.
+
+[[routes]]
+pattern = "reflectingpool.us"
+custom_domain = true
+
+[[routes]]
+pattern = "www.reflectingpool.us"
+custom_domain = true
+
+[vars]
+UPSTREAM_HOST = "reflecting-pool-us.webflow.io"
