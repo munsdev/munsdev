@@ -8,7 +8,7 @@ compatibility_date = "2024-11-01"
 # dashboard or with `wrangler deploy --routes`.
 
 kv_namespaces = [
-  { binding = "SESSIONS", id = "REPLACE_WITH_KV_NAMESPACE_ID" }
+  { binding = "SESSIONS", id = "dc4b5f6d1f2e42b7b6f616b0324af8be" }
 ]
 
 [vars]
