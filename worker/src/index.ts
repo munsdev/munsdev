@@ -73,13 +73,15 @@ export default {
       return json(env, { loggedIn });
     }
 
-    const itemIdMatch = url.pathname.match(/^\/item\/([^/]+)$/);
-    if (request.method === "GET" && itemIdMatch) {
+    // :slug is the CMS item's public slug, not its internal id -- webflow.ts
+    // resolves slug -> id before talking to the Webflow API.
+    const itemSlugMatch = url.pathname.match(/^\/item\/([^/]+)$/);
+    if (request.method === "GET" && itemSlugMatch) {
       if (!(await requireSession(request, env))) {
         return json(env, { error: "Not logged in" }, 401);
       }
       try {
-        const item = await getItem(env, itemIdMatch[1]);
+        const item = await getItem(env, decodeURIComponent(itemSlugMatch[1]));
         return json(env, item);
       } catch (err) {
         return json(env, { error: String(err) }, 502);
@@ -94,8 +96,8 @@ export default {
         const { fields, photo } = await readEntryFields(request);
         const entryFields: EntryFields = { ...fields };
         if (photo) {
-          const { fileId } = await uploadPhotoAsset(env, await photo.arrayBuffer(), photo.name, photo.type);
-          entryFields.photoFileId = fileId;
+          const { hostedUrl } = await uploadPhotoAsset(env, await photo.arrayBuffer(), photo.name, photo.type);
+          entryFields.photoUrl = hostedUrl;
         }
         const item = await createItem(env, entryFields);
         return json(env, { ok: true, item });
@@ -113,10 +115,10 @@ export default {
         const { fields, photo } = await readEntryFields(request);
         const entryFields: EntryFields = { ...fields };
         if (photo) {
-          const { fileId } = await uploadPhotoAsset(env, await photo.arrayBuffer(), photo.name, photo.type);
-          entryFields.photoFileId = fileId;
+          const { hostedUrl } = await uploadPhotoAsset(env, await photo.arrayBuffer(), photo.name, photo.type);
+          entryFields.photoUrl = hostedUrl;
         }
-        const item = await updateItem(env, submitEditMatch[1], entryFields);
+        const item = await updateItem(env, decodeURIComponent(submitEditMatch[1]), entryFields);
         return json(env, { ok: true, item });
       } catch (err) {
         return json(env, { error: String(err) }, 502);

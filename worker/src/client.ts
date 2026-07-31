@@ -7,7 +7,7 @@
 //   data-poolman-add    - the "new entry" button
 //   data-poolman-edit   - an edit button inside each CMS Collection List
 //                          item, with its value bound (via Webflow's own
-//                          dynamic-data binding) to that item's CMS id
+//                          dynamic-data binding) to that item's Slug field
 //
 // Everything else -- the modal, the rich text field, the confirm step --
 // is built by this script at runtime. Modal styling is intentionally
@@ -227,7 +227,7 @@ export const CLIENT_JS = String.raw`
       form.append('status', entry.status);
       if (entry.photoFile) form.append('photo', entry.photoFile);
 
-      var path = mode === 'edit' ? '/submit/' + itemId : '/submit';
+      var path = mode === 'edit' ? '/submit/' + encodeURIComponent(itemId) : '/submit';
       var method = mode === 'edit' ? 'PATCH' : 'POST';
 
       apiFetch(path, { method: method, body: form }).then(function (res) {
@@ -250,7 +250,7 @@ export const CLIENT_JS = String.raw`
   }
 
   function openEditModal(itemId) {
-    apiFetch('/item/' + itemId).then(function (res) {
+    apiFetch('/item/' + encodeURIComponent(itemId)).then(function (res) {
       return res.json();
     }).then(function (item) {
       var fieldData = item.fieldData || {};

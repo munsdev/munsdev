@@ -24,9 +24,10 @@ Three attributes, no others:
   and click behavior; you don't need to build anything else around it.
 - `data-poolman-add` — the "new entry" button. Only present in the DOM while
   logged in (script removes/restores it).
-- `data-poolman-edit="{{item id}}"` — an edit button inside your Collection
-  List item template, with the value bound to that item's CMS id via
-  Webflow's own dynamic-data binding. Same visibility behavior as `-add`.
+- `data-poolman-edit="{{item's Slug}}"` — an edit button inside your
+  Collection List item template, with the value bound to that item's Slug
+  field via Webflow's own dynamic-data binding (not the internal item id).
+  Same visibility behavior as `-add`.
 
 Everything else (login form, upload form, rich text field, confirm step) is
 built by `client.js` at runtime — nothing else to construct in Webflow.
@@ -76,18 +77,21 @@ page:
    npx wrangler deploy
    ```
 
-## Things to verify once the collection is live
+## Verified against the live collection
 
-The Webflow-calling code in `src/webflow.ts` is written from the documented
-v2 CMS API shape but hasn't been exercised against a real collection yet.
-Two spots flagged in comments there are worth double-checking first if
-something doesn't work:
+`src/webflow.ts` was exercised directly against the real Webflow API to
+confirm two things that were previously just documented guesses:
 
-- The exact JSON shape a CMS **Image field** expects when referencing an
-  uploaded asset (currently `{ fileId: "<assetId>" }`).
-- Whether the **publish** call used (`POST .../items/publish`) is sufficient
-  on your site's plan, or whether a follow-up site-publish call is also
-  needed to push changes live.
+- Image fields take `{ url: "<hosted url>" }`, not `{ fileId }` -- the
+  latter is rejected with a validation error.
+- `POST .../items/publish` alone is sufficient to make an item live; no
+  follow-up site-publish call is needed.
+
+Also: the `uploadDetails` object from the Assets API has camelCase keys
+(`xAmzAlgorithm`, etc.) that must be mapped to the real S3 multipart field
+names (`X-Amz-Algorithm`, etc.) before uploading -- sending the camelCase
+keys as-is gets silently rejected by S3. This was the cause of every
+`/submit` failing; `uploadPhotoAsset` now does that mapping.
 
 ## Endpoints
 

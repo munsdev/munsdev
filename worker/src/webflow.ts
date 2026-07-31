@@ -18,24 +18,36 @@ interface AssetUploadResponse {
   uploadDetails: Record<string, string>;
 }
 
+// The keys on `uploadDetails` are camelCase (e.g. xAmzAlgorithm), but S3
+// requires the real multipart field names below. Confirmed against a live
+// upload -- sending the camelCase keys as-is gets silently rejected by S3
+// and was the cause of every /submit failing.
+const S3_FORM_FIELD_NAMES: Record<string, string> = {
+  acl: "acl",
+  bucket: "bucket",
+  xAmzAlgorithm: "X-Amz-Algorithm",
+  xAmzCredential: "X-Amz-Credential",
+  xAmzDate: "X-Amz-Date",
+  key: "key",
+  policy: "Policy",
+  xAmzSignature: "X-Amz-Signature",
+  successActionStatus: "success_action_status",
+  contentType: "Content-Type",
+  cacheControl: "Cache-Control",
+};
+
 /**
- * Uploads a photo to Webflow's Assets API and returns the asset id to
- * reference from a CMS item's Image field.
- *
- * NOTE: Webflow's asset-upload flow (register asset -> get presigned S3
- * upload target -> POST the file there) and the exact shape a CMS Image
- * field expects (`{ fileId: "<assetId>" }` below) should be re-verified
- * against the current Webflow v2 API docs once WEBFLOW_SITE_ID and
- * WEBFLOW_COLLECTION_ID are filled in and there's a real collection to test
- * against — this is written from the documented v2 shape but hasn't been
- * exercised against a live site yet.
+ * Uploads a photo to Webflow's Assets API and returns the hosted URL to
+ * reference from a CMS item's Image field (Image fields take `{ url }`,
+ * confirmed against the live API -- `{ fileId }` is rejected with a
+ * validation error).
  */
 export async function uploadPhotoAsset(
   env: Env,
   fileBuffer: ArrayBuffer,
   fileName: string,
   contentType: string
-): Promise<{ fileId: string; hostedUrl: string }> {
+): Promise<{ hostedUrl: string }> {
   const fileHash = md5(fileBuffer);
 
   const registerRes = await fetch(`${API_BASE}/sites/${env.WEBFLOW_SITE_ID}/assets`, {
@@ -50,7 +62,8 @@ export async function uploadPhotoAsset(
 
   const uploadForm = new FormData();
   for (const [key, value] of Object.entries(asset.uploadDetails)) {
-    uploadForm.append(key, value);
+    const fieldName = S3_FORM_FIELD_NAMES[key] ?? key;
+    uploadForm.append(fieldName, value);
   }
   uploadForm.append("file", new Blob([fileBuffer], { type: contentType }), fileName);
 
@@ -59,11 +72,11 @@ export async function uploadPhotoAsset(
     throw new Error(`Asset upload to storage failed: ${uploadRes.status} ${await uploadRes.text()}`);
   }
 
-  return { fileId: asset.id, hostedUrl: asset.hostedUrl };
+  return { hostedUrl: asset.hostedUrl };
 }
 
 export interface EntryFields {
-  photoFileId?: string;
+  photoUrl?: string;
   date: string; // ISO 8601
   status: string; // rich text HTML
 }
@@ -75,8 +88,8 @@ function toFieldData(env: Env, fields: EntryFields, name: string, slug: string) 
     [env.DATE_FIELD_SLUG]: fields.date,
     [env.STATUS_FIELD_SLUG]: fields.status,
   };
-  if (fields.photoFileId) {
-    fieldData[env.PHOTO_FIELD_SLUG] = { fileId: fields.photoFileId };
+  if (fields.photoUrl) {
+    fieldData[env.PHOTO_FIELD_SLUG] = { url: fields.photoUrl };
   }
   return fieldData;
 }
@@ -97,7 +110,7 @@ export function nameAndSlugFromDate(date: string): { name: string; slug: string 
   return { name: `Update - ${label}`, slug: `update-${slugify(date)}` };
 }
 
-export async function createItem(env: Env, fields: EntryFields): Promise<{ id: string }> {
+export async function createItem(env: Env, fields: EntryFields): Promise<{ id: string; slug: string }> {
   const { name, slug } = nameAndSlugFromDate(fields.date);
   const res = await fetch(`${API_BASE}/collections/${env.WEBFLOW_COLLECTION_ID}/items`, {
     method: "POST",
@@ -111,28 +124,45 @@ export async function createItem(env: Env, fields: EntryFields): Promise<{ id: s
   if (!res.ok) {
     throw new Error(`Webflow item creation failed: ${res.status} ${await res.text()}`);
   }
-  const item = (await res.json()) as { id: string };
+  const item = (await res.json()) as { id: string; fieldData: { slug: string } };
   await publishItems(env, [item.id]);
-  return item;
+  return { id: item.id, slug: item.fieldData.slug };
 }
 
-export async function updateItem(env: Env, itemId: string, fields: EntryFields): Promise<{ id: string }> {
-  const existing = await getItem(env, itemId);
-  const { name, slug } = existing.fieldData as { name: string; slug: string };
+/** Resolves a CMS item's public slug to its internal item id. */
+async function getItemIdBySlug(env: Env, slug: string): Promise<string> {
+  const res = await fetch(
+    `${API_BASE}/collections/${env.WEBFLOW_COLLECTION_ID}/items?slug=${encodeURIComponent(slug)}`,
+    { headers: authHeaders(env) }
+  );
+  if (!res.ok) {
+    throw new Error(`Webflow item lookup failed: ${res.status} ${await res.text()}`);
+  }
+  const { items } = (await res.json()) as { items: { id: string }[] };
+  if (items.length === 0) {
+    throw new Error(`No item found with slug "${slug}"`);
+  }
+  return items[0].id;
+}
+
+export async function updateItem(env: Env, slug: string, fields: EntryFields): Promise<{ id: string; slug: string }> {
+  const itemId = await getItemIdBySlug(env, slug);
+  const existing = await getItemById(env, itemId);
+  const { name, slug: existingSlug } = existing.fieldData as { name: string; slug: string };
   const res = await fetch(`${API_BASE}/collections/${env.WEBFLOW_COLLECTION_ID}/items/${itemId}`, {
     method: "PATCH",
     headers: authHeaders(env),
-    body: JSON.stringify({ fieldData: toFieldData(env, fields, name, slug) }),
+    body: JSON.stringify({ fieldData: toFieldData(env, fields, name, existingSlug) }),
   });
   if (!res.ok) {
     throw new Error(`Webflow item update failed: ${res.status} ${await res.text()}`);
   }
-  const item = (await res.json()) as { id: string };
+  const item = (await res.json()) as { id: string; fieldData: { slug: string } };
   await publishItems(env, [item.id]);
-  return item;
+  return { id: item.id, slug: item.fieldData.slug };
 }
 
-export async function getItem(env: Env, itemId: string): Promise<{ id: string; fieldData: Record<string, unknown> }> {
+async function getItemById(env: Env, itemId: string): Promise<{ id: string; fieldData: Record<string, unknown> }> {
   const res = await fetch(`${API_BASE}/collections/${env.WEBFLOW_COLLECTION_ID}/items/${itemId}`, {
     headers: authHeaders(env),
   });
@@ -142,13 +172,11 @@ export async function getItem(env: Env, itemId: string): Promise<{ id: string; f
   return res.json();
 }
 
-/**
- * Publishing changed in Webflow's API around the v2 transition; some site
- * plans require a follow-up site-publish call rather than (or in addition
- * to) this item-publish endpoint. Verify against the live collection once
- * it exists — if items save but don't go live, this is the first place to
- * check.
- */
+export async function getItem(env: Env, slug: string): Promise<{ id: string; fieldData: Record<string, unknown> }> {
+  const itemId = await getItemIdBySlug(env, slug);
+  return getItemById(env, itemId);
+}
+
 export async function publishItems(env: Env, itemIds: string[]): Promise<void> {
   const res = await fetch(`${API_BASE}/collections/${env.WEBFLOW_COLLECTION_ID}/items/publish`, {
     method: "POST",
