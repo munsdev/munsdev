@@ -70,6 +70,11 @@ export const CLIENT_JS = String.raw`
   }
 
   // ---- minimal modal shell (shared by login + entry forms) ----
+  //
+  // Deliberately no backdrop-click-to-close: the only way out is the
+  // explicit close (x) button, which -- if the modal was marked dirty --
+  // asks Keep editing / Discard before actually closing. This avoids
+  // losing in-progress edits to a stray click.
 
   var overlay, modalBody;
 
@@ -79,13 +84,10 @@ export const CLIENT_JS = String.raw`
     overlay.setAttribute('data-poolman-overlay', '');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:9999;';
     var box = document.createElement('div');
-    box.style.cssText = 'background:#fff;border-radius:8px;padding:24px;max-width:420px;width:90%;max-height:85vh;overflow:auto;font-family:sans-serif;';
+    box.style.cssText = 'background:#fff;border-radius:8px;padding:24px;max-width:420px;width:90%;max-height:85vh;overflow:auto;font-family:sans-serif;position:relative;';
     modalBody = document.createElement('div');
     box.appendChild(modalBody);
     overlay.appendChild(box);
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) closeModal();
-    });
     document.body.appendChild(overlay);
   }
 
@@ -100,6 +102,26 @@ export const CLIENT_JS = String.raw`
     if (overlay) overlay.style.display = 'none';
   }
 
+  // Call from a modal's close button. isDirtyFn, if given, is called at
+  // click time; if it returns true the user is asked to confirm before the
+  // modal actually closes.
+  function requestClose(isDirtyFn) {
+    if (isDirtyFn && isDirtyFn() && !confirm('Discard your changes?')) return;
+    closeModal();
+  }
+
+  function addCloseButton(wrap, isDirtyFn) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Close');
+    btn.textContent = '×';
+    btn.style.cssText = 'position:absolute;top:8px;right:8px;width:28px;height:28px;line-height:28px;padding:0;border:none;background:transparent;font-size:20px;cursor:pointer;';
+    btn.addEventListener('click', function () {
+      requestClose(isDirtyFn);
+    });
+    wrap.appendChild(btn);
+  }
+
   // ---- login modal ----
 
   function openLoginModal() {
@@ -112,12 +134,11 @@ export const CLIENT_JS = String.raw`
       '<input type="password" data-f="password" style="width:100%;padding:6px;box-sizing:border-box"></label>' +
       '<div data-f="error" style="color:#b00020;margin-bottom:8px;display:none"></div>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-      '<button type="button" data-a="cancel">Cancel</button>' +
       '<button type="button" data-a="submit">Log In</button>' +
       '</div>';
+    addCloseButton(wrap, null);
 
     var errorEl = wrap.querySelector('[data-f="error"]');
-    wrap.querySelector('[data-a="cancel"]').addEventListener('click', closeModal);
     wrap.querySelector('[data-a="submit"]').addEventListener('click', function () {
       var username = wrap.querySelector('[data-f="username"]').value;
       var password = wrap.querySelector('[data-f="password"]').value;
@@ -152,41 +173,85 @@ export const CLIENT_JS = String.raw`
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
+  var RICHTEXT_COMMANDS = [
+    { cmd: 'bold', label: 'B', style: 'font-weight:bold' },
+    { cmd: 'italic', label: 'I', style: 'font-style:italic' },
+    { cmd: 'underline', label: 'U', style: 'text-decoration:underline' },
+    { cmd: 'formatBlock:h2', label: 'H2', style: '' },
+    { cmd: 'formatBlock:p', label: 'P', style: '' },
+    { cmd: 'insertUnorderedList', label: '• List', style: '' },
+    { cmd: 'insertOrderedList', label: '1. List', style: '' },
+    { cmd: 'createLink', label: 'Link', style: '' },
+    { cmd: 'removeFormat', label: 'Clear', style: '' },
+  ];
+
   function buildEntryForm(mode, itemId, existing) {
+    var dirty = false;
+    var markDirty = function () { dirty = true; };
+
     var wrap = document.createElement('div');
+    var existingPhotoHtml = existing && existing.photoUrl
+      ? '<img data-f="photo-preview" src="' + existing.photoUrl + '" style="max-width:100%;max-height:160px;display:block;margin-bottom:6px">' +
+        '<div style="font-size:12px;color:#666;margin-bottom:6px">Current photo &mdash; choose a new file below to replace it, or leave blank to keep it.</div>'
+      : '<img data-f="photo-preview" style="max-width:100%;max-height:160px;display:none;margin-bottom:6px">';
+
     wrap.innerHTML =
       '<h3 style="margin-top:0">' + (mode === 'edit' ? 'Edit Update' : 'New Update') + '</h3>' +
-      '<label style="display:block;margin-bottom:8px">Photo<br>' +
-      '<input type="file" accept="image/*" data-f="photo"></label>' +
-      '<label style="display:block;margin-bottom:8px">Date &amp; Time<br>' +
+      '<label style="display:block;margin-bottom:4px">Photo</label>' +
+      existingPhotoHtml +
+      '<input type="file" accept="image/*" data-f="photo" style="margin-bottom:12px">' +
+      '<label style="display:block;margin-bottom:8px;margin-top:8px">Date &amp; Time<br>' +
       '<input type="datetime-local" data-f="date" style="width:100%;padding:6px;box-sizing:border-box"></label>' +
       '<label style="display:block;margin-bottom:4px">Status</label>' +
-      '<div style="margin-bottom:4px">' +
-      '<button type="button" data-cmd="bold" style="font-weight:bold">B</button> ' +
-      '<button type="button" data-cmd="italic" style="font-style:italic">I</button> ' +
-      '<button type="button" data-cmd="insertUnorderedList">List</button>' +
+      '<div style="margin-bottom:4px;display:flex;flex-wrap:wrap;gap:4px">' +
+      RICHTEXT_COMMANDS.map(function (c) {
+        return '<button type="button" data-cmd="' + c.cmd + '" style="' + c.style + ';padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#fafafa;cursor:pointer">' + c.label + '</button>';
+      }).join(' ') +
       '</div>' +
-      '<div data-f="status" contenteditable="true" style="border:1px solid #ccc;min-height:100px;padding:8px;margin-bottom:12px"></div>' +
+      '<div data-f="status" contenteditable="true" style="border:1px solid #ccc;min-height:120px;padding:8px;margin-bottom:12px"></div>' +
       '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-      '<button type="button" data-a="cancel">Cancel</button>' +
       '<button type="button" data-a="review">Next</button>' +
       '</div>';
+    addCloseButton(wrap, function () { return dirty; });
 
     wrap.querySelectorAll('[data-cmd]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        document.execCommand(btn.getAttribute('data-cmd'));
+        var cmd = btn.getAttribute('data-cmd');
+        wrap.querySelector('[data-f="status"]').focus();
+        if (cmd === 'formatBlock:h2') {
+          document.execCommand('formatBlock', false, 'h2');
+        } else if (cmd === 'formatBlock:p') {
+          document.execCommand('formatBlock', false, 'p');
+        } else if (cmd === 'createLink') {
+          var url = prompt('Link URL:');
+          if (url) document.execCommand('createLink', false, url);
+        } else {
+          document.execCommand(cmd);
+        }
+        markDirty();
       });
     });
 
     var dateInput = wrap.querySelector('[data-f="date"]');
     dateInput.value = toLocalInputValue(existing && existing.date);
+    dateInput.addEventListener('input', markDirty);
     if (existing && existing.status) {
       wrap.querySelector('[data-f="status"]').innerHTML = existing.status;
     }
+    wrap.querySelector('[data-f="status"]').addEventListener('input', markDirty);
 
-    wrap.querySelector('[data-a="cancel"]').addEventListener('click', closeModal);
+    var photoInput = wrap.querySelector('[data-f="photo"]');
+    var photoPreview = wrap.querySelector('[data-f="photo-preview"]');
+    photoInput.addEventListener('change', function () {
+      markDirty();
+      var file = photoInput.files[0];
+      if (file) {
+        photoPreview.src = URL.createObjectURL(file);
+        photoPreview.style.display = 'block';
+      }
+    });
+
     wrap.querySelector('[data-a="review"]').addEventListener('click', function () {
-      var photoInput = wrap.querySelector('[data-f="photo"]');
       var photoFile = photoInput.files[0] || null;
       var dateValue = new Date(dateInput.value).toISOString();
       var statusHtml = wrap.querySelector('[data-f="status"]').innerHTML;
@@ -212,6 +277,7 @@ export const CLIENT_JS = String.raw`
       '<button type="button" data-a="back">Back</button>' +
       '<button type="button" data-a="confirm">Post</button>' +
       '</div>';
+    addCloseButton(wrap, function () { return true; });
 
     wrap.querySelector('[data-a="back"]').addEventListener('click', function () {
       buildEntryForm(mode, itemId, { date: entry.date, status: entry.status, photoUrl: entry.existingPhotoUrl });
