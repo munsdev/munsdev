@@ -5,7 +5,7 @@ let dict = {};
 let locale = "en";
 
 export async function loadLocale(preferred) {
-  const supported = ["en", "de"];
+  const supported = ["en", "de", "es", "fr"];
   locale = supported.includes(preferred) ? preferred : "en";
   const resp = await fetch(`./i18n/${locale}.json`);
   dict = await resp.json();
@@ -46,7 +46,7 @@ export function detectPreferredLocale() {
   const stored = localStorage.getItem("dollarsout:locale");
   if (stored) return stored;
   const nav = (navigator.language || "en").slice(0, 2);
-  return nav === "de" ? "de" : "en";
+  return ["de", "es", "fr"].includes(nav) ? nav : "en";
 }
 
 export function currentLocale() {

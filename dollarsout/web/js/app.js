@@ -52,6 +52,7 @@ async function boot() {
   renderMeter();
   renderAggregate();
   renderExplore();
+  refreshRecentLedger();
   go("home");
 }
 
@@ -59,7 +60,6 @@ async function refreshUserState() {
   if (!session.loggedIn) {
     stateByActionId = new Map();
     earnedBadgeIds = new Set();
-    window.__lastMe = null;
     return;
   }
   try {
@@ -67,7 +67,6 @@ async function refreshUserState() {
     stateByActionId = new Map(me.states.claimed.map((s) => [s.actionId, s]));
     for (const actionId of me.states.na) stateByActionId.set(actionId, { status: "na" });
     earnedBadgeIds = new Set(me.badges.map((b) => b.id));
-    window.__lastMe = me;
   } catch {
     stateByActionId = new Map();
     earnedBadgeIds = new Set();
@@ -164,6 +163,72 @@ async function refreshHome() {
   }
   renderMeter();
   renderAggregate();
+  refreshRecentLedger();
+}
+
+// ---------------- global anonymized ledger ----------------
+function formatRelativeTime(iso) {
+  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (diffSec < 60) return t("time.justNow");
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return t("time.minutesAgo", { count: diffMin });
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return t("time.hoursAgo", { count: diffHr });
+  return t("time.daysAgo", { count: Math.floor(diffHr / 24) });
+}
+
+function ledgerRowEl(item) {
+  const row = document.createElement("div");
+  row.className = "ledgerRow";
+  row.innerHTML = `<span class="name">${esc(item.actionName)}</span><span class="ts">${esc(formatRelativeTime(item.claimedAt))}</span>`;
+  return row;
+}
+
+function renderLedgerRows(container, items) {
+  container.innerHTML = "";
+  if (items.length === 0) {
+    container.innerHTML = `<p class="ledgerEmpty">${esc(t("ledger.empty"))}</p>`;
+    return;
+  }
+  for (const item of items) container.appendChild(ledgerRowEl(item));
+}
+
+async function refreshRecentLedger() {
+  try {
+    const { items } = await api.getRecentLedger();
+    renderLedgerRows($("recentLedger"), items);
+  } catch {
+    // leave whatever was last shown rather than blanking it on a flaky request
+  }
+}
+
+let ledgerNextOffset = null;
+
+async function openLedgerPage() {
+  $("fullLedger").innerHTML = `<p class="ledgerEmpty">${esc(t("common.loading"))}</p>`;
+  $("loadMoreLedgerBtn").hidden = true;
+  go("ledger");
+  try {
+    const page = await api.getLedgerPage(0);
+    renderLedgerRows($("fullLedger"), page.items);
+    ledgerNextOffset = page.nextOffset;
+    $("loadMoreLedgerBtn").hidden = ledgerNextOffset == null;
+  } catch {
+    $("fullLedger").innerHTML = `<p class="ledgerEmpty">${esc(t("common.error"))}</p>`;
+  }
+}
+
+async function loadMoreLedger() {
+  if (ledgerNextOffset == null) return;
+  try {
+    const page = await api.getLedgerPage(ledgerNextOffset);
+    const container = $("fullLedger");
+    for (const item of page.items) container.appendChild(ledgerRowEl(item));
+    ledgerNextOffset = page.nextOffset;
+    $("loadMoreLedgerBtn").hidden = ledgerNextOffset == null;
+  } catch {
+    // leave the button visible so the user can retap
+  }
 }
 
 function renderAggregate() {
@@ -251,11 +316,11 @@ function filtersActive() {
 }
 
 // ---------------- screens ----------------
-const SCREENS = ["home", "explore", "cat", "detail", "shelf", "shelf-empty", "you", "you-empty"];
+const SCREENS = ["home", "explore", "cat", "detail", "shelf", "shelf-empty", "ledger"];
 function go(id) {
   for (const s of SCREENS) $("s-" + s).hidden = s !== id;
   document.querySelectorAll(".nav button[data-nav]").forEach((b) => b.setAttribute("aria-current", "false"));
-  const navMap = { home: "home", explore: "explore", cat: "explore", detail: "explore", shelf: "shelf", "shelf-empty": "shelf", you: "you", "you-empty": "you" };
+  const navMap = { home: "home", explore: "explore", cat: "explore", detail: "explore", shelf: "shelf", "shelf-empty": "shelf", ledger: "home" };
   const navBtn = document.querySelector(`.nav button[data-nav="${navMap[id]}"]`);
   if (navBtn) navBtn.setAttribute("aria-current", "true");
   $("scrollBody").scrollTop = 0;
@@ -585,57 +650,78 @@ async function renderCheckins() {
   }
 }
 
-// ---------------- you ----------------
-function renderYou() {
-  if (!session.loggedIn) {
-    go("you-empty");
-    return;
+// ---------------- account sheet ----------------
+function openAccountSheet() {
+  $("accountSheet").classList.add("on");
+}
+function closeAccountSheet() {
+  $("accountSheet").classList.remove("on");
+}
+
+async function handleLogout() {
+  closeAccountSheet();
+  await api.logout();
+  session = { loggedIn: false, email: null };
+  await refreshUserState();
+  renderTopbar();
+  renderExplore();
+  go("home");
+  refreshHome();
+}
+
+async function handleExportData() {
+  const data = await api.exportData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "dollarsout-export.json";
+  a.click();
+}
+
+async function handleDeleteAccount() {
+  if (!confirm(t("account.deleteConfirm"))) return;
+  await api.deleteAccount();
+  closeAccountSheet();
+  session = { loggedIn: false, email: null };
+  await refreshUserState();
+  renderTopbar();
+  go("home");
+  refreshHome();
+}
+
+// ---------------- language sheet ----------------
+const LOCALE_NAMES = { en: "English", de: "Deutsch", es: "Español", fr: "Français" };
+
+function openLanguageSheet() {
+  const wrap = $("languageOptions");
+  wrap.innerHTML = "";
+  for (const loc of LOCALES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "langOption";
+    btn.setAttribute("aria-pressed", loc === currentLocale() ? "true" : "false");
+    btn.textContent = LOCALE_NAMES[loc];
+    btn.addEventListener("click", () => selectLocale(loc));
+    wrap.appendChild(btn);
   }
-  const me = window.__lastMe;
-  $("youActionsTaken").textContent = me.stats.actionsTaken;
-  $("youBadges").textContent = me.stats.badgesEarned;
-  $("youStillHolding").textContent = me.stats.stillHolding;
+  $("languageSheet").classList.add("on");
+}
+function closeLanguageSheet() {
+  $("languageSheet").classList.remove("on");
+}
 
-  const tools = $("accountTools");
-  tools.innerHTML = "";
-  const exportBtn = document.createElement("button");
-  exportBtn.className = "linkish";
-  exportBtn.type = "button";
-  exportBtn.textContent = t("you.exportDelete");
-  exportBtn.addEventListener("click", async () => {
-    if (!confirm(t("you.exportConfirm"))) return;
-    const data = await api.exportData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "dollarsout-export.json";
-    a.click();
-    await api.deleteAccount();
-    session = { loggedIn: false, email: null };
-    await refreshUserState();
-    renderTopbar();
-    go("home");
-  });
-  tools.appendChild(exportBtn);
-
-  $("shareProgressBtn").onclick = async () => {
-    let shareUrl = null;
-    try {
-      const created = await api.createShare({
-        kind: "badge",
-        headline: `${me.stats.actionsTaken} ${t("you.actionsTaken")}`,
-        subline: t("you.shareProgress"),
-      });
-      shareUrl = created.url;
-    } catch {}
-    if (shareUrl && navigator.share) navigator.share({ title: t("you.shareProgress"), url: shareUrl }).catch(() => {});
-    else if (shareUrl) {
-      await navigator.clipboard.writeText(shareUrl).catch(() => {});
-      showToast(t("share.copied"));
-    }
-  };
-
-  go("you");
+async function selectLocale(loc) {
+  closeLanguageSheet();
+  if (loc === currentLocale()) return;
+  localStorage.setItem("dollarsout:locale", loc);
+  await loadLocale(loc);
+  renderTopbar();
+  renderMeter();
+  renderAggregate();
+  refreshRecentLedger();
+  if (!$("s-explore").hidden) renderExplore();
+  if (!$("s-cat").hidden) openCategory(currentCategoryId);
+  if (!$("s-shelf").hidden) renderShelf();
 }
 
 // ---------------- auth (OTP + Turnstile) ----------------
@@ -774,20 +860,18 @@ function wireStaticEvents() {
       if (dest === "home") { go("home"); refreshHome(); }
       else if (dest === "explore") { renderExplore(); go("explore"); }
       else if (dest === "shelf") renderShelf();
-      else if (dest === "you") renderYou();
     });
   });
 
   $("authPill").addEventListener("click", () => {
-    if (session.loggedIn) {
-      api.logout().then(() => {
-        session = { loggedIn: false, email: null };
-        refreshUserState().then(() => { renderTopbar(); renderExplore(); });
-      });
-    } else openAuth();
+    if (session.loggedIn) openAccountSheet();
+    else openAuth();
   });
   $("shelfSaveBtn").addEventListener("click", () => openAuth());
-  $("youSaveBtn").addEventListener("click", () => openAuth());
+  $("closeAccountBtn").addEventListener("click", closeAccountSheet);
+  $("logoutBtn").addEventListener("click", handleLogout);
+  $("exportDataBtn").addEventListener("click", handleExportData);
+  $("deleteAccountBtn").addEventListener("click", handleDeleteAccount);
   $("closeAuthBtn").addEventListener("click", closeAuth);
   $("sendCodeBtn").addEventListener("click", handleSendCode);
   $("confirmCodeBtn").addEventListener("click", handleConfirmCode);
@@ -828,25 +912,68 @@ function wireStaticEvents() {
     if (pick) openDetail(pick.id, pick.categoryId);
   });
 
-  $("localeSwitch").addEventListener("click", async () => {
-    const idx = LOCALES.indexOf(currentLocale());
-    const next = LOCALES[(idx + 1) % LOCALES.length];
-    localStorage.setItem("dollarsout:locale", next);
-    await loadLocale(next);
-    updateLocaleSwitchLabel();
-    renderTopbar();
-    renderMeter();
-    renderAggregate();
-    if (!$("s-explore").hidden) renderExplore();
-    if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  });
-  updateLocaleSwitchLabel();
+  $("localeSwitch").addEventListener("click", openLanguageSheet);
+  $("closeLanguageBtn").addEventListener("click", closeLanguageSheet);
+
+  $("seeAllLedgerBtn").addEventListener("click", openLedgerPage);
+  $("ledgerBackBtn").addEventListener("click", () => { go("home"); refreshHome(); });
+  $("loadMoreLedgerBtn").addEventListener("click", loadMoreLedger);
+
+  wireSwipeNav();
 }
 
-function updateLocaleSwitchLabel() {
-  const idx = LOCALES.indexOf(currentLocale());
-  const next = LOCALES[(idx + 1) % LOCALES.length];
-  $("localeSwitch").textContent = next.toUpperCase();
+// ---------------- swipe navigation ----------------
+const PANEL_ORDER = ["home", "explore", "shelf"];
+let touchStart = null;
+
+function currentScreenId() {
+  const el = document.querySelector(".screen:not([hidden])");
+  return el ? el.id.slice(2) : null; // strip "s-" prefix
+}
+
+function wireSwipeNav() {
+  const body = $("scrollBody");
+  body.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    },
+    { passive: true }
+  );
+
+  body.addEventListener(
+    "touchend",
+    (e) => {
+      if (!touchStart) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStart.x;
+      const dy = touch.clientY - touchStart.y;
+      const dt = Date.now() - touchStart.time;
+      touchStart = null;
+      if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+
+      const screen = currentScreenId();
+      if (screen === "cat" || screen === "detail" || screen === "ledger") {
+        if (dx > 0) {
+          if (screen === "cat") $("catBackBtn").click();
+          else if (screen === "detail") $("detailBackBtn").click();
+          else if (screen === "ledger") $("ledgerBackBtn").click();
+        }
+        return;
+      }
+
+      const panelScreen = screen === "shelf-empty" ? "shelf" : screen;
+      const idx = PANEL_ORDER.indexOf(panelScreen);
+      if (idx === -1) return;
+      const nextIdx = dx < 0 ? idx + 1 : idx - 1;
+      if (nextIdx < 0 || nextIdx >= PANEL_ORDER.length) return;
+      const navBtn = document.querySelector(`.nav button[data-nav="${PANEL_ORDER[nextIdx]}"]`);
+      if (navBtn) navBtn.click();
+    },
+    { passive: true }
+  );
 }
 
 boot();

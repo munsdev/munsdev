@@ -270,6 +270,18 @@ a { color: inherit; }
 .privline { font-size: 13px; font-weight: 600; opacity: 0.75; line-height: 1.55; margin-top: 12px; }
 .formError { color: var(--orn-solid); font-weight: 700; font-size: 14px; margin-top: 8px; min-height: 20px; }
 
+.ledgerRow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  padding: 9px 0; border-bottom: 2px solid #ede9da; font-size: 14px; }
+.ledgerRow:last-child { border-bottom: none; }
+.ledgerRow .name { font-weight: 700; }
+.ledgerRow .ts { font-weight: 700; opacity: 0.6; white-space: nowrap; flex: 0 0 auto; font-size: 13px; }
+.ledgerEmpty { font-size: 14px; font-weight: 700; opacity: 0.7; padding: 4px 0; }
+
+.langOption { display: flex; width: 100%; align-items: center; justify-content: space-between;
+  border: 3px solid var(--ink); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+  background: #fff; font-weight: 800; font-size: 15px; cursor: pointer; min-height: 48px; }
+.langOption[aria-pressed="true"] { background: var(--grn-bright); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }

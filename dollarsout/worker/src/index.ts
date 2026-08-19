@@ -27,6 +27,7 @@ import {
 } from "./claims";
 import { createShare, getShare, renderCardPng } from "./shareImage";
 import { reconcileAggregates } from "./aggregate";
+import { getLedgerPage, getRecentLedger } from "./ledger";
 
 async function readJson<T>(request: Request): Promise<T | null> {
   try {
@@ -55,6 +56,13 @@ export default {
       }
       if (request.method === "GET" && pathname === "/stats") {
         return json(env, await getStats(env));
+      }
+      if (request.method === "GET" && pathname === "/ledger/recent") {
+        return json(env, { items: await getRecentLedger(env) });
+      }
+      if (request.method === "GET" && pathname === "/ledger") {
+        const offset = Number(url.searchParams.get("offset") || 0);
+        return json(env, await getLedgerPage(env, offset));
       }
 
       // ---- auth ----

@@ -48,6 +48,9 @@ export const api = {
   deleteAccount: () => request("/me/delete", { method: "POST" }),
 
   createShare: (card) => request("/share", { method: "POST", body: JSON.stringify(card) }),
+
+  getRecentLedger: () => request("/ledger/recent"),
+  getLedgerPage: (offset) => request(`/ledger?offset=${offset}`),
 };
 
 export { API_BASE };

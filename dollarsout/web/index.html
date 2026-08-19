@@ -17,7 +17,7 @@
     <div class="topbar-row">
       <div class="wordmark display" data-i18n="app.wordmark">DollarsOut</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="localeSwitch" id="localeSwitch" type="button" aria-label="Switch language">DE</button>
+        <button class="localeSwitch" id="localeSwitch" type="button" data-i18n-aria-label="lang.switch" aria-label="">EN</button>
         <button class="pill ghostpill" id="authPill" type="button"></button>
       </div>
     </div>
@@ -32,8 +32,8 @@
 
   <div class="body" id="scrollBody">
 
-    <!-- ============ HOME (meter only) ============ -->
-    <main class="screen" id="s-home">
+    <!-- ============ HOME (meter) ============ -->
+    <main class="screen" id="s-home" data-panel="0">
       <div class="meterwrap">
         <div class="meter-title" data-i18n="meter.title">All of us, this month</div>
         <div class="meter-goal" id="meterGoalLine"></div>
@@ -60,10 +60,16 @@
         <div class="stat p"><b id="statPeopleVerified">0</b><span data-i18n="aggregate.peopleVerified">People, verified</span></div>
       </div>
       <div id="communityGoals"></div>
+
+      <div class="h2" style="margin-top:22px"><span data-i18n="ledger.recentHeading">Recent activity</span></div>
+      <div class="card">
+        <div id="recentLedger"></div>
+        <button class="linkish" id="seeAllLedgerBtn" type="button" data-i18n="ledger.seeAll" style="margin-top:10px">See all</button>
+      </div>
     </main>
 
     <!-- ============ ACTIONS (category picker) ============ -->
-    <main class="screen" id="s-explore" hidden>
+    <main class="screen" id="s-explore" hidden data-panel="1">
       <div class="searchbar">
         <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
         <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
@@ -92,8 +98,8 @@
       <div id="detailContent"></div>
     </main>
 
-    <!-- ============ SHELF (signed in) ============ -->
-    <main class="screen" id="s-shelf" hidden>
+    <!-- ============ ACHIEVEMENTS (signed in) ============ -->
+    <main class="screen" id="s-shelf" hidden data-panel="2">
       <div class="laddercard">
         <div class="h2" style="margin-top:0" data-i18n="shelf.yourLevel">Your level</div>
         <div class="lvlstrip lvlstrip-static">
@@ -103,14 +109,14 @@
         <p style="font-size:14px;font-weight:700;opacity:0.8;margin-top:10px" data-i18n="level.ladder"></p>
       </div>
 
-      <div class="h2"><span data-i18n="shelf.yourShelf">Your shelf</span> <span class="cnt" id="shelfCount"></span></div>
+      <div class="h2"><span data-i18n="shelf.yourShelf">Your achievements</span> <span class="cnt" id="shelfCount"></span></div>
       <div class="badgegrid" id="badgeGrid"></div>
 
       <div id="checkinsSection"></div>
     </main>
 
-    <!-- ============ SHELF/ACHIEVEMENTS (signed-out empty state) ============ -->
-    <main class="screen" id="s-shelf-empty" hidden>
+    <!-- ============ ACHIEVEMENTS (signed-out empty state) ============ -->
+    <main class="screen" id="s-shelf-empty" hidden data-panel="2">
       <div class="empty">
         <div class="ico">🏅</div>
         <h3 data-i18n="shelf.emptyTitle">Nothing here yet</h3>
@@ -119,27 +125,13 @@
       </div>
     </main>
 
-    <!-- ============ YOU (signed in) ============ -->
-    <main class="screen" id="s-you" hidden>
-      <div class="h2" data-i18n="you.heading">Your progress</div>
-      <div class="statrow">
-        <div class="stat g"><b id="youActionsTaken">0</b><span data-i18n="you.actionsTaken">Actions taken</span></div>
-        <div class="stat o"><b id="youBadges">0</b><span data-i18n="you.badgesEarned">Badges earned</span></div>
-        <div class="stat p"><b id="youStillHolding">0</b><span data-i18n="you.stillHolding">Still holding</span></div>
-      </div>
-
-      <button class="btn orn" id="shareProgressBtn" type="button" data-i18n="you.shareProgress">Share your progress</button>
-      <div id="accountTools" style="text-align:center;margin-top:16px"></div>
-    </main>
-
-    <!-- ============ YOU (signed-out empty state) ============ -->
-    <main class="screen" id="s-you-empty" hidden>
-      <div class="empty">
-        <div class="ico">🧾</div>
-        <h3 data-i18n="you.emptyTitle">Nothing tracked yet</h3>
-        <p data-i18n="you.emptyBody"></p>
-        <button class="btn" id="youSaveBtn" type="button" data-i18n="auth.ctaSignIn">Sign In</button>
-      </div>
+    <!-- ============ GLOBAL LEDGER (public, anonymized) ============ -->
+    <main class="screen" id="s-ledger" hidden>
+      <button class="back" id="ledgerBackBtn" type="button">‹ <span data-i18n="nav.home">Home</span></button>
+      <div class="h2" data-i18n="ledger.pageTitle">Global ledger</div>
+      <p style="font-size:14px;font-weight:600;opacity:0.75;margin-bottom:14px" data-i18n="ledger.pageSubtitle"></p>
+      <div id="fullLedger"></div>
+      <button class="btn ghost sm" id="loadMoreLedgerBtn" type="button" data-i18n="ledger.loadMore" style="margin-top:10px">Load more</button>
     </main>
 
   </div>
@@ -148,7 +140,6 @@
     <button type="button" data-nav="home" aria-current="true"><span class="i">🎯</span><span class="l" data-i18n="nav.home">Home</span></button>
     <button type="button" data-nav="explore"><span class="i">🔍</span><span class="l" data-i18n="nav.explore">Actions</span></button>
     <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Achievements</span></button>
-    <button type="button" data-nav="you"><span class="i">🧾</span><span class="l" data-i18n="nav.you">You</span></button>
   </nav>
 
   <div class="toast" id="toast" role="status" aria-live="polite">
@@ -211,6 +202,24 @@
         <p class="formError" id="authError2"></p>
         <p class="privline" style="text-align:center"><span data-i18n="auth.didntGetIt"></span> <button class="linkish" id="resendBtn" type="button" data-i18n="auth.resend">Resend</button></p>
       </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="accountSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="account.title">Account</span>
+        <button class="sheetclose" id="closeAccountBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <button class="btn ghost" id="logoutBtn" type="button" data-i18n="account.logout" style="margin-bottom:10px">Log out</button>
+      <button class="btn ghost" id="exportDataBtn" type="button" data-i18n="account.export" style="margin-bottom:10px">Export my data</button>
+      <button class="btn ghost" id="deleteAccountBtn" type="button" data-i18n="account.delete">Delete my account</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="languageSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="lang.title">Language</span>
+        <button class="sheetclose" id="closeLanguageBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <div id="languageOptions"></div>
     </div>
   </div>
 

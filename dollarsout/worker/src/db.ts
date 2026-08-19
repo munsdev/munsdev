@@ -373,3 +373,33 @@ export async function countVerifiedPeople(env: Env): Promise<number> {
   ).first();
   return (row?.n as number) || 0;
 }
+
+export interface LedgerEntry {
+  actionName: string;
+  claimedAt: string;
+}
+
+/**
+ * Global, fully anonymized activity feed -- action name and timestamp only, never an account id,
+ * email, or anything else that could identify who did it. Filtered by the same 48h quarantine
+ * window as every other public number (spec S7.4), so this can't be used to watch a fresh batch
+ * of fake accounts claim things in real time.
+ */
+export async function listRecentClaimsGlobal(
+  env: Env,
+  limit: number,
+  offset: number
+): Promise<LedgerEntry[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT a.name as action_name, uas.claimed_at as claimed_at
+     FROM user_action_state uas
+     JOIN actions a ON a.id = uas.action_id
+     JOIN accounts acc ON acc.id = uas.account_id
+     WHERE uas.status = 'claimed' AND acc.quarantine_until <= datetime('now') AND acc.status = 'active'
+     ORDER BY uas.claimed_at DESC
+     LIMIT ? OFFSET ?`
+  )
+    .bind(limit, offset)
+    .all();
+  return (results || []).map((r: any) => ({ actionName: r.action_name, claimedAt: r.claimed_at }));
+}
