@@ -1,4 +1,4 @@
-# Slime Arcade
+# Henry's Arcade
 
 A 90s-Nickelodeon-style tap-anything game for toddlers. Four mini-games —
 shapes, colors, counting, sounds — in one self-contained HTML page. No build

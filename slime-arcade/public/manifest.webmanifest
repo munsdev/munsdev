@@ -1,7 +1,7 @@
 {
-  "name": "Slime Arcade",
-  "short_name": "Slime",
-  "description": "Shapes, colors, counting, and sounds — a tap-anything arcade for toddlers.",
+  "name": "Henry's Arcade",
+  "short_name": "Henry",
+  "description": "Shapes, colors, counting, and sounds — Henry's tap-anything arcade.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
