@@ -1,0 +1,16 @@
+{
+  "name": "Slime Arcade",
+  "short_name": "Slime",
+  "description": "Shapes, colors, counting, and sounds — a tap-anything arcade for toddlers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F57D0D",
+  "theme_color": "#F57D0D",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

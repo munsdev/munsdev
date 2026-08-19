@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Slime Arcade</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#F57D0D">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Slime Arcade">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Baloo+2:wght@600;800&display=swap">
@@ -127,12 +135,12 @@
     flex:1 1 auto;position:relative;z-index:3;
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:clamp(10px,2.2vmin,24px);
+    gap:clamp(6px,1.3vmin,14px);
     padding:clamp(6px,1.5vmin,16px) 0 clamp(2px,1vmin,10px);
     min-height:0;
   }
   .tile{
-    border:7px solid var(--ink);
+    border:8px solid var(--ink);
     border-radius:38px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:.15em;
@@ -164,10 +172,10 @@
     overflow:hidden;
   }
   .pad-grid{
-    flex:1 1 auto;display:grid;gap:clamp(8px,1.8vmin,18px);min-height:0;
+    flex:1 1 auto;display:grid;gap:clamp(4px,1vmin,10px);min-height:0;
   }
   .pad{
-    border:6px solid var(--ink);
+    border:7px solid var(--ink);
     border-radius:28px;
     box-shadow:0 9px 0 var(--ink);
     cursor:pointer;
@@ -225,7 +233,7 @@
   .swatch{border-radius:50% 42% 58% 45%/48% 55% 45% 52%}
 
   /* ---------- numbers ---------- */
-  #numbers .pad-grid{grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,1fr);flex:0 0 auto;height:34%}
+  #numbers .pad-grid{grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(2,1fr);flex:0 0 auto;height:41%}
   #numbers .pad{font-size:clamp(20px,5.5vmin,50px);background:var(--purple)}
   #numbers .pad:nth-child(even){background:var(--pink)}
   .tray{
@@ -463,17 +471,30 @@
     }
   });
 
+  /* ---------------- forgiving taps ---------------- */
+  /* Toddlers' fingers wobble mid-press, which makes browsers cancel the
+     synthetic "click" event (it treats the wobble as a scroll gesture).
+     pointerdown fires the instant contact happens and ignores movement. */
+  function onTap(el, handler){
+    el.addEventListener("pointerdown", function(e){
+      if(e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      handler(e);
+    }, {passive:false});
+  }
+
   /* ---------------- navigation ---------------- */
   function go(id){
     document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
     tone({f: id==="home" ? 300 : 660, to: id==="home" ? 180 : 990, dur:.25, type:"square", vol:.2});
   }
-  document.addEventListener("click", function(e){
+  document.addEventListener("pointerdown", function(e){
+    if(e.pointerType === "mouse" && e.button !== 0) return;
     const g = e.target.closest("[data-go]");
-    if(g){ go(g.dataset.go); return; }
+    if(g){ e.preventDefault(); go(g.dataset.go); return; }
     const l = e.target.closest("[data-lang]");
-    if(l){ setLang(l.dataset.lang); }
-  });
+    if(l){ e.preventDefault(); setLang(l.dataset.lang); }
+  }, {passive:false});
 
   /* ---------------- global tap feedback ---------------- */
   document.addEventListener("pointerdown", function(e){
@@ -497,7 +518,7 @@
     b.className = "pad";
     b.style.background = s.col;
     b.innerHTML = '<span class="shape '+s.c+'"></span>';
-    b.addEventListener("click", function(){
+    onTap(b, function(){
       const name = t().shapeNames[s.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       shapeWord.textContent = name + "!";
@@ -545,7 +566,7 @@
     const b = document.createElement("button");
     b.className = "pad swatch";
     b.style.background = c.c;
-    b.addEventListener("click", function(){
+    onTap(b, function(){
       const name = t().colorNames[c.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       colorScreen.style.background = c.c;
@@ -568,7 +589,7 @@
     const b = document.createElement("button");
     b.className = "pad";
     b.textContent = i;
-    b.addEventListener("click", function(){
+    onTap(b, function(){
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       countTimers.forEach(clearTimeout); countTimers = [];
       tray.innerHTML = "";
@@ -612,7 +633,7 @@
     b.className = "pad";
     b.style.background = s.col;
     b.innerHTML = s.e;
-    b.addEventListener("click", function(){
+    onTap(b, function(){
       const name = t().soundNames[s.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       soundWord.textContent = name + "!";
@@ -650,6 +671,12 @@
     tone({f:520, to:780, dur:.15, type:"triangle", vol:.2});
   }
   applyLang();
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("/sw.js").catch(function(){});
+    });
+  }
 })();
 </script>
 </body>
