@@ -100,7 +100,6 @@ function levelProgressPct(totalClaimed, level) {
 
 function renderTopbar() {
   $("authPill").textContent = session.loggedIn ? t("auth.signedIn") : t("auth.guest");
-  $("guestbar").style.display = session.loggedIn ? "none" : "flex";
 
   const totalClaimed = [...stateByActionId.values()].filter((s) => s.status === "claimed").length;
   const level = computeLevel(totalClaimed);
@@ -842,7 +841,6 @@ function wireStaticEvents() {
       });
     } else openAuth();
   });
-  $("guestSaveBtn").addEventListener("click", openAuth);
   $("shelfSaveBtn").addEventListener("click", openAuth);
   $("youSaveBtn").addEventListener("click", openAuth);
   $("closeAuthBtn").addEventListener("click", closeAuth);

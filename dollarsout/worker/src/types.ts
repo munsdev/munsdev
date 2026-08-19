@@ -7,11 +7,7 @@ export interface Env {
   ALLOWED_ORIGIN: string;
   SESSION_COOKIE_DOMAIN: string;
 
-  WEBFLOW_SITE_ID: string;
-  WEBFLOW_ACTIONS_COLLECTION_ID: string;
-
   // Secrets -- set with `wrangler secret put <NAME>`, never in wrangler.toml.
-  WEBFLOW_API_TOKEN: string;
   TURNSTILE_SECRET_KEY: string;
   TURNSTILE_SITE_KEY: string; // public, but kept as a secret so it's one less thing to sync by hand
   OTP_EMAIL_API_KEY: string;

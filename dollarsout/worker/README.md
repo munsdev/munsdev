@@ -15,10 +15,13 @@ where the category/action/badge content actually comes from.
   reconciled from D1 on a cron rather than read from D1 on every homepage
   load, plus the catalog response cache, the disposable-domain blocklist
   cache, rate-limit counters, and share-card payloads.
-- **Webflow** is the source of truth for the 7 category-level copy blocks
-  (name/short-description/long-description), synced daily. It is **not**
-  the source for the granular actions or badges — see `content/README.md`
-  for why.
+- **Content is fully self-contained** — categories, actions, and badges all
+  live in D1, seeded once from `content/*.json`. The 7 categories were
+  originally drawn from the live 1STAND Webflow Actions CMS as a one-time
+  import (see `content/README.md` for the lineage), but there's no ongoing
+  connection: no scheduled sync, no `WEBFLOW_API_TOKEN`, no live calls to
+  Webflow at all. Editing content here never touches Webflow, and editing
+  Webflow never touches this app.
 - **`../web`** (the static frontend) is served straight from this Worker
   via the `[assets]` binding in `wrangler.toml` — one deploy, one domain,
   no separate Pages project. API routes and static files share
@@ -32,7 +35,6 @@ IDs are in `wrangler.toml`, and the schema + content are already loaded).
 Still needed before this can go live:
 
 1. **Secrets** (`wrangler secret put <NAME>`):
-   - `WEBFLOW_API_TOKEN` — Webflow API token, CMS read scope on 1STAND.org.
    - `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` — from a Turnstile widget
      created for `dollarsout.1stand.org` in the Cloudflare dashboard
      (Turnstile → Add site). Invisible mode per spec §7.1.
@@ -63,11 +65,10 @@ Still needed before this can go live:
 
 `content/*.json` is hand-authored (see `content/README.md` for why) and
 only loaded into D1 once, by hand, via `d1_database_query` during this
-build. There's no re-seed script yet — if you edit the JSON files, the
-change needs to be pushed into D1 manually (or write a small
-`scripts/seed.ts` that diffs and upserts, if this becomes a frequent
-edit). Category copy (name/short/long description only) re-syncs
-automatically from Webflow daily at 03:00 UTC.
+build. There's no re-seed script and no live sync of any kind — if you edit
+the JSON files or want to change copy, the change needs to be pushed into
+D1 directly (or write a small `scripts/seed.ts` that diffs and upserts, if
+this becomes a frequent edit).
 
 ## Anti-abuse (spec §7)
 

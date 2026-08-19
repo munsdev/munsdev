@@ -19,9 +19,9 @@ directory = "../web"
 binding = "ASSETS"
 
 # Reconcile public aggregate counters every 10 min (fast-path KV read on every homepage load,
-# see spec S11); daily 3am sync pulls category copy from the Webflow Actions CMS (spec S8).
+# see spec S11).
 [triggers]
-crons = ["*/10 * * * *", "0 3 * * *"]
+crons = ["*/10 * * * *"]
 
 [vars]
 # Frontend and API are now the same origin (this Worker serves both), so this is mostly a
@@ -29,16 +29,11 @@ crons = ["*/10 * * * *", "0 3 * * *"]
 ALLOWED_ORIGIN = "https://dollarsout.1stand.org"
 SESSION_COOKIE_DOMAIN = "dollarsout.1stand.org"
 
-# --- Webflow config (Actions CMS, spec S8) ---
-WEBFLOW_SITE_ID = "69a1a23b929de4a13af87819"
-WEBFLOW_ACTIONS_COLLECTION_ID = "69a446acb75c3e74816c32c0"
-
 # --- Disposable-email blocklist (spec S7.2) ---
 # A maintained, plain-text, newline-separated list of domains. Swappable without a redeploy.
 DISPOSABLE_DOMAIN_BLOCKLIST_URL = "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf"
 
 # --- Secrets -- set with `wrangler secret put <NAME>`, never here: ---
-#   WEBFLOW_API_TOKEN     Webflow API token, CMS read scope on the 1STAND.org site
 #   TURNSTILE_SITE_KEY    Cloudflare Turnstile site key (public, kept as a secret for convenience)
 #   TURNSTILE_SECRET_KEY  Cloudflare Turnstile secret key
 #   OTP_EMAIL_API_KEY     Transactional email vendor API key (see auth.ts sendOtpEmail --

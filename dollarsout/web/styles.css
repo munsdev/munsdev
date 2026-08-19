@@ -71,11 +71,6 @@ a { color: inherit; }
 .segbar i { display: block; height: 100%; background: var(--grn-bright); }
 .lvlnext { font-size: 14px; font-weight: 700; opacity: 0.9; white-space: nowrap; }
 
-.guestbar { background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 700;
-  padding: 10px 16px; text-align: center; flex: 0 0 auto; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.guestbar button { background: none; border: none; color: var(--bg); font-weight: 800; text-decoration: underline;
-  cursor: pointer; font-size: 14px; min-height: 44px; padding: 4px; }
-
 /* ---- scroll body ---- */
 .body { flex: 1 1 auto; overflow-y: auto; padding: 16px 16px 96px; -webkit-overflow-scrolling: touch; position: relative; }
 .screen[hidden] { display: none; }
@@ -233,11 +228,11 @@ a { color: inherit; }
   display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; }
 .shares button .ic { font-size: 18px; }
 
-.toast { position: absolute; left: 16px; right: 16px; bottom: 84px; background: var(--ink); color: var(--bg);
-  border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; z-index: 25; box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35); transform: translateY(120%);
-  transition: transform 0.28s ease; }
-.toast.on { transform: translateY(0); }
+.toast { position: absolute; left: 16px; right: 16px; bottom: -120px; opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex;
+  align-items: center; justify-content: space-between; gap: 10px; z-index: 25;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35); transition: bottom 0.28s ease, opacity 0.28s ease; }
+.toast.on { bottom: 84px; opacity: 1; pointer-events: auto; }
 .toast span { font-size: 14px; font-weight: 700; }
 .toast button { background: var(--orn-bright); color: var(--ink); border: none; border-radius: 8px;
   padding: 8px 14px; font-weight: 800; font-size: 13px; text-transform: uppercase; cursor: pointer; flex: 0 0 auto; min-height: 44px; }

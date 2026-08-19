@@ -13,7 +13,7 @@ import {
   verifyTurnstile,
   COOKIE_NAME,
 } from "./auth";
-import { getCatalog, getStats, invalidateCatalogCache } from "./content";
+import { getCatalog, getStats } from "./content";
 import {
   handleCheckin,
   handleClaim,
@@ -27,7 +27,6 @@ import {
 } from "./claims";
 import { createShare, getShare, renderCardPng } from "./shareImage";
 import { reconcileAggregates } from "./aggregate";
-import { syncCategoriesFromWebflow } from "./webflowSync";
 
 async function readJson<T>(request: Request): Promise<T | null> {
   try {
@@ -221,16 +220,7 @@ export default {
     }
   },
 
-  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    if (event.cron === "0 3 * * *") {
-      ctx.waitUntil(
-        (async () => {
-          await syncCategoriesFromWebflow(env);
-          await invalidateCatalogCache(env);
-        })()
-      );
-      return;
-    }
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(reconcileAggregates(env));
   },
 };
