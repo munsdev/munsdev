@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Slime Arcade</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +52,22 @@
   }
   @keyframes drift{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}50%{transform:translate3d(0,-14px,0) rotate(9deg)}}
 
+  /* ---------- language switch ---------- */
+  .langSwitch{
+    position:fixed;top:max(8px,env(safe-area-inset-top));right:8px;z-index:60;
+    display:flex;gap:6px;background:rgba(36,26,46,.55);
+    padding:5px;border-radius:16px;
+  }
+  .langSwitch button{
+    font-family:var(--round);font-weight:800;font-size:14px;
+    border:3px solid var(--ink);border-radius:11px;
+    padding:.35em .7em;background:#fff;color:var(--ink);
+    cursor:pointer;min-width:2.6em;
+    transition:transform .08s;
+  }
+  .langSwitch button.active{background:var(--slime);color:#fff;box-shadow:0 3px 0 var(--ink)}
+  .langSwitch button:active{transform:translateY(2px)}
+
   /* ---------- header ---------- */
   header{display:flex;align-items:center;gap:12px;position:relative;z-index:3;flex:0 0 auto}
   .back{
@@ -59,6 +80,7 @@
     box-shadow:0 7px 0 var(--ink);
     cursor:pointer;
     transition:transform .08s;
+    white-space:nowrap;
   }
   .back:active{transform:translateY(6px);box-shadow:0 1px 0 var(--ink)}
   .title{
@@ -242,6 +264,13 @@
   }
   :focus-visible{outline:5px solid #fff;outline-offset:3px}
 </style>
+</head>
+<body>
+
+<div class="langSwitch" id="langSwitch">
+  <button type="button" data-lang="en">EN</button>
+  <button type="button" data-lang="de">DE</button>
+</div>
 
 <div id="app">
   <!-- ============ HOME ============ -->
@@ -249,13 +278,13 @@
     <div class="splats" data-splats></div>
     <div class="logo">
       <span class="blob"><h1>SLIME<br>ARCADE</h1></span>
-      <p>PICK A GAME! TAP ANYTHING!</p>
+      <p data-tagline></p>
     </div>
     <div class="menu">
-      <button class="tile t1" data-go="shapes"><span class="ico">🔺</span>SHAPES</button>
-      <button class="tile t2" data-go="colors"><span class="ico">🎨</span>COLORS</button>
-      <button class="tile t3" data-go="numbers"><span class="ico">🔢</span>COUNT</button>
-      <button class="tile t4" data-go="sounds"><span class="ico">🔊</span>SOUNDS</button>
+      <button class="tile t1" data-go="shapes"><span class="ico">&#128314;</span><span data-tile="shapes"></span></button>
+      <button class="tile t2" data-go="colors"><span class="ico">&#127912;</span><span data-tile="colors"></span></button>
+      <button class="tile t3" data-go="numbers"><span class="ico">&#128290;</span><span data-tile="numbers"></span></button>
+      <button class="tile t4" data-go="sounds"><span class="ico">&#128266;</span><span data-tile="sounds"></span></button>
     </div>
   </section>
 
@@ -263,11 +292,11 @@
   <section class="screen" id="shapes" style="background:var(--pink)">
     <div class="splats" data-splats></div>
     <header>
-      <button class="back" data-go="home">◀ HOME</button>
-      <span class="title">SHAPES!</span>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="shapes"></span>
     </header>
     <div class="stage">
-      <div class="readout" id="shapeWord">TAP A SHAPE</div>
+      <div class="readout" id="shapeWord"></div>
       <div class="pad-grid" id="shapeGrid"></div>
       <div id="bigShape"></div>
     </div>
@@ -277,11 +306,11 @@
   <section class="screen" id="colors" style="background:var(--cyan)">
     <div class="splats" data-splats></div>
     <header>
-      <button class="back" data-go="home">◀ HOME</button>
-      <span class="title">COLORS!</span>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="colors"></span>
     </header>
     <div class="stage">
-      <div class="readout" id="colorWord">TAP A COLOR</div>
+      <div class="readout" id="colorWord"></div>
       <div class="pad-grid" id="colorGrid"></div>
     </div>
   </section>
@@ -290,11 +319,11 @@
   <section class="screen" id="numbers" style="background:var(--purple)">
     <div class="splats" data-splats></div>
     <header>
-      <button class="back" data-go="home">◀ HOME</button>
-      <span class="title">COUNT!</span>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="numbers"></span>
     </header>
     <div class="stage">
-      <div class="readout" id="numWord">TAP A NUMBER</div>
+      <div class="readout" id="numWord"></div>
       <div class="tray" id="tray"></div>
       <div class="pad-grid" id="numGrid"></div>
     </div>
@@ -304,11 +333,11 @@
   <section class="screen" id="sounds" style="background:var(--sun)">
     <div class="splats" data-splats></div>
     <header>
-      <button class="back" data-go="home">◀ HOME</button>
-      <span class="title">SOUNDS!</span>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="sounds"></span>
     </header>
     <div class="stage">
-      <div class="readout" id="soundWord">TAP TO MAKE NOISE</div>
+      <div class="readout" id="soundWord"></div>
       <div class="pad-grid" id="soundGrid"></div>
     </div>
   </section>
@@ -321,6 +350,41 @@
   const $ = s => document.querySelector(s);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ---------------- i18n ---------------- */
+  const STR = {
+    en: {
+      docTitle: "Slime Arcade",
+      speechLang: "en-US",
+      tagline: "PICK A GAME! TAP ANYTHING!",
+      home: "HOME",
+      titles:  { shapes:"SHAPES!", colors:"COLORS!", numbers:"COUNT!", sounds:"SOUNDS!" },
+      tiles:   { shapes:"SHAPES", colors:"COLORS", numbers:"COUNT", sounds:"SOUNDS" },
+      hints:   { shape:"TAP A SHAPE", color:"TAP A COLOR", number:"TAP A NUMBER", sound:"TAP TO MAKE NOISE" },
+      shapeNames: { circle:"CIRCLE", square:"SQUARE", triangle:"TRIANGLE", star:"STAR", heart:"HEART", diamond:"DIAMOND" },
+      colorNames: { red:"RED", orange:"ORANGE", yellow:"YELLOW", green:"GREEN", blue:"BLUE", purple:"PURPLE", pink:"PINK", brown:"BROWN" },
+      numWords: ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN"],
+      soundNames: { honk:"HONK", drum:"DRUM", splat:"SPLAT", zap:"ZAP", boing:"BOING", bubble:"BUBBLE", cheer:"CHEER", ribbit:"RIBBIT", twang:"TWANG" }
+    },
+    de: {
+      docTitle: "Schleim-Arkade",
+      speechLang: "de-DE",
+      tagline: "WÄHL EIN SPIEL! TIPP ÜBERALL!",
+      home: "HAUS",
+      titles:  { shapes:"FORMEN!", colors:"FARBEN!", numbers:"ZÄHLEN!", sounds:"GERÄUSCHE!" },
+      tiles:   { shapes:"FORMEN", colors:"FARBEN", numbers:"ZÄHLEN", sounds:"GERÄUSCHE" },
+      hints:   { shape:"TIPP EINE FORM", color:"TIPP EINE FARBE", number:"TIPP EINE ZAHL", sound:"TIPPEN FÜR KNALL" },
+      shapeNames: { circle:"KREIS", square:"QUADRAT", triangle:"DREIECK", star:"STERN", heart:"HERZ", diamond:"RAUTE" },
+      colorNames: { red:"ROT", orange:"ORANGE", yellow:"GELB", green:"GRÜN", blue:"BLAU", purple:"LILA", pink:"PINK", brown:"BRAUN" },
+      numWords: ["EINS","ZWEI","DREI","VIER","FÜNF","SECHS","SIEBEN","ACHT","NEUN","ZEHN"],
+      soundNames: { honk:"TUT", drum:"TROMMEL", splat:"PLATSCH", zap:"ZISCH", boing:"BOING", bubble:"BLUBBER", cheer:"JUBEL", ribbit:"QUAK", twang:"ZUPF" }
+    }
+  };
+  let lang = localStorage.getItem("slimeLang");
+  if(lang !== "en" && lang !== "de"){
+    lang = (navigator.language || "").toLowerCase().indexOf("de") === 0 ? "de" : "en";
+  }
+  const t = () => STR[lang];
+
   /* ---------------- audio ---------------- */
   let ctx = null;
   function ac(){
@@ -330,20 +394,20 @@
   }
   function tone(opts){
     const a = ac(); if(!a) return;
-    const t = a.currentTime;
+    const tm = a.currentTime;
     const o = a.createOscillator(), g = a.createGain();
     o.type = opts.type || "sine";
-    o.frequency.setValueAtTime(opts.f, t + (opts.at||0));
-    if(opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, t + (opts.at||0) + (opts.dur||.3));
-    g.gain.setValueAtTime(0.0001, t + (opts.at||0));
-    g.gain.exponentialRampToValueAtTime(opts.vol||0.28, t + (opts.at||0) + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + (opts.at||0) + (opts.dur||.3));
+    o.frequency.setValueAtTime(opts.f, tm + (opts.at||0));
+    if(opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, tm + (opts.at||0) + (opts.dur||.3));
+    g.gain.setValueAtTime(0.0001, tm + (opts.at||0));
+    g.gain.exponentialRampToValueAtTime(opts.vol||0.28, tm + (opts.at||0) + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, tm + (opts.at||0) + (opts.dur||.3));
     o.connect(g); g.connect(a.destination);
-    o.start(t + (opts.at||0)); o.stop(t + (opts.at||0) + (opts.dur||.3) + .05);
+    o.start(tm + (opts.at||0)); o.stop(tm + (opts.at||0) + (opts.dur||.3) + .05);
   }
   function noise(dur, at, filterFreq){
     const a = ac(); if(!a) return;
-    const t = a.currentTime + (at||0);
+    const tm = a.currentTime + (at||0);
     const len = Math.floor(a.sampleRate * dur);
     const buf = a.createBuffer(1, len, a.sampleRate);
     const d = buf.getChannelData(0);
@@ -352,18 +416,18 @@
     const f = a.createBiquadFilter(); f.type="lowpass"; f.frequency.value = filterFreq||1400;
     const g = a.createGain(); g.gain.value = 0.4;
     src.connect(f); f.connect(g); g.connect(a.destination);
-    src.start(t);
+    src.start(tm);
   }
   function say(text){
     if(!("speechSynthesis" in window)) return;
     try{
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
+      u.lang = t().speechLang;
       u.rate = .85; u.pitch = 1.5; u.volume = 1;
       speechSynthesis.speak(u);
     }catch(e){}
   }
-  const blip = () => tone({f:520, to:880, dur:.16, type:"triangle", vol:.2});
 
   /* ---------------- particles ---------------- */
   function burst(x, y, colors, count){
@@ -405,8 +469,10 @@
     tone({f: id==="home" ? 300 : 660, to: id==="home" ? 180 : 990, dur:.25, type:"square", vol:.2});
   }
   document.addEventListener("click", function(e){
-    const t = e.target.closest("[data-go]");
-    if(t) go(t.dataset.go);
+    const g = e.target.closest("[data-go]");
+    if(g){ go(g.dataset.go); return; }
+    const l = e.target.closest("[data-lang]");
+    if(l){ setLang(l.dataset.lang); }
   });
 
   /* ---------------- global tap feedback ---------------- */
@@ -417,27 +483,28 @@
 
   /* ---------------- SHAPES ---------------- */
   const SHAPES = [
-    {n:"CIRCLE",  c:"sh-circle",  col:"#FFD23F", f:523},
-    {n:"SQUARE",  c:"sh-square",  col:"#22CFE0", f:587},
-    {n:"TRIANGLE",c:"sh-tri",     col:"#8DC63F", f:659},
-    {n:"STAR",    c:"sh-star",    col:"#F57D0D", f:698},
-    {n:"HEART",   c:"sh-heart",   col:"#FF4FA3", f:784},
-    {n:"DIAMOND", c:"sh-diamond", col:"#7A3FBF", f:880}
+    {key:"circle",  c:"sh-circle",  col:"#FFD23F", f:523},
+    {key:"square",  c:"sh-square",  col:"#22CFE0", f:587},
+    {key:"triangle",c:"sh-tri",     col:"#8DC63F", f:659},
+    {key:"star",    c:"sh-star",    col:"#F57D0D", f:698},
+    {key:"heart",   c:"sh-heart",   col:"#FF4FA3", f:784},
+    {key:"diamond", c:"sh-diamond", col:"#7A3FBF", f:880}
   ];
   const shapeGrid = $("#shapeGrid"), shapeWord = $("#shapeWord"), bigShape = $("#bigShape");
+  const shapeBtns = [];
   SHAPES.forEach(function(s){
     const b = document.createElement("button");
     b.className = "pad";
     b.style.background = s.col;
-    b.setAttribute("aria-label", s.n);
     b.innerHTML = '<span class="shape '+s.c+'"></span>';
     b.addEventListener("click", function(){
+      const name = t().shapeNames[s.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-      shapeWord.textContent = s.n + "!";
+      shapeWord.textContent = name + "!";
       shapeWord.classList.remove("flash"); void shapeWord.offsetWidth; shapeWord.classList.add("flash");
       tone({f:s.f, dur:.22, type:"triangle"});
       tone({f:s.f*1.5, at:.16, dur:.3, type:"sine", vol:.2});
-      say(s.n);
+      say(name);
       const p = centerOf(b); burst(p.x, p.y, [s.col, "#fff", "#241A2E"], 16);
       bigShape.className = "";
       bigShape.style.background = s.col;
@@ -446,6 +513,7 @@
       bigShape.className = "go";
     });
     shapeGrid.appendChild(b);
+    shapeBtns.push({btn:b, key:s.key});
   });
   function applyShape(el, cls){
     const map = {
@@ -462,38 +530,39 @@
 
   /* ---------------- COLORS ---------------- */
   const COLORS = [
-    {n:"RED",    c:"#EF3E36", f:392},
-    {n:"ORANGE", c:"#F57D0D", f:440},
-    {n:"YELLOW", c:"#FFD23F", f:494},
-    {n:"GREEN",  c:"#8DC63F", f:523},
-    {n:"BLUE",   c:"#2D7DD2", f:587},
-    {n:"PURPLE", c:"#7A3FBF", f:659},
-    {n:"PINK",   c:"#FF4FA3", f:698},
-    {n:"BROWN",  c:"#8B5A2B", f:330}
+    {key:"red",    c:"#EF3E36", f:392},
+    {key:"orange", c:"#F57D0D", f:440},
+    {key:"yellow", c:"#FFD23F", f:494},
+    {key:"green",  c:"#8DC63F", f:523},
+    {key:"blue",   c:"#2D7DD2", f:587},
+    {key:"purple", c:"#7A3FBF", f:659},
+    {key:"pink",   c:"#FF4FA3", f:698},
+    {key:"brown",  c:"#8B5A2B", f:330}
   ];
   const colorGrid = $("#colorGrid"), colorWord = $("#colorWord"), colorScreen = $("#colors");
+  const colorBtns = [];
   COLORS.forEach(function(c){
     const b = document.createElement("button");
     b.className = "pad swatch";
     b.style.background = c.c;
-    b.setAttribute("aria-label", c.n);
     b.addEventListener("click", function(){
+      const name = t().colorNames[c.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       colorScreen.style.background = c.c;
-      colorWord.textContent = c.n + "!";
+      colorWord.textContent = name + "!";
       colorWord.style.background = "#241A2E";
       colorWord.style.color = c.c;
       colorWord.classList.remove("flash"); void colorWord.offsetWidth; colorWord.classList.add("flash");
       tone({f:c.f, to:c.f*2, dur:.35, type:"sine"});
-      say(c.n);
+      say(name);
       const p = centerOf(b); burst(p.x, p.y, [c.c, "#fff"], 20);
     });
     colorGrid.appendChild(b);
+    colorBtns.push({btn:b, key:c.key});
   });
 
   /* ---------------- NUMBERS ---------------- */
   const numGrid = $("#numGrid"), numWord = $("#numWord"), tray = $("#tray");
-  const WORDS = ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN"];
   let countTimers = [];
   for(let i=1;i<=10;i++){
     const b = document.createElement("button");
@@ -503,7 +572,7 @@
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
       countTimers.forEach(clearTimeout); countTimers = [];
       tray.innerHTML = "";
-      numWord.textContent = i + " — " + WORDS[i-1] + "!";
+      numWord.textContent = i + " — " + t().numWords[i-1] + "!";
       numWord.classList.remove("flash"); void numWord.offsetWidth; numWord.classList.add("flash");
       say(String(i));
       for(let k=0;k<i;k++){
@@ -527,26 +596,26 @@
 
   /* ---------------- SOUNDS ---------------- */
   const SOUNDS = [
-    {e:"🎺", n:"HONK",   col:"#F57D0D", play(){ tone({f:180,to:150,dur:.45,type:"sawtooth",vol:.25}); tone({f:270,dur:.45,type:"square",vol:.12}); }},
-    {e:"🥁", n:"DRUM",   col:"#7A3FBF", play(){ tone({f:160,to:50,dur:.28,type:"sine",vol:.4}); noise(.18,0,900); }},
-    {e:"💦", n:"SPLAT",  col:"#8DC63F", play(){ noise(.35,0,700); tone({f:420,to:90,dur:.3,type:"sawtooth",vol:.2}); }},
-    {e:"🛸", n:"ZAP",    col:"#22CFE0", play(){ tone({f:1400,to:180,dur:.5,type:"sawtooth",vol:.22}); }},
-    {e:"🪀", n:"BOING",  play(){ tone({f:600,to:180,dur:.22,type:"square",vol:.25}); tone({f:200,to:700,at:.2,dur:.25,type:"square",vol:.22}); tone({f:700,to:260,at:.44,dur:.25,type:"square",vol:.18}); }, col:"#FF4FA3"},
-    {e:"🫧", n:"BUBBLE", col:"#2D7DD2", play(){ for(let i=0;i<5;i++) tone({f:300+i*180, at:i*.08, dur:.12, type:"sine", vol:.2}); }},
-    {e:"🎉", n:"CHEER",  col:"#FFD23F", play(){ [523,659,784,1046].forEach((f,i)=>tone({f:f, at:i*.09, dur:.25, type:"triangle", vol:.25})); }},
-    {e:"🐸", n:"RIBBIT", col:"#5E9017", play(){ tone({f:220,to:120,dur:.18,type:"sawtooth",vol:.3}); tone({f:240,to:110,at:.22,dur:.2,type:"sawtooth",vol:.3}); }},
-    {e:"🎸", n:"TWANG",  col:"#EF3E36", play(){ tone({f:330,to:110,dur:.7,type:"triangle",vol:.3}); tone({f:660,dur:.4,type:"sine",vol:.1}); }}
+    {key:"honk",   e:"&#127894;", col:"#F57D0D", play(){ tone({f:180,to:150,dur:.45,type:"sawtooth",vol:.25}); tone({f:270,dur:.45,type:"square",vol:.12}); }},
+    {key:"drum",   e:"&#129345;", col:"#7A3FBF", play(){ tone({f:160,to:50,dur:.28,type:"sine",vol:.4}); noise(.18,0,900); }},
+    {key:"splat",  e:"&#128166;", col:"#8DC63F", play(){ noise(.35,0,700); tone({f:420,to:90,dur:.3,type:"sawtooth",vol:.2}); }},
+    {key:"zap",    e:"&#128760;", col:"#22CFE0", play(){ tone({f:1400,to:180,dur:.5,type:"sawtooth",vol:.22}); }},
+    {key:"boing",  e:"&#128276;", col:"#FF4FA3", play(){ tone({f:600,to:180,dur:.22,type:"square",vol:.25}); tone({f:200,to:700,at:.2,dur:.25,type:"square",vol:.22}); tone({f:700,to:260,at:.44,dur:.25,type:"square",vol:.18}); }},
+    {key:"bubble", e:"&#128167;", col:"#2D7DD2", play(){ for(let i=0;i<5;i++) tone({f:300+i*180, at:i*.08, dur:.12, type:"sine", vol:.2}); }},
+    {key:"cheer",  e:"&#127881;", col:"#FFD23F", play(){ [523,659,784,1046].forEach((f,i)=>tone({f:f, at:i*.09, dur:.25, type:"triangle", vol:.25})); }},
+    {key:"ribbit", e:"&#128056;", col:"#5E9017", play(){ tone({f:220,to:120,dur:.18,type:"sawtooth",vol:.3}); tone({f:240,to:110,at:.22,dur:.2,type:"sawtooth",vol:.3}); }},
+    {key:"twang",  e:"&#127928;", col:"#EF3E36", play(){ tone({f:330,to:110,dur:.7,type:"triangle",vol:.3}); tone({f:660,dur:.4,type:"sine",vol:.1}); }}
   ];
   const soundGrid = $("#soundGrid"), soundWord = $("#soundWord");
   SOUNDS.forEach(function(s){
     const b = document.createElement("button");
     b.className = "pad";
     b.style.background = s.col;
-    b.textContent = s.e;
-    b.setAttribute("aria-label", s.n);
+    b.innerHTML = s.e;
     b.addEventListener("click", function(){
+      const name = t().soundNames[s.key];
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-      soundWord.textContent = s.n + "!";
+      soundWord.textContent = name + "!";
       soundWord.classList.remove("flash"); void soundWord.offsetWidth; soundWord.classList.add("flash");
       s.play();
       const p = centerOf(b); burst(p.x, p.y, [s.col, "#fff", "#241A2E"], 18);
@@ -554,7 +623,34 @@
     soundGrid.appendChild(b);
   });
 
-  /* keep it fullscreen-ish on phones */
-  window.addEventListener("resize", () => document.documentElement.style.setProperty("--vh", window.innerHeight + "px"));
+  /* ---------------- language ---------------- */
+  function applyLang(){
+    const d = t();
+    document.documentElement.lang = lang;
+    document.title = d.docTitle;
+    document.querySelectorAll("[data-tagline]").forEach(el => el.textContent = d.tagline);
+    document.querySelectorAll("[data-home]").forEach(el => el.textContent = d.home);
+    document.querySelectorAll("[data-title]").forEach(el => el.textContent = d.titles[el.dataset.title]);
+    document.querySelectorAll("[data-tile]").forEach(el => el.textContent = d.tiles[el.dataset.tile]);
+    shapeWord.textContent = d.hints.shape;
+    colorWord.textContent = d.hints.color;
+    numWord.textContent = d.hints.number;
+    soundWord.textContent = d.hints.sound;
+    shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
+    colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
+    document.querySelectorAll(".langSwitch button").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+  }
+  function setLang(next){
+    if(next !== "en" && next !== "de") return;
+    lang = next;
+    localStorage.setItem("slimeLang", lang);
+    applyLang();
+    tone({f:520, to:780, dur:.15, type:"triangle", vol:.2});
+  }
+  applyLang();
 })();
 </script>
+</body>
+</html>
