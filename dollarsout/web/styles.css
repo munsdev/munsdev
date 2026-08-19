@@ -65,11 +65,14 @@ a { color: inherit; }
 .localeSwitch { background: none; border: 2px solid #fff; color: #fff; border-radius: 10px;
   font-weight: 800; font-size: 14px; padding: 8px 10px; min-height: 44px; cursor: pointer; }
 
-.lvlstrip { display: flex; align-items: center; gap: 10px; }
-.lvlname { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
-.segbar { flex: 1; height: 14px; border: 3px solid var(--ink); border-radius: 99px; background: #fff; overflow: hidden; }
-.segbar i { display: block; height: 100%; background: var(--grn-bright); }
-.lvlnext { font-size: 14px; font-weight: 700; opacity: 0.9; white-space: nowrap; }
+.lvlstrip { display: flex; flex-direction: column; gap: 6px; }
+.lvlstrip-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lvlname { font-family: "Archivo Black"; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+.lvlnext { font-size: 13px; font-weight: 700; opacity: 0.85; white-space: nowrap; }
+.segbar { height: 10px; border: 3px solid var(--ink); border-radius: 99px; background: rgba(255, 255, 255, 0.55); overflow: hidden; }
+.segbar i { display: block; height: 100%; background: var(--ink); border-radius: 99px; transition: width 0.4s ease; }
+.lvlstrip-static .segbar { background: #fff; }
+.lvlstrip-static .segbar i { background: var(--grn-solid); }
 
 /* ---- scroll body ---- */
 .body { flex: 1 1 auto; overflow-y: auto; padding: 16px 16px 96px; -webkit-overflow-scrolling: touch; position: relative; }

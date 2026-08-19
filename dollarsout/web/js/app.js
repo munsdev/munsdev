@@ -62,8 +62,8 @@ async function boot() {
   await refreshUserState();
   renderTopbar();
   renderMeter();
-  renderHomeCategoryOrList();
   renderAggregate();
+  renderExplore();
   go("home");
 }
 
@@ -122,21 +122,29 @@ function renderTopbar() {
 }
 
 // ---------------- meter (collective dial) ----------------
-function arcPoint(pct) {
-  const angleDeg = -90 + pct * 180;
-  const theta = (angleDeg * Math.PI) / 180;
-  const cx = 150, cy = 130, r = 130;
-  return { x: cx + r * Math.sin(theta), y: cy - r * Math.cos(theta) };
+// The fill arc and the background track share the exact same path (a fixed 180° semicircle from
+// the "0" end at (20,130) to the "full" end at (280,130)); progress is drawn with stroke-dasharray
+// / stroke-dashoffset rather than by recomputing the path's endpoint, so there's no per-frame arc
+// geometry to get wrong -- getTotalLength() measures the real rendered length once and the offset
+// is just totalLength * (1 - pct).
+let meterArcLength = null;
+function getMeterArcLength() {
+  if (meterArcLength == null) meterArcLength = $("meterFillArc").getTotalLength();
+  return meterArcLength;
 }
 
 function renderMeter() {
   const period = stats.period;
   const count = period?.count ?? 0;
   const goal = period?.goal ?? 1;
-  const pct = Math.max(0, Math.min(1, count / goal));
+  const pctRaw = goal > 0 ? count / goal : 0;
+  const pct = Number.isFinite(pctRaw) ? Math.max(0, Math.min(1, pctRaw)) : 0;
 
-  const p = arcPoint(pct);
-  $("meterFillArc").setAttribute("d", `M20 130 A130 130 0 0 1 ${p.x.toFixed(2)} ${p.y.toFixed(2)}`);
+  const fillArc = $("meterFillArc");
+  const length = getMeterArcLength();
+  fillArc.style.strokeDasharray = `${length}`;
+  fillArc.style.strokeDashoffset = `${length * (1 - pct)}`;
+
   $("needle").setAttribute("transform", `rotate(${(-90 + pct * 180).toFixed(2)} 150 130)`);
 
   let daysLeft = "";
@@ -164,6 +172,16 @@ function animateCount(el, target) {
   } else {
     requestAnimationFrame(step);
   }
+}
+
+async function refreshHome() {
+  try {
+    stats = await api.getStats();
+  } catch {
+    // keep showing the last-known stats rather than blanking the meter on a flaky request
+  }
+  renderMeter();
+  renderAggregate();
 }
 
 function renderAggregate() {
@@ -251,17 +269,17 @@ function filtersActive() {
 }
 
 // ---------------- screens ----------------
-const SCREENS = ["home", "cat", "detail", "shelf", "shelf-empty", "you", "you-empty"];
+const SCREENS = ["home", "explore", "cat", "detail", "shelf", "shelf-empty", "you", "you-empty"];
 function go(id) {
   for (const s of SCREENS) $("s-" + s).hidden = s !== id;
   document.querySelectorAll(".nav button[data-nav]").forEach((b) => b.setAttribute("aria-current", "false"));
-  const navMap = { home: "home", cat: "explore", detail: "explore", shelf: "shelf", "shelf-empty": "shelf", you: "you", "you-empty": "you" };
+  const navMap = { home: "home", explore: "explore", cat: "explore", detail: "explore", shelf: "shelf", "shelf-empty": "shelf", you: "you", "you-empty": "you" };
   const navBtn = document.querySelector(`.nav button[data-nav="${navMap[id]}"]`);
   if (navBtn) navBtn.setAttribute("aria-current", "true");
   $("scrollBody").scrollTop = 0;
 }
 
-function renderHomeCategoryOrList() {
+function renderExplore() {
   const listEl = $("categoryList");
   $("categoryCount").textContent = t("categories.count", { count: catalog.categories.length });
 
@@ -292,13 +310,11 @@ function renderHomeCategoryOrList() {
 
 function openCategory(categoryId) {
   currentCategoryId = categoryId;
-  const cat = categoryId ? categoryById(categoryId) : null;
+  const cat = categoryById(categoryId);
   const actions = getFilteredActions(categoryId);
   const doneCount = actions.filter((a) => stateByActionId.get(a.id)?.status === "claimed").length;
 
-  $("catHeading").innerHTML = cat
-    ? `${esc(cat.name)} <span class="cnt">${doneCount} ${t("shelf.of")} ${actions.length} ${t("category.done")}</span>`
-    : `${esc(t("categories.heading"))} <span class="cnt">${actions.length}</span>`;
+  $("catHeading").innerHTML = `${esc(cat.name)} <span class="cnt">${doneCount} ${t("shelf.of")} ${actions.length} ${t("category.done")}</span>`;
 
   const list = $("catActionList");
   list.innerHTML = "";
@@ -394,7 +410,6 @@ function wireClaimForm(card, action) {
 function openDetail(actionId, fromCategoryId) {
   currentActionId = actionId;
   const action = catalog.actions.find((a) => a.id === actionId);
-  const cat = categoryById(action.categoryId);
   const state = stateByActionId.get(actionId);
   const tags = [tagLabel(action.mode), action.timeEstimate, tagLabel(action.effort), tagLabel(action.availability)];
 
@@ -415,7 +430,14 @@ function openDetail(actionId, fromCategoryId) {
     $("detailNABtn").addEventListener("click", () => doMarkNA(actionId));
     wireClaimForm($("detailContent"), action);
   }
-  $("detailBackBtn").onclick = () => (fromCategoryId !== undefined ? openCategory(fromCategoryId) : openCategory(currentCategoryId));
+  $("detailBackBtn").onclick = () => {
+    const target = fromCategoryId !== undefined ? fromCategoryId : currentCategoryId;
+    if (target) openCategory(target);
+    else {
+      renderExplore();
+      go("explore");
+    }
+  };
   go("detail");
 }
 
@@ -436,7 +458,7 @@ async function doClaim(action, amountEuros, whatBroke) {
 
   if (!$("s-detail").hidden) openDetail(action.id, currentCategoryId);
   else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-home").hidden) renderHomeCategoryOrList();
+  else if (!$("s-explore").hidden) renderExplore();
 
   const moneyLabel = amountEuros ? `€${amountEuros}/yr` : null;
   if (result.newBadges?.length || result.levelUp) {
@@ -460,7 +482,7 @@ async function doUndoClaimLast() {
   renderAggregate();
   if (!$("s-cat").hidden) openCategory(currentCategoryId);
   if (!$("s-detail").hidden) openDetail(currentActionId, currentCategoryId);
-  if (!$("s-home").hidden) renderHomeCategoryOrList();
+  if (!$("s-explore").hidden) renderExplore();
 }
 
 async function doMarkNA(actionId) {
@@ -469,7 +491,7 @@ async function doMarkNA(actionId) {
   await refreshUserState();
   if (!$("s-detail").hidden) openDetail(actionId, currentCategoryId);
   else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-home").hidden) renderHomeCategoryOrList();
+  else if (!$("s-explore").hidden) renderExplore();
 }
 
 async function doUndoNA(actionId) {
@@ -478,7 +500,7 @@ async function doUndoNA(actionId) {
   await refreshUserState();
   if (!$("s-detail").hidden) openDetail(actionId, currentCategoryId);
   else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-home").hidden) renderHomeCategoryOrList();
+  else if (!$("s-explore").hidden) renderExplore();
   showToast(t("action.restoredActive"));
 }
 
@@ -772,7 +794,7 @@ async function handleConfirmCode() {
     session = await api.getSession();
     await refreshUserState();
     renderTopbar();
-    renderHomeCategoryOrList();
+    renderExplore();
     renderAggregate();
     showToast(t("auth.syncedToast"));
   } catch (err) {
@@ -817,7 +839,7 @@ function closeFilters() {
 }
 function applyFiltersAndClose() {
   closeFilters();
-  renderHomeCategoryOrList();
+  renderExplore();
   if (!$("s-cat").hidden) openCategory(currentCategoryId);
 }
 
@@ -826,8 +848,8 @@ function wireStaticEvents() {
   document.querySelectorAll(".nav button[data-nav]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const dest = btn.dataset.nav;
-      if (dest === "home") { renderHomeCategoryOrList(); go("home"); }
-      else if (dest === "explore") openCategory(null);
+      if (dest === "home") { go("home"); refreshHome(); }
+      else if (dest === "explore") { renderExplore(); go("explore"); }
       else if (dest === "shelf") renderShelf();
       else if (dest === "you") renderYou();
     });
@@ -837,7 +859,7 @@ function wireStaticEvents() {
     if (session.loggedIn) {
       api.logout().then(() => {
         session = { loggedIn: false, email: null };
-        refreshUserState().then(() => { renderTopbar(); renderHomeCategoryOrList(); });
+        refreshUserState().then(() => { renderTopbar(); renderExplore(); });
       });
     } else openAuth();
   });
@@ -857,7 +879,7 @@ function wireStaticEvents() {
     });
   });
 
-  $("catBackBtn").addEventListener("click", () => { renderHomeCategoryOrList(); go("home"); });
+  $("catBackBtn").addEventListener("click", () => { renderExplore(); go("explore"); });
   $("toastUndoBtn").addEventListener("click", doUndoClaimLast);
   $("popCloseBtn").addEventListener("click", () => $("badgePop").classList.remove("on"));
 
@@ -867,14 +889,14 @@ function wireStaticEvents() {
 
   $("searchInput").addEventListener("input", (e) => {
     filters.search = e.target.value;
-    renderHomeCategoryOrList();
+    renderExplore();
   });
   $("quickChips").querySelectorAll("[data-quick]").forEach((chip) => {
     chip.addEventListener("click", () => {
       const key = chip.dataset.quick;
       filters.quick[key] = !filters.quick[key];
       chip.setAttribute("aria-pressed", String(filters.quick[key]));
-      renderHomeCategoryOrList();
+      renderExplore();
     });
   });
   $("surpriseBtn").addEventListener("click", () => {
@@ -891,7 +913,7 @@ function wireStaticEvents() {
     renderTopbar();
     renderMeter();
     renderAggregate();
-    if (!$("s-home").hidden) renderHomeCategoryOrList();
+    if (!$("s-explore").hidden) renderExplore();
     if (!$("s-cat").hidden) openCategory(currentCategoryId);
   });
   $("localeSwitch").textContent = currentLocale() === "en" ? "DE" : "EN";

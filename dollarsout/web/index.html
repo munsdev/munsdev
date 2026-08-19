@@ -22,34 +22,25 @@
       </div>
     </div>
     <div class="lvlstrip" id="lvlstrip" hidden>
-      <span class="lvlname" id="lvlName"></span>
+      <div class="lvlstrip-row">
+        <span class="lvlname" id="lvlName"></span>
+        <span class="lvlnext" id="lvlNext"></span>
+      </div>
       <div class="segbar"><i id="lvlBar" style="width:0%"></i></div>
-      <span class="lvlnext" id="lvlNext"></span>
     </div>
   </div>
 
   <div class="body" id="scrollBody">
 
-    <!-- ============ HOME ============ -->
+    <!-- ============ HOME (meter only) ============ -->
     <main class="screen" id="s-home">
-      <div class="searchbar">
-        <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
-        <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
-      </div>
-      <div class="chiprow" id="quickChips">
-        <button class="chip surprise" id="surpriseBtn" type="button" data-i18n="home.surpriseMe">🎲 Surprise me</button>
-        <button class="chip" type="button" data-quick="under5" aria-pressed="false" data-i18n="home.under5min">Under 5 min</button>
-        <button class="chip" type="button" data-quick="easy" aria-pressed="false" data-i18n="home.easyOnly">Easy only</button>
-        <button class="chip" type="button" data-quick="anywhere" aria-pressed="false" data-i18n="home.anywhere">Anywhere</button>
-      </div>
-
       <div class="meterwrap">
         <div class="meter-title" data-i18n="meter.title">All of us, this month</div>
         <div class="meter-goal" id="meterGoalLine"></div>
         <div class="gauge">
           <svg viewBox="0 0 300 176" role="img" aria-label="Collective progress toward this month's goal">
             <path d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#14130F" stroke-width="30" stroke-linecap="round"/>
-            <path id="meterFillArc" d="M20 130 A130 130 0 0 1 20 130" fill="none" stroke="#00873E" stroke-width="22" stroke-linecap="round"/>
+            <path id="meterFillArc" d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#00873E" stroke-width="22" stroke-linecap="round"/>
             <g id="needle" class="needle" transform="rotate(-90 150 130)">
               <path d="M150 130 L143 122 L150 34 L157 122 Z" fill="#14130F"/>
             </g>
@@ -61,6 +52,20 @@
           <div class="big" id="meterTick">0</div>
           <div class="sub" id="meterSub"></div>
         </div>
+      </div>
+    </main>
+
+    <!-- ============ EXPLORE (category picker) ============ -->
+    <main class="screen" id="s-explore" hidden>
+      <div class="searchbar">
+        <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
+        <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
+      </div>
+      <div class="chiprow" id="quickChips">
+        <button class="chip surprise" id="surpriseBtn" type="button" data-i18n="home.surpriseMe">🎲 Surprise me</button>
+        <button class="chip" type="button" data-quick="under5" aria-pressed="false" data-i18n="home.under5min">Under 5 min</button>
+        <button class="chip" type="button" data-quick="easy" aria-pressed="false" data-i18n="home.easyOnly">Easy only</button>
+        <button class="chip" type="button" data-quick="anywhere" aria-pressed="false" data-i18n="home.anywhere">Anywhere</button>
       </div>
 
       <div class="h2"><span data-i18n="categories.heading">Pick your battle</span> <span class="cnt" id="categoryCount"></span></div>
@@ -91,7 +96,10 @@
     <main class="screen" id="s-shelf" hidden>
       <div class="laddercard">
         <div class="h2" style="margin-top:0" data-i18n="shelf.yourLevel">Your level</div>
-        <div class="lvlstrip"><span class="lvlname" id="shelfLvlName"></span><div class="segbar"><i id="shelfLvlBar" style="width:0%"></i></div><span class="lvlnext" id="shelfLvlNext"></span></div>
+        <div class="lvlstrip lvlstrip-static">
+          <div class="lvlstrip-row"><span class="lvlname" id="shelfLvlName"></span><span class="lvlnext" id="shelfLvlNext"></span></div>
+          <div class="segbar"><i id="shelfLvlBar" style="width:0%"></i></div>
+        </div>
         <p style="font-size:14px;font-weight:700;opacity:0.8;margin-top:10px" data-i18n="level.ladder"></p>
       </div>
 
