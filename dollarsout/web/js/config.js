@@ -5,4 +5,6 @@
 // worker/README.md.
 export const TURNSTILE_SITE_KEY = "1x00000000000000000000AA"; // Cloudflare's always-passes test key
 
-export const API_BASE = "https://api.dollarsout.1stand.org";
+// Same origin as the frontend -- the Worker serves both the static site and the API from one
+// deploy, one domain (see worker/wrangler.toml's [assets] block).
+export const API_BASE = "";

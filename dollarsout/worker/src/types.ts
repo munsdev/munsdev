@@ -2,6 +2,7 @@ export interface Env {
   DB: D1Database;
   SESSIONS: KVNamespace;
   COUNTERS: KVNamespace;
+  ASSETS: Fetcher;
 
   ALLOWED_ORIGIN: string;
   SESSION_COOKIE_DOMAIN: string;

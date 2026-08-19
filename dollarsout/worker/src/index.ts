@@ -208,6 +208,12 @@ export default {
         return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
       }
 
+      // ---- static frontend (spec §11: keep hosting simple -- one Worker serves both the API
+      // and the static web/ build via the ASSETS binding, one deploy, one domain) ----
+      if (request.method === "GET" && env.ASSETS) {
+        return env.ASSETS.fetch(request);
+      }
+
       return json(env, { error: "not_found" }, 404);
     } catch (err) {
       console.error(err);

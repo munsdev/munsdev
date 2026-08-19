@@ -6,15 +6,18 @@ step — open `index.html` through any static file server and it runs.
 
 ## Local dev
 
+The Worker serves this directory directly (`worker/wrangler.toml`'s
+`[assets]` binding), so the real way to run this locally is from `worker/`:
+
 ```
-npx serve .
-# or: python3 -m http.server 8080
+cd ../worker && npm install && npm run dev
 ```
 
-By default it talks to `https://api.dollarsout.1stand.org` (see
-`js/config.js`). To point at a local `wrangler dev` instance instead, edit
-`API_BASE` in `js/config.js`, or run the Worker's `wrangler dev` and expose
-it via a matching origin.
+That serves both the API and this static site from one local origin.
+`js/config.js`'s `API_BASE` is `""` (same-origin) to match how it's
+actually deployed — running `web/` on its own via a plain static server
+will load the page but every API call will 404 against that server, so
+guest mode won't persist correctly and sign-in won't work at all.
 
 ## What's real vs. what's a placeholder
 

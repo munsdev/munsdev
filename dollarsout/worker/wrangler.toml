@@ -11,18 +11,23 @@ kv_namespaces = [
   { binding = "COUNTERS", id = "631f6b0e948f4b889266f1a95437ab53" }
 ]
 
+# Serves ../web directly from this same Worker -- one deploy, one domain, no separate static
+# hosting to set up. Cloudflare serves matching files straight from this manifest before the
+# Worker even runs; index.ts's ASSETS.fetch fallback only covers the rest.
+[assets]
+directory = "../web"
+binding = "ASSETS"
+
 # Reconcile public aggregate counters every 10 min (fast-path KV read on every homepage load,
 # see spec S11); daily 3am sync pulls category copy from the Webflow Actions CMS (spec S8).
 [triggers]
 crons = ["*/10 * * * *", "0 3 * * *"]
 
 [vars]
-# Origin allowed to call this Worker with credentials -- the DollarsOut frontend.
+# Frontend and API are now the same origin (this Worker serves both), so this is mostly a
+# same-origin no-op -- kept for the fetch() calls that still pass credentials: 'include'.
 ALLOWED_ORIGIN = "https://dollarsout.1stand.org"
-# Cookie domain shared between the Worker's subdomain and the frontend, same pattern as
-# api.reflectingpool.us -- both need to live under the same zone for the session cookie to be
-# visible to both. Update if the Worker and the static frontend end up on different subdomains.
-SESSION_COOKIE_DOMAIN = ".1stand.org"
+SESSION_COOKIE_DOMAIN = "dollarsout.1stand.org"
 
 # --- Webflow config (Actions CMS, spec S8) ---
 WEBFLOW_SITE_ID = "69a1a23b929de4a13af87819"
@@ -40,11 +45,11 @@ DISPOSABLE_DOMAIN_BLOCKLIST_URL = "https://raw.githubusercontent.com/disposable-
 #                          vendor still needs confirming against the 1STAND Mobilizon setup)
 #   OTP_EMAIL_FROM        Verified "From" address for OTP mail, e.g. "DollarsOut <noreply@1stand.org>"
 
-# Bind this Worker to a subdomain of the same zone the frontend is served on (1stand.org is
-# already a Cloudflare-managed zone -- see the existing reverse-proxy Worker routing the apex to
-# Webflow). custom_domain = true makes wrangler auto-create the DNS record + cert on deploy.
+# 1stand.org is already a Cloudflare-managed zone (see the existing reverse-proxy Worker routing
+# the apex to Webflow). custom_domain = true makes wrangler auto-create the DNS record + cert on
+# deploy, straight onto this subdomain -- no separate api. subdomain needed anymore.
 [[routes]]
-pattern = "api.dollarsout.1stand.org"
+pattern = "dollarsout.1stand.org"
 custom_domain = true
 
 [[rules]]

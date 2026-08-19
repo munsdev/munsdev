@@ -19,6 +19,11 @@ where the category/action/badge content actually comes from.
   (name/short-description/long-description), synced daily. It is **not**
   the source for the granular actions or badges — see `content/README.md`
   for why.
+- **`../web`** (the static frontend) is served straight from this Worker
+  via the `[assets]` binding in `wrangler.toml` — one deploy, one domain,
+  no separate Pages project. API routes and static files share
+  `dollarsout.1stand.org`; anything not matched by an API route or a real
+  file falls through to `index.html`.
 
 ## One-time setup
 
@@ -40,12 +45,13 @@ Still needed before this can go live:
      set, OTP codes just log to the Worker console (`wrangler tail`) instead
      of sending — fine for testing, not for real signups.
 
-2. **DNS / route**: `wrangler.toml` already targets
-   `api.dollarsout.1stand.org` with `custom_domain = true`, which
-   auto-creates the DNS record on deploy — the same pattern used for
-   `api.reflectingpool.us`. Requires `1stand.org`'s zone to be reachable
-   from whatever Cloudflare account runs `wrangler deploy` (it already is,
-   per the existing `reverse-proxy` Worker on that zone).
+2. **DNS / route**: `wrangler.toml` already targets `dollarsout.1stand.org`
+   with `custom_domain = true`, which auto-creates the DNS record on
+   deploy — same mechanism as `api.reflectingpool.us`, just pointed at the
+   bare subdomain since this Worker now serves the frontend too. Requires
+   `1stand.org`'s zone to be reachable from whatever Cloudflare account
+   runs `wrangler deploy` (it already is, per the existing `reverse-proxy`
+   Worker on that zone).
 
 3. **Deploy**:
    ```
