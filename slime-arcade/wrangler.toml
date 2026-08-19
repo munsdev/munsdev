@@ -1,0 +1,13 @@
+# Static-assets-only Worker: no server code, just serves ./public at the edge.
+name = "henry-slime-arcade"
+compatibility_date = "2026-08-19"
+
+[assets]
+directory = "./public"
+not_found_handling = "single-page-application"
+
+# custom_domain = true makes wrangler create the DNS record + cert on deploy.
+# Requires the deploy token to have Zone:DNS:Edit + Zone:Zone:Read on muns.dev.
+[[routes]]
+pattern = "henry.muns.dev"
+custom_domain = true
