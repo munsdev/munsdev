@@ -16,23 +16,25 @@ cd ../worker && npm install && npm run dev
 That serves both the API and this static site from one local origin.
 `js/config.js`'s `API_BASE` is `""` (same-origin) to match how it's
 actually deployed — running `web/` on its own via a plain static server
-will load the page but every API call will 404 against that server, so
-guest mode won't persist correctly and sign-in won't work at all.
+will load the page but every API call will 404 against that server.
 
-## What's real vs. what's a placeholder
+## Tracking requires sign-in
 
-- **Real**: catalog/stats fetched live from the Worker; guest mode is fully
-  functional offline-first via `localStorage` (spec §1's "works completely,
-  immediately, unauthenticated" requirement) — claims, badges, levels, and
-  the ledger all compute correctly without an account, using the same badge
-  logic as the Worker (`js/state.js` mirrors `worker/src/badges.ts`, since
-  guest claims never touch D1). Signing in replays local guest progress into
-  the new account (`migrateGuestStateToAccount`), so nothing is lost.
-- **Placeholder**: `js/config.js`'s `TURNSTILE_SITE_KEY` is Cloudflare's
-  public always-passes test key — swap it for the real site key once a
-  Turnstile widget exists for this domain (see `worker/README.md`). Until
-  then, the auth *flow* works end-to-end in dev, but real signups will fail
-  Turnstile verification server-side.
+This is a deliberate product decision, not the original spec's default:
+browsing (Home meter, Actions, category drill-down, action detail) works
+for anyone, but tapping "I did this" or "Doesn't apply to me" while signed
+out opens the sign-in sheet instead of tracking anything locally. There is
+no local/offline tracking mode — `js/state.js` is just level-ladder math
+now, not a client-side data store. If you tap a claim button while signed
+out, `app.js`'s `pendingAction` stashes which action you meant and
+auto-completes it the moment sign-in succeeds, so it doesn't feel like a
+dead end.
+
+**Placeholder**: `js/config.js`'s `TURNSTILE_SITE_KEY` is Cloudflare's
+public always-passes test key — swap it for the real site key once a
+Turnstile widget exists for this domain (see `worker/README.md`). Until
+then, the auth *flow* works end-to-end in dev, but real signups will fail
+Turnstile verification server-side.
 
 ## Accessibility (spec §5 — hard requirements)
 
@@ -52,10 +54,11 @@ verified with a screen reader — do that before shipping.
 
 `js/i18n.js` is a minimal key-based loader — static markup uses
 `data-i18n="key"` / `data-i18n-placeholder="key"` attributes, dynamic
-strings call `t("key", {vars})`. `i18n/en.json` is canonical; `i18n/de.json`
-is a genuine first-pass German translation (not just a stub) but has not
-been reviewed by a native speaker — do that before treating it as launch-
-ready copy. Missing German keys fall back to English automatically.
+strings call `t("key", {vars})`. Four locales ship: `en` (canonical), `de`,
+`es`, `fr` — all real first-pass translations, not machine output, but none
+have been reviewed by a native speaker yet; do that before treating any of
+them as launch-ready copy. The top-bar language button cycles through all
+four; missing keys in any locale fall back to English automatically.
 
 ## Known gaps
 

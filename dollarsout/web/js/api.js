@@ -34,8 +34,7 @@ export const api = {
     request("/auth/verify-code", { method: "POST", body: JSON.stringify({ email, code, turnstileToken }) }),
   logout: () => request("/auth/logout", { method: "POST" }),
 
-  claim: (actionId, moneyRedirectedEuros, whatBroke) =>
-    request("/claims", { method: "POST", body: JSON.stringify({ actionId, moneyRedirectedEuros, whatBroke }) }),
+  claim: (actionId) => request("/claims", { method: "POST", body: JSON.stringify({ actionId }) }),
   undoClaim: (actionId) => request(`/claims/${encodeURIComponent(actionId)}`, { method: "DELETE" }),
   markNA: (actionId) => request(`/na/${encodeURIComponent(actionId)}`, { method: "POST" }),
   undoNA: (actionId) => request(`/na/${encodeURIComponent(actionId)}`, { method: "DELETE" }),

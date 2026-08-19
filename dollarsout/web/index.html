@@ -53,9 +53,16 @@
           <div class="sub" id="meterSub"></div>
         </div>
       </div>
+
+      <div class="h2"><span data-i18n="aggregate.heading">All of us</span> <span class="cnt" data-i18n="aggregate.public">public, always</span></div>
+      <div class="statrow">
+        <div class="stat o"><b id="statActionsLogged">0</b><span data-i18n="aggregate.actionsLogged">Actions logged</span></div>
+        <div class="stat p"><b id="statPeopleVerified">0</b><span data-i18n="aggregate.peopleVerified">People, verified</span></div>
+      </div>
+      <div id="communityGoals"></div>
     </main>
 
-    <!-- ============ EXPLORE (category picker) ============ -->
+    <!-- ============ ACTIONS (category picker) ============ -->
     <main class="screen" id="s-explore" hidden>
       <div class="searchbar">
         <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
@@ -70,13 +77,6 @@
 
       <div class="h2"><span data-i18n="categories.heading">Pick your battle</span> <span class="cnt" id="categoryCount"></span></div>
       <div id="categoryList"></div>
-
-      <div class="h2" style="margin-top:22px"><span data-i18n="aggregate.heading">All of us</span> <span class="cnt" data-i18n="aggregate.public">public, always</span></div>
-      <div class="statrow">
-        <div class="stat o"><b id="statActionsLogged">0</b><span data-i18n="aggregate.actionsLogged">Actions logged</span></div>
-        <div class="stat p"><b id="statPeopleVerified">0</b><span data-i18n="aggregate.peopleVerified">People, verified</span></div>
-      </div>
-      <div id="communityGoals"></div>
     </main>
 
     <!-- ============ CATEGORY / ACTION LIST ============ -->
@@ -109,35 +109,26 @@
       <div id="checkinsSection"></div>
     </main>
 
-    <!-- ============ SHELF (signed-out empty state) ============ -->
+    <!-- ============ SHELF/ACHIEVEMENTS (signed-out empty state) ============ -->
     <main class="screen" id="s-shelf-empty" hidden>
       <div class="empty">
         <div class="ico">🏅</div>
-        <h3 data-i18n="shelf.emptyTitle">Nothing on the shelf yet</h3>
+        <h3 data-i18n="shelf.emptyTitle">Nothing here yet</h3>
         <p data-i18n="shelf.emptyBody"></p>
-        <button class="btn" id="shelfSaveBtn" type="button" data-i18n="guest.save">Save my progress</button>
+        <button class="btn" id="shelfSaveBtn" type="button" data-i18n="auth.ctaSignIn">Sign In</button>
       </div>
     </main>
 
-    <!-- ============ YOU (signed in / guest-with-progress) ============ -->
+    <!-- ============ YOU (signed in) ============ -->
     <main class="screen" id="s-you" hidden>
-      <div class="h2" data-i18n="you.ledgerHeading">Your ledger</div>
+      <div class="h2" data-i18n="you.heading">Your progress</div>
       <div class="statrow">
         <div class="stat g"><b id="youActionsTaken">0</b><span data-i18n="you.actionsTaken">Actions taken</span></div>
-        <div class="stat p"><b id="youRedirected">€0</b><span data-i18n="you.redirectedPerYear">Redirected / yr</span></div>
-      </div>
-      <div class="statrow">
         <div class="stat o"><b id="youBadges">0</b><span data-i18n="you.badgesEarned">Badges earned</span></div>
-        <div class="stat g"><b id="youStillHolding">0</b><span data-i18n="you.stillHolding">Still holding</span></div>
+        <div class="stat p"><b id="youStillHolding">0</b><span data-i18n="you.stillHolding">Still holding</span></div>
       </div>
 
-      <div class="card">
-        <div class="h2" style="margin-top:0" data-i18n="you.whereItWent">Where it went</div>
-        <div class="receipt" id="ledgerReceipt"></div>
-        <p style="font-size:14px;font-weight:600;opacity:0.8" data-i18n="you.disclaimer"></p>
-      </div>
-
-      <button class="btn orn" id="shareLedgerBtn" type="button" data-i18n="you.shareLedger">Share your ledger</button>
+      <button class="btn orn" id="shareProgressBtn" type="button" data-i18n="you.shareProgress">Share your progress</button>
       <div id="accountTools" style="text-align:center;margin-top:16px"></div>
     </main>
 
@@ -145,12 +136,9 @@
     <main class="screen" id="s-you-empty" hidden>
       <div class="empty">
         <div class="ico">🧾</div>
-        <h3 data-i18n="you.emptyTitle">No ledger yet</h3>
+        <h3 data-i18n="you.emptyTitle">Nothing tracked yet</h3>
         <p data-i18n="you.emptyBody"></p>
-        <button class="btn" id="youSaveBtn" type="button" data-i18n="guest.save">Save my progress</button>
-      </div>
-      <div class="card" style="background:var(--cream)">
-        <p style="font-size:14px;font-weight:600;line-height:1.6" data-i18n="you.guestNote"></p>
+        <button class="btn" id="youSaveBtn" type="button" data-i18n="auth.ctaSignIn">Sign In</button>
       </div>
     </main>
 
@@ -158,8 +146,8 @@
 
   <nav class="nav">
     <button type="button" data-nav="home" aria-current="true"><span class="i">🎯</span><span class="l" data-i18n="nav.home">Home</span></button>
-    <button type="button" data-nav="explore"><span class="i">🔍</span><span class="l" data-i18n="nav.explore">Explore</span></button>
-    <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Shelf</span></button>
+    <button type="button" data-nav="explore"><span class="i">🔍</span><span class="l" data-i18n="nav.explore">Actions</span></button>
+    <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Achievements</span></button>
     <button type="button" data-nav="you"><span class="i">🧾</span><span class="l" data-i18n="nav.you">You</span></button>
   </nav>
 

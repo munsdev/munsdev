@@ -108,9 +108,7 @@ export default {
         if (!account) return json(env, { error: "sign_in_required" }, 401);
 
         if (request.method === "POST" && pathname === "/claims") {
-          const body = await readJson<{ actionId: string; moneyRedirectedEuros?: number; whatBroke?: string }>(
-            request
-          );
+          const body = await readJson<{ actionId: string }>(request);
           if (!body?.actionId) return json(env, { error: "missing_action_id" }, 400);
           const result = await handleClaim(env, account, body);
           return json(env, "body" in result ? result.body : { error: result.error }, result.status);
@@ -167,11 +165,9 @@ export default {
       // ---- sharing (public, unauthenticated per spec S9) ----
       if (request.method === "POST" && pathname === "/share") {
         const body = await readJson<{
-          kind: "claim" | "badge" | "ledger";
+          kind: "claim" | "badge";
           headline: string;
           subline: string;
-          moneyLabel?: string | null;
-          whatBroke?: string | null;
         }>(request);
         if (!body?.kind || !body?.headline || !body?.subline) return json(env, { error: "missing_fields" }, 400);
         const id = await createShare(env, body);

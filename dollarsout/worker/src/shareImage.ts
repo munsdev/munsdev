@@ -14,11 +14,9 @@ const PALETTE = {
 };
 
 export interface ShareCard {
-  kind: "claim" | "badge" | "ledger";
-  headline: string; // action/badge title or "My DollarsOut ledger"
-  subline: string; // e.g. "Badge unlocked" / "Logged" / "Redirected this year"
-  moneyLabel?: string | null; // e.g. "€70/yr" -- self-reported, never invented (spec S9)
-  whatBroke?: string | null; // verbatim, never embellished (spec S9)
+  kind: "claim" | "badge";
+  headline: string; // action/badge title
+  subline: string; // e.g. "Badge unlocked" / "Logged"
 }
 
 const SHARE_TTL_SECONDS = 60 * 60 * 24 * 365;
@@ -57,18 +55,6 @@ function wrapText(text: string, maxCharsPerLine: number): string[] {
 /** Hand-built 1080x1080 SVG card in the locked brand palette -- see spec S2/S9. */
 export function buildCardSvg(card: ShareCard): string {
   const headlineLines = wrapText(card.headline, 22);
-  const bandY = 660;
-
-  const moneyBlock = card.moneyLabel
-    ? `<text x="80" y="${bandY + 90}" font-family="Archivo Black, sans-serif" font-size="72" fill="${PALETTE.ink}">${esc(card.moneyLabel)}</text>
-       <text x="80" y="${bandY + 130}" font-family="Archivo, sans-serif" font-size="24" font-weight="700" fill="${PALETTE.ink}" opacity="0.7">SELF-REPORTED, REDIRECTED</text>`
-    : "";
-
-  const whatBrokeBlock = card.whatBroke
-    ? `<rect x="80" y="${bandY + (card.moneyLabel ? 160 : 20)}" width="920" height="130" rx="16" fill="${PALETTE.white}" stroke="${PALETTE.ink}" stroke-width="4"/>
-       <text x="110" y="${bandY + (card.moneyLabel ? 205 : 65)}" font-family="Archivo, sans-serif" font-size="22" font-weight="800" fill="${PALETTE.ink}" opacity="0.6">WHAT BROKE</text>
-       <text x="110" y="${bandY + (card.moneyLabel ? 240 : 100)}" font-family="Archivo, sans-serif" font-size="28" font-weight="600" fill="${PALETTE.ink}">${esc(card.whatBroke.slice(0, 70))}</text>`
-    : "";
 
   return `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
     <rect width="1080" height="1080" fill="${PALETTE.bg}"/>
@@ -76,7 +62,6 @@ export function buildCardSvg(card: ShareCard): string {
     <text x="80" y="140" font-family="Archivo Black, sans-serif" font-size="48" fill="${PALETTE.ink}">DOLLARSOUT</text>
     <rect x="80" y="170" width="200" height="6" fill="${PALETTE.ornSolid}"/>
 
-    <rect x="80" y="240" width="920" height="8" fill="${PALETTE.ink}" opacity="0"/>
     <text x="80" y="330" font-family="Archivo, sans-serif" font-size="30" font-weight="800" fill="${PALETTE.purSolid}">${esc(card.subline.toUpperCase())}</text>
     ${headlineLines
       .map(
@@ -84,9 +69,6 @@ export function buildCardSvg(card: ShareCard): string {
           `<text x="80" y="${400 + i * 84}" font-family="Archivo Black, sans-serif" font-size="72" fill="${PALETTE.ink}">${esc(line)}</text>`
       )
       .join("\n")}
-
-    ${moneyBlock}
-    ${whatBrokeBlock}
 
     <text x="80" y="1010" font-family="Archivo, sans-serif" font-size="26" font-weight="700" fill="${PALETTE.ink}" opacity="0.7">dollarsout.1stand.org</text>
   </svg>`;

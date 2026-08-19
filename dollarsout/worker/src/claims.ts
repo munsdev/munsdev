@@ -18,8 +18,6 @@ import { computeLevel, evaluateBadgesAfterClaim, evaluateTimeServedBadges } from
 
 export interface ClaimRequestBody {
   actionId: string;
-  moneyRedirectedEuros?: number | null;
-  whatBroke?: string | null;
 }
 
 /** Very light anomaly signal per spec S7.5 -- logged for manual review, never auto-acted on. */
@@ -41,11 +39,7 @@ export async function handleClaim(env: Env, account: Account, body: ClaimRequest
   const totalBefore = before.filter((s) => s.status === "claimed").length;
   const levelBefore = computeLevel(totalBefore);
 
-  const moneyCents =
-    body.moneyRedirectedEuros != null ? Math.round(body.moneyRedirectedEuros * 100) : null;
-  const whatBroke = body.whatBroke?.trim() ? body.whatBroke.trim().slice(0, 500) : null;
-
-  const state = await upsertClaim(env, account.id, action.id, moneyCents, whatBroke, action.isTimeServed);
+  const state = await upsertClaim(env, account.id, action.id, action.isTimeServed);
 
   const allActions = await listActions(env);
   const actionsById = new Map(allActions.map((a) => [a.id, a]));
@@ -134,15 +128,6 @@ export async function handleMe(env: Env, account: Account) {
     return action?.isTimeServed && s.nextCheckinDue !== null;
   }).length;
 
-  const ledgerEntries = claimed
-    .filter((s) => s.moneyRedirectedCents != null && s.moneyRedirectedCents > 0)
-    .map((s) => ({
-      actionId: s.actionId,
-      actionName: actionsById.get(s.actionId)?.name ?? s.actionId,
-      cents: s.moneyRedirectedCents as number,
-    }));
-  const totalRedirectedCents = ledgerEntries.reduce((sum, e) => sum + e.cents, 0);
-
   const earnedBadges = allBadges.filter((b) => earnedBadgeIds.has(b.id));
 
   return {
@@ -152,11 +137,9 @@ export async function handleMe(env: Env, account: Account) {
       level,
       stats: {
         actionsTaken: totalClaimed,
-        redirectedCents: totalRedirectedCents,
         badgesEarned: earnedBadges.length,
         stillHolding,
       },
-      ledger: ledgerEntries,
       badges: earnedBadges,
       states: { claimed, na: naList },
     },

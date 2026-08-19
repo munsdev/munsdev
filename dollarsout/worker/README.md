@@ -88,9 +88,17 @@ this becomes a frequent edit).
 
 ## Known gaps / next steps
 
-- **Money-redirected presets** on each action are a first-pass guess (see
-  `content/actions.json`) — spec §12 open decision #3 flags these need
-  real, sourced figures.
+- **Money tracking was cut from the product.** `content/actions.json`'s
+  `moneyPresets` field and the `money_redirected`/`what_broke` D1 columns
+  are inert legacy left over from an earlier iteration of the spec (which
+  had an optional self-reported dollar amount and a "what broke?" note per
+  claim) -- neither is read or written anywhere in the current API. Tracking
+  is now a single tap, no text or amount input, and there's no
+  ledger/dollar total anywhere in the app.
+- **Tracking requires sign-in.** Browsing is open to everyone; claiming or
+  marking "doesn't apply" is gated behind the OTP auth flow. This is also a
+  deliberate departure from the original spec's "works completely,
+  immediately, unauthenticated" principle.
 - **Badge artwork** is emoji placeholders (spec §12 open decision #2).
 - **German localization**: the Worker returns raw content strings only —
   translation is entirely a frontend (`web/i18n/`) concern for now, per

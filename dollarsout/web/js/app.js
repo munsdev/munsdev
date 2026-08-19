@@ -1,33 +1,22 @@
-import { t, loadLocale, applyStaticStrings, detectPreferredLocale, currentLocale } from "./i18n.js";
+import { t, loadLocale, detectPreferredLocale, currentLocale } from "./i18n.js";
 import { api } from "./api.js";
 import { TURNSTILE_SITE_KEY } from "./config.js";
-import {
-  LEVEL_LADDER,
-  computeLevel,
-  loadGuestState,
-  hasGuestProgress,
-  claimGuest,
-  undoClaimGuest,
-  markNAGuest,
-  undoNAGuest,
-  checkinGuest,
-  listDueCheckinsGuest,
-  guestSummary,
-  migrateGuestStateToAccount,
-  clearGuestState,
-} from "./state.js";
+import { LEVEL_LADDER, computeLevel } from "./state.js";
 
 // ---------------- module state ----------------
 let catalog = { categories: [], actions: [], badges: [] };
 let stats = { period: null, peopleVerified: 0, communityGoals: [] };
 let session = { loggedIn: false, email: null };
-let stateByActionId = new Map(); // actionId -> {status, moneyRedirectedCents, whatBroke, nextCheckinDue, ...}
+let stateByActionId = new Map(); // actionId -> {status, nextCheckinDue, ...} -- empty when signed out
 let earnedBadgeIds = new Set();
-let currentCategoryId = null; // null = Explore "all"
+let currentCategoryId = null;
 let currentActionId = null;
 let toastTimer = null;
-let lastUndo = null; // {kind:'claim'|'na', actionId}
+let lastUndo = null; // {kind:'claim', actionId}
+let pendingAction = null; // {type:'claim'|'na', actionId} -- resumed automatically right after sign-in
 let turnstileRendered = { 1: false, 2: false };
+
+const LOCALES = ["en", "de", "es", "fr"];
 
 const filters = {
   search: "",
@@ -36,7 +25,6 @@ const filters = {
 };
 
 const $ = (id) => document.getElementById(id);
-const euros = (cents) => `€${Math.round((cents || 0) / 100)}`;
 
 // ---------------- boot ----------------
 async function boot() {
@@ -68,23 +56,21 @@ async function boot() {
 }
 
 async function refreshUserState() {
-  if (session.loggedIn) {
-    try {
-      const me = await api.me();
-      stateByActionId = new Map(me.states.claimed.map((s) => [s.actionId, s]));
-      for (const actionId of me.states.na) stateByActionId.set(actionId, { status: "na" });
-      earnedBadgeIds = new Set(me.badges.map((b) => b.id));
-      window.__lastMe = me;
-    } catch {
-      stateByActionId = new Map();
-      earnedBadgeIds = new Set();
-    }
-  } else {
-    const summary = guestSummary(catalog);
-    stateByActionId = new Map(summary.states.claimed.map((s) => [s.actionId, s]));
-    for (const actionId of summary.states.na) stateByActionId.set(actionId, { status: "na" });
-    earnedBadgeIds = new Set(summary.badges.map((b) => b.id));
-    window.__lastMe = summary;
+  if (!session.loggedIn) {
+    stateByActionId = new Map();
+    earnedBadgeIds = new Set();
+    window.__lastMe = null;
+    return;
+  }
+  try {
+    const me = await api.me();
+    stateByActionId = new Map(me.states.claimed.map((s) => [s.actionId, s]));
+    for (const actionId of me.states.na) stateByActionId.set(actionId, { status: "na" });
+    earnedBadgeIds = new Set(me.badges.map((b) => b.id));
+    window.__lastMe = me;
+  } catch {
+    stateByActionId = new Map();
+    earnedBadgeIds = new Set();
   }
 }
 
@@ -103,11 +89,10 @@ function renderTopbar() {
 
   const totalClaimed = [...stateByActionId.values()].filter((s) => s.status === "claimed").length;
   const level = computeLevel(totalClaimed);
-  const showLevel = session.loggedIn || hasGuestProgress();
   const pct = levelProgressPct(totalClaimed, level);
 
-  $("lvlstrip").hidden = !showLevel;
-  if (showLevel) {
+  $("lvlstrip").hidden = !session.loggedIn;
+  if (session.loggedIn) {
     $("lvlName").textContent = `Lv${level.level} ${level.name}`;
     $("lvlBar").style.width = `${pct}%`;
     $("lvlNext").textContent = level.nextName ? t("level.toNext", { count: level.actionsToNext, name: level.nextName }) : "";
@@ -124,9 +109,8 @@ function renderTopbar() {
 // ---------------- meter (collective dial) ----------------
 // The fill arc and the background track share the exact same path (a fixed 180° semicircle from
 // the "0" end at (20,130) to the "full" end at (280,130)); progress is drawn with stroke-dasharray
-// / stroke-dashoffset rather than by recomputing the path's endpoint, so there's no per-frame arc
-// geometry to get wrong -- getTotalLength() measures the real rendered length once and the offset
-// is just totalLength * (1 - pct).
+// / stroke-dashoffset against the path's real measured length (getTotalLength()) rather than by
+// recomputing an arc endpoint by hand each render.
 let meterArcLength = null;
 function getMeterArcLength() {
   if (meterArcLength == null) meterArcLength = $("meterFillArc").getTotalLength();
@@ -154,17 +138,15 @@ function renderMeter() {
   }
   $("meterGoalLine").textContent = `${t("meter.goalPrefix")} ${goal.toLocaleString()} ${t("meter.actionsSuffix")}${daysLeft}`;
 
-  const tickEl = $("meterTick");
-  animateCount(tickEl, count);
+  animateCount($("meterTick"), count);
   $("meterSub").textContent = t("meter.loggedSoFar", { goal: goal.toLocaleString() });
 }
 
 function animateCount(el, target) {
   const t0 = performance.now();
-  const from = 0;
   function step(now) {
     const p = Math.min((now - t0) / 1200, 1);
-    el.textContent = Math.floor(from + (target - from) * (1 - Math.pow(1 - p, 3))).toLocaleString();
+    el.textContent = Math.floor(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
     if (p < 1) requestAnimationFrame(step);
   }
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -279,6 +261,13 @@ function go(id) {
   $("scrollBody").scrollTop = 0;
 }
 
+/** Re-renders whichever of Explore/category/detail is currently on screen, after a state change. */
+function refreshCurrentScreen(actionId) {
+  if (!$("s-detail").hidden) openDetail(actionId ?? currentActionId, currentCategoryId);
+  else if (!$("s-cat").hidden) openCategory(currentCategoryId);
+  else if (!$("s-explore").hidden) renderExplore();
+}
+
 function renderExplore() {
   const listEl = $("categoryList");
   $("categoryCount").textContent = t("categories.count", { count: catalog.categories.length });
@@ -300,7 +289,7 @@ function renderExplore() {
     btn.type = "button";
     btn.className = `cat ${cat.colorKey}`;
     btn.innerHTML = `
-      <span class="num">${session.loggedIn || hasGuestProgress() ? `${frac.done}<small>${t("categories.fractionOf")} ${frac.total}</small>` : `${frac.total}`}</span>
+      <span class="num">${session.loggedIn ? `${frac.done}<small>${t("categories.fractionOf")} ${frac.total}</small>` : `${frac.total}`}</span>
       <span class="txt"><b>${esc(cat.name)}</b><span>${esc(cat.tagline || cat.shortDescription || "")}</span></span>
       <span class="go">›</span>`;
     btn.addEventListener("click", () => openCategory(cat.id));
@@ -350,61 +339,15 @@ function buildActionCard(action, fromCategoryId) {
       ${done ? "" : `<div class="actbtns">
         <button class="btn sm" style="flex:1" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>
         <button class="naLink" type="button" data-role="na">${esc(t("action.doesntApply"))}</button>
-      </div>
-      <div class="claimform" data-role="claimform">${buildClaimFormHtml(action)}</div>`}
+      </div>`}
     </div></div>`;
 
   card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id, fromCategoryId));
   if (!done) {
-    card.querySelector('[data-role="idid"]').addEventListener("click", () => {
-      const form = card.querySelector('[data-role="claimform"]');
-      form.classList.toggle("open");
-    });
+    card.querySelector('[data-role="idid"]').addEventListener("click", () => doClaim(action));
     card.querySelector('[data-role="na"]').addEventListener("click", () => doMarkNA(action.id));
-    wireClaimForm(card, action);
   }
   return card;
-}
-
-function buildClaimFormHtml(action) {
-  const chips = action.moneyPresets.map((amount, i) => `<button class="mchip" type="button" data-amount="${amount}" aria-pressed="${i === 0 ? "true" : "false"}">€${amount}</button>`).join("");
-  const customChip = `<button class="mchip" type="button" data-amount="custom" aria-pressed="false">${esc(t("claim.moneyCustom"))}</button>`;
-  return `
-    ${action.moneyPresets.length ? `<span class="claimlabel">${esc(t("claim.moneyLabel"))}</span>
-    <div class="moneychips">${chips}${customChip}</div>
-    <input type="number" inputmode="decimal" class="customAmount" style="display:none" placeholder="€">` : ""}
-    <span class="claimlabel">${esc(t("claim.whatBrokeLabel"))}</span>
-    <input type="text" class="whatBroke" placeholder="${esc(t("claim.whatBrokePlaceholder"))}">
-    <button class="btn" type="button" data-role="logit">${esc(t("claim.logIt"))}</button>`;
-}
-
-function wireClaimForm(card, action) {
-  const form = card.querySelector('[data-role="claimform"]');
-  if (!form) return;
-  let selectedAmount = action.moneyPresets[0] ?? null;
-
-  form.querySelectorAll(".mchip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      form.querySelectorAll(".mchip").forEach((c) => c.setAttribute("aria-pressed", "false"));
-      chip.setAttribute("aria-pressed", "true");
-      const custom = form.querySelector(".customAmount");
-      if (chip.dataset.amount === "custom") {
-        custom.style.display = "block";
-        custom.focus();
-        selectedAmount = null;
-      } else {
-        custom.style.display = "none";
-        selectedAmount = Number(chip.dataset.amount);
-      }
-    });
-  });
-
-  form.querySelector('[data-role="logit"]').addEventListener("click", async () => {
-    const customEl = form.querySelector(".customAmount");
-    const amount = customEl && customEl.style.display !== "none" ? Number(customEl.value || 0) : selectedAmount;
-    const whatBroke = form.querySelector(".whatBroke")?.value || "";
-    await doClaim(action, amount, whatBroke);
-  });
 }
 
 function openDetail(actionId, fromCategoryId) {
@@ -421,14 +364,12 @@ function openDetail(actionId, fromCategoryId) {
       ${action.helpfulLinks.length ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
       <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:700">${esc(l.label)} →</a>`).join("<br>")}</p>` : ""}
       ${state?.status === "claimed" ? "" : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>
-      <button class="btn ghost sm" style="margin-top:10px" type="button" id="detailNABtn">${esc(t("action.doesntApply"))}</button>
-      <div class="claimform" id="detailClaimForm" data-role="claimform">${buildClaimFormHtml(action)}</div>`}
+      <button class="btn ghost sm" style="margin-top:10px" type="button" id="detailNABtn">${esc(t("action.doesntApply"))}</button>`}
     </div>`;
 
   if (state?.status !== "claimed") {
-    $("detailClaimBtn").addEventListener("click", () => $("detailClaimForm").classList.toggle("open"));
+    $("detailClaimBtn").addEventListener("click", () => doClaim(action));
     $("detailNABtn").addEventListener("click", () => doMarkNA(actionId));
-    wireClaimForm($("detailContent"), action);
   }
   $("detailBackBtn").onclick = () => {
     const target = fromCategoryId !== undefined ? fromCategoryId : currentCategoryId;
@@ -441,66 +382,61 @@ function openDetail(actionId, fromCategoryId) {
   go("detail");
 }
 
-// ---------------- claim / NA / undo ----------------
-async function doClaim(action, amountEuros, whatBroke) {
-  let result;
-  if (session.loggedIn) {
-    result = await api.claim(action.id, amountEuros, whatBroke);
-  } else {
-    result = claimGuest(catalog, action.id, amountEuros, whatBroke);
+// ---------------- claim / NA / undo (sign-in required to track) ----------------
+async function requireAuthThen(type, actionId, run) {
+  if (!session.loggedIn) {
+    pendingAction = { type, actionId };
+    openAuth();
+    return;
   }
-  await refreshUserState();
-  renderTopbar();
-  renderAggregate();
+  await run();
+}
 
-  lastUndo = { kind: "claim", actionId: action.id };
-  showToast(t("claim.logged", { title: action.name }));
+async function doClaim(action) {
+  await requireAuthThen("claim", action.id, async () => {
+    const result = await api.claim(action.id);
+    await refreshUserState();
+    renderTopbar();
+    renderAggregate();
 
-  if (!$("s-detail").hidden) openDetail(action.id, currentCategoryId);
-  else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-explore").hidden) renderExplore();
+    lastUndo = { kind: "claim", actionId: action.id };
+    showToast(t("claim.logged", { title: action.name }));
+    refreshCurrentScreen(action.id);
 
-  const moneyLabel = amountEuros ? `€${amountEuros}/yr` : null;
-  if (result.newBadges?.length || result.levelUp) {
-    showBadgePop({
-      badges: result.newBadges || [],
-      levelUp: result.levelUp,
-      receipt: { action: action.name, time: action.timeEstimate, whatBroke: whatBroke || null },
-      shareCard: { kind: "claim", headline: action.name, subline: t("badge.stamp"), moneyLabel, whatBroke: whatBroke || null },
-    });
-  }
+    if (result.newBadges?.length || result.levelUp) {
+      showBadgePop({
+        badges: result.newBadges || [],
+        levelUp: result.levelUp,
+        receipt: { action: action.name, time: action.timeEstimate },
+        shareCard: { kind: "claim", headline: action.name, subline: t("badge.stamp") },
+      });
+    }
+  });
 }
 
 async function doUndoClaimLast() {
   if (!lastUndo || lastUndo.kind !== "claim") return;
-  if (session.loggedIn) await api.undoClaim(lastUndo.actionId);
-  else undoClaimGuest(lastUndo.actionId);
+  await api.undoClaim(lastUndo.actionId);
   lastUndo = null;
   hideToast();
   await refreshUserState();
   renderTopbar();
   renderAggregate();
-  if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  if (!$("s-detail").hidden) openDetail(currentActionId, currentCategoryId);
-  if (!$("s-explore").hidden) renderExplore();
+  refreshCurrentScreen();
 }
 
 async function doMarkNA(actionId) {
-  if (session.loggedIn) await api.markNA(actionId);
-  else markNAGuest(actionId);
-  await refreshUserState();
-  if (!$("s-detail").hidden) openDetail(actionId, currentCategoryId);
-  else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-explore").hidden) renderExplore();
+  await requireAuthThen("na", actionId, async () => {
+    await api.markNA(actionId);
+    await refreshUserState();
+    refreshCurrentScreen(actionId);
+  });
 }
 
 async function doUndoNA(actionId) {
-  if (session.loggedIn) await api.undoNA(actionId);
-  else undoNAGuest(actionId);
+  await api.undoNA(actionId);
   await refreshUserState();
-  if (!$("s-detail").hidden) openDetail(actionId, currentCategoryId);
-  else if (!$("s-cat").hidden) openCategory(currentCategoryId);
-  else if (!$("s-explore").hidden) renderExplore();
+  refreshCurrentScreen(actionId);
   showToast(t("action.restoredActive"));
 }
 
@@ -517,7 +453,7 @@ function hideToast() {
 }
 
 // ---------------- badge popup ----------------
-function shareButtons(card) {
+function shareButtons() {
   const targets = [
     ["instagram", "📷", "share.instagram"],
     ["tiktok", "🎵", "share.tiktok"],
@@ -544,8 +480,7 @@ async function showBadgePop({ badges, levelUp, receipt, shareCard }) {
 
   $("popReceipt").innerHTML = `
     <div class="r"><span>${esc(t("nav.explore"))}</span><b>${esc(receipt.action)}</b></div>
-    <div class="r"><span>${esc(t("filters.time"))}</span><b>${esc(receipt.time)}</b></div>
-    ${receipt.whatBroke ? `<div class="r"><span>${esc(t("claim.whatBrokeLabel"))}</span><b>${esc(receipt.whatBroke)}</b></div>` : ""}`;
+    <div class="r"><span>${esc(t("filters.time"))}</span><b>${esc(receipt.time)}</b></div>`;
 
   $("popShares").innerHTML = shareButtons();
   let shareUrl = null;
@@ -581,23 +516,22 @@ async function showBadgePop({ badges, levelUp, receipt, shareCard }) {
   $("badgePop").classList.add("on");
 }
 
-// ---------------- shelf ----------------
+// ---------------- achievements (shelf) ----------------
 function renderShelf() {
-  if (!session.loggedIn && !hasGuestProgress()) {
+  if (!session.loggedIn) {
     go("shelf-empty");
     return;
   }
 
   const badgeGrid = $("badgeGrid");
   badgeGrid.innerHTML = "";
-  const earnedCount = earnedBadgeIds.size;
-  $("shelfCount").textContent = `${earnedCount} ${t("shelf.of")} ${catalog.badges.length}`;
+  $("shelfCount").textContent = `${earnedBadgeIds.size} ${t("shelf.of")} ${catalog.badges.length}`;
 
   for (const badge of catalog.badges) {
     const unlocked = earnedBadgeIds.has(badge.id);
     const tile = document.createElement("div");
     tile.className = `badge ${unlocked ? "" : "locked"}`;
-    tile.innerHTML = `<div class="ico">${badge.icon}</div><div class="nm">${esc(badge.name)}</div><div class="st">${unlocked ? "" : t("filters.status")}</div>`;
+    tile.innerHTML = `<div class="ico">${badge.icon}</div><div class="nm">${esc(badge.name)}</div><div class="st">${unlocked ? "" : t("badge.locked")}</div>`;
     badgeGrid.appendChild(tile);
   }
 
@@ -606,7 +540,7 @@ function renderShelf() {
 }
 
 async function renderCheckins() {
-  const due = session.loggedIn ? (await api.dueCheckins()).map((d) => ({ actionId: d.state.actionId, action: d.action })) : listDueCheckinsGuest().map((s) => ({ actionId: s.actionId, action: catalog.actions.find((a) => a.id === s.actionId) }));
+  const due = (await api.dueCheckins()).map((d) => ({ actionId: d.state.actionId, action: d.action }));
 
   const section = $("checkinsSection");
   section.innerHTML = "";
@@ -630,16 +564,20 @@ async function renderCheckins() {
         <button class="btn sm ghost" type="button" data-role="back">${esc(t("shelf.wentBack"))}</button>
       </div>`;
     card.querySelector('[data-role="still"]').addEventListener("click", async () => {
-      const result = session.loggedIn ? await api.checkin(item.actionId, "holding") : checkinGuest(catalog, item.actionId, "holding");
+      const result = await api.checkin(item.actionId, "holding");
       await refreshUserState();
       renderShelf();
       if (result?.newBadges?.length) {
-        showBadgePop({ badges: result.newBadges, levelUp: null, receipt: { action: item.action.name, time: item.action.timeEstimate, whatBroke: null }, shareCard: { kind: "badge", headline: result.newBadges[0].name, subline: t("badge.unlocked") } });
+        showBadgePop({
+          badges: result.newBadges,
+          levelUp: null,
+          receipt: { action: item.action.name, time: item.action.timeEstimate },
+          shareCard: { kind: "badge", headline: result.newBadges[0].name, subline: t("badge.unlocked") },
+        });
       }
     });
     card.querySelector('[data-role="back"]').addEventListener("click", async () => {
-      if (session.loggedIn) await api.checkin(item.actionId, "went_back");
-      else checkinGuest(catalog, item.actionId, "went_back");
+      await api.checkin(item.actionId, "went_back");
       await refreshUserState();
       card.innerHTML = `<p style="font-size:14px;font-weight:700">${esc(t("shelf.wentBackLogged"))}</p>`;
     });
@@ -649,70 +587,48 @@ async function renderCheckins() {
 
 // ---------------- you ----------------
 function renderYou() {
-  if (!session.loggedIn && !hasGuestProgress()) {
+  if (!session.loggedIn) {
     go("you-empty");
     return;
   }
   const me = window.__lastMe;
   $("youActionsTaken").textContent = me.stats.actionsTaken;
-  $("youRedirected").textContent = euros(me.stats.redirectedCents);
   $("youBadges").textContent = me.stats.badgesEarned;
   $("youStillHolding").textContent = me.stats.stillHolding;
 
-  const receipt = $("ledgerReceipt");
-  receipt.innerHTML = "";
-  for (const entry of me.ledger) {
-    const row = document.createElement("div");
-    row.className = "r";
-    row.innerHTML = `<span>${esc(entry.actionName)}</span><b>${euros(entry.cents)}</b>`;
-    receipt.appendChild(row);
-  }
-  const total = document.createElement("div");
-  total.className = "r";
-  total.style.borderTop = "2px solid var(--ink)";
-  total.style.marginTop = "6px";
-  total.style.paddingTop = "6px";
-  total.innerHTML = `<span><b>${esc(t("you.perYear"))}</b></span><b>${euros(me.stats.redirectedCents)}</b>`;
-  receipt.appendChild(total);
-
   const tools = $("accountTools");
   tools.innerHTML = "";
-  if (session.loggedIn) {
-    const exportBtn = document.createElement("button");
-    exportBtn.className = "linkish";
-    exportBtn.type = "button";
-    exportBtn.textContent = t("you.exportDelete");
-    exportBtn.addEventListener("click", async () => {
-      if (!confirm(t("you.exportConfirm"))) return;
-      const data = await api.exportData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "dollarsout-export.json";
-      a.click();
-      await api.deleteAccount();
-      session = { loggedIn: false, email: null };
-      await refreshUserState();
-      renderTopbar();
-      go("home");
-    });
-    tools.appendChild(exportBtn);
-  } else {
-    const note = document.createElement("p");
-    note.style.fontSize = "14px";
-    note.style.fontWeight = "600";
-    note.style.opacity = "0.8";
-    note.textContent = t("you.guestNote");
-    tools.appendChild(note);
-  }
+  const exportBtn = document.createElement("button");
+  exportBtn.className = "linkish";
+  exportBtn.type = "button";
+  exportBtn.textContent = t("you.exportDelete");
+  exportBtn.addEventListener("click", async () => {
+    if (!confirm(t("you.exportConfirm"))) return;
+    const data = await api.exportData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "dollarsout-export.json";
+    a.click();
+    await api.deleteAccount();
+    session = { loggedIn: false, email: null };
+    await refreshUserState();
+    renderTopbar();
+    go("home");
+  });
+  tools.appendChild(exportBtn);
 
-  $("shareLedgerBtn").onclick = async () => {
+  $("shareProgressBtn").onclick = async () => {
     let shareUrl = null;
     try {
-      const created = await api.createShare({ kind: "ledger", headline: t("you.ledgerHeading"), subline: euros(me.stats.redirectedCents), moneyLabel: euros(me.stats.redirectedCents) });
+      const created = await api.createShare({
+        kind: "badge",
+        headline: `${me.stats.actionsTaken} ${t("you.actionsTaken")}`,
+        subline: t("you.shareProgress"),
+      });
       shareUrl = created.url;
     } catch {}
-    if (shareUrl && navigator.share) navigator.share({ title: t("you.ledgerHeading"), url: shareUrl }).catch(() => {});
+    if (shareUrl && navigator.share) navigator.share({ title: t("you.shareProgress"), url: shareUrl }).catch(() => {});
     else if (shareUrl) {
       await navigator.clipboard.writeText(shareUrl).catch(() => {});
       showToast(t("share.copied"));
@@ -773,7 +689,7 @@ async function handleSendCode() {
     const result = await api.requestCode(email, token);
     if (!result.ok) throw new Error(result.error || "failed");
     showAuthStep(2);
-  } catch (err) {
+  } catch {
     $("authError1").textContent = t("common.error");
   }
 }
@@ -787,17 +703,24 @@ async function handleConfirmCode() {
     const result = await api.verifyCode(email, code, token);
     if (!result.ok) throw new Error(result.error || "failed");
     closeAuth();
-    if (hasGuestProgress()) {
-      showToast(t("auth.migrating"));
-      await migrateGuestStateToAccount(api);
-    }
     session = await api.getSession();
     await refreshUserState();
     renderTopbar();
-    renderExplore();
-    renderAggregate();
-    showToast(t("auth.syncedToast"));
-  } catch (err) {
+
+    if (pendingAction) {
+      const { type, actionId } = pendingAction;
+      pendingAction = null;
+      const action = catalog.actions.find((a) => a.id === actionId);
+      if (action) {
+        if (type === "claim") await doClaim(action);
+        else if (type === "na") await doMarkNA(actionId);
+      }
+    } else {
+      renderExplore();
+      renderAggregate();
+      showToast(t("auth.syncedToast"));
+    }
+  } catch {
     $("authError2").textContent = t("common.error");
   }
 }
@@ -863,8 +786,8 @@ function wireStaticEvents() {
       });
     } else openAuth();
   });
-  $("shelfSaveBtn").addEventListener("click", openAuth);
-  $("youSaveBtn").addEventListener("click", openAuth);
+  $("shelfSaveBtn").addEventListener("click", () => openAuth());
+  $("youSaveBtn").addEventListener("click", () => openAuth());
   $("closeAuthBtn").addEventListener("click", closeAuth);
   $("sendCodeBtn").addEventListener("click", handleSendCode);
   $("confirmCodeBtn").addEventListener("click", handleConfirmCode);
@@ -906,17 +829,24 @@ function wireStaticEvents() {
   });
 
   $("localeSwitch").addEventListener("click", async () => {
-    const next = currentLocale() === "en" ? "de" : "en";
+    const idx = LOCALES.indexOf(currentLocale());
+    const next = LOCALES[(idx + 1) % LOCALES.length];
     localStorage.setItem("dollarsout:locale", next);
     await loadLocale(next);
-    $("localeSwitch").textContent = next === "en" ? "DE" : "EN";
+    updateLocaleSwitchLabel();
     renderTopbar();
     renderMeter();
     renderAggregate();
     if (!$("s-explore").hidden) renderExplore();
     if (!$("s-cat").hidden) openCategory(currentCategoryId);
   });
-  $("localeSwitch").textContent = currentLocale() === "en" ? "DE" : "EN";
+  updateLocaleSwitchLabel();
+}
+
+function updateLocaleSwitchLabel() {
+  const idx = LOCALES.indexOf(currentLocale());
+  const next = LOCALES[(idx + 1) % LOCALES.length];
+  $("localeSwitch").textContent = next.toUpperCase();
 }
 
 boot();

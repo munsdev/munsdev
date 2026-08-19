@@ -161,12 +161,13 @@ export async function getUserActionState(
   return row ? rowToState(row) : null;
 }
 
+/** Money/what-broke tracking was removed from the product -- money_redirected and what_broke stay
+ *  in the schema as inert legacy columns (always null going forward) rather than risking a
+ *  migration for a pre-launch table. */
 export async function upsertClaim(
   env: Env,
   accountId: string,
   actionId: string,
-  moneyRedirectedCents: number | null,
-  whatBroke: string | null,
   isTimeServed: boolean
 ): Promise<UserActionState> {
   const existing = await getUserActionState(env, accountId, actionId);
@@ -177,22 +178,22 @@ export async function upsertClaim(
 
   if (existing) {
     await env.DB.prepare(
-      `UPDATE user_action_state SET status='claimed', money_redirected=?, what_broke=?,
+      `UPDATE user_action_state SET status='claimed',
        claimed_at=?, start_date=COALESCE(start_date, ?), next_checkin_due=?, updated_at=?
        WHERE id=?`
     )
-      .bind(moneyRedirectedCents, whatBroke, now, now, nextCheckinDue, now, existing.id)
+      .bind(now, now, nextCheckinDue, now, existing.id)
       .run();
-    return { ...existing, status: "claimed", moneyRedirectedCents, whatBroke, claimedAt: now, updatedAt: now };
+    return { ...existing, status: "claimed", claimedAt: now, updatedAt: now };
   }
 
   const id = crypto.randomUUID();
   await env.DB.prepare(
     `INSERT INTO user_action_state
-     (id, account_id, action_id, status, money_redirected, what_broke, claimed_at, start_date, next_checkin_due)
-     VALUES (?, ?, ?, 'claimed', ?, ?, ?, ?, ?)`
+     (id, account_id, action_id, status, claimed_at, start_date, next_checkin_due)
+     VALUES (?, ?, ?, 'claimed', ?, ?, ?)`
   )
-    .bind(id, accountId, actionId, moneyRedirectedCents, whatBroke, now, now, nextCheckinDue)
+    .bind(id, accountId, actionId, now, now, nextCheckinDue)
     .run();
 
   return {
@@ -200,8 +201,8 @@ export async function upsertClaim(
     accountId,
     actionId,
     status: "claimed",
-    moneyRedirectedCents,
-    whatBroke,
+    moneyRedirectedCents: null,
+    whatBroke: null,
     claimedAt: now,
     startDate: now,
     lastCheckinAt: null,

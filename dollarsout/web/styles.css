@@ -32,7 +32,21 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px 12px;
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* On phone-sized viewports the "device in a browser" card look just wastes screen and pushes the
+   bottom nav away from the real edge of the screen -- go edge-to-edge there instead, and keep the
+   card presentation only where there's room for it to read as a deliberate choice. */
+@media (max-width: 480px) {
+  body { padding: 0; align-items: stretch; }
+  .app {
+    max-width: 100%;
+    height: 100dvh;
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 .display { font-family: "Archivo Black", Archivo, sans-serif; letter-spacing: -0.02em; }
 button, input { font-family: inherit; font-size: 16px; }
@@ -99,7 +113,12 @@ a { color: inherit; }
 .meter-goal { font-size: 14px; font-weight: 700; text-align: center; opacity: 0.75; margin-bottom: 8px; }
 .gauge { position: relative; width: 100%; aspect-ratio: 2 / 1.16; margin: 0 auto; }
 .gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.needle { transform-origin: 150px 130px; transition: transform 1.8s cubic-bezier(0.25, 1.2, 0.3, 1); }
+/* No transform-origin here on purpose: the needle's rotate(angle, 150, 130) is set as an SVG
+   presentation attribute in JS, which already carries its own explicit pivot point. A CSS
+   transform-origin on an SVG element is relative to the element's own bounding box in some
+   browsers and the SVG viewport in others -- on this needle's tiny bbox that mismatch sent the
+   whole needle swinging around a point far outside the gauge instead of its center. */
+.needle { transition: transform 1.8s cubic-bezier(0.25, 1.2, 0.3, 1); }
 .readout { text-align: center; margin-top: 4px; }
 .readout .big { font-family: "Archivo Black"; font-size: 34px; line-height: 1; letter-spacing: -0.02em; }
 .readout .sub { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.8; margin-top: 4px; }
@@ -155,16 +174,6 @@ a { color: inherit; }
 .naLink { background: none; border: none; font-size: 14px; font-weight: 800; text-decoration: underline;
   cursor: pointer; text-transform: uppercase; opacity: 0.75; min-height: 44px; padding: 4px; }
 .act.na p.nastate { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #6b6754; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-.claimform { display: none; margin-top: 12px; border-top: 3px dashed var(--ink); padding-top: 12px; }
-.claimform.open { display: block; }
-.claimlabel { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 8px; display: block; }
-.moneychips { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.mchip { border: 3px solid var(--ink); border-radius: 10px; background: #fff; padding: 10px 14px;
-  font-weight: 800; font-size: 15px; cursor: pointer; min-height: 44px; }
-.mchip[aria-pressed="true"] { background: var(--grn-bright); }
-.claimform input[type="text"], .claimform input[type="number"] { width: 100%; border: 3px solid var(--ink); border-radius: 10px;
-  padding: 12px; font-size: 15px; font-weight: 600; margin-bottom: 12px; min-height: 44px; }
 
 .btn { display: block; width: 100%; font-family: "Archivo Black"; font-size: 16px; text-transform: uppercase;
   letter-spacing: 0.01em; padding: 15px; border: var(--line) solid var(--ink); border-radius: 14px;
