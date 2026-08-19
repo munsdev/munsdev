@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DollarsOut — Take your money out.</title>
+<meta name="description" content="Real-world economic actions, tracked. Cancel a subscription, switch banks, leave Amazon — and watch the collective count grow.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="wordmark display" data-i18n="app.wordmark">DollarsOut</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="localeSwitch" id="localeSwitch" type="button" aria-label="Switch language">DE</button>
+        <button class="pill ghostpill" id="authPill" type="button"></button>
+      </div>
+    </div>
+    <div class="lvlstrip" id="lvlstrip" hidden>
+      <span class="lvlname" id="lvlName"></span>
+      <div class="segbar"><i id="lvlBar" style="width:0%"></i></div>
+      <span class="lvlnext" id="lvlNext"></span>
+    </div>
+  </div>
+
+  <div class="guestbar" id="guestbar">
+    <span data-i18n="guest.banner">Browsing as guest — nothing is tracked.</span>
+    <button type="button" id="guestSaveBtn" data-i18n="guest.saveArrow">Save my progress →</button>
+  </div>
+
+  <div class="body" id="scrollBody">
+
+    <!-- ============ HOME ============ -->
+    <main class="screen" id="s-home">
+      <div class="searchbar">
+        <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
+        <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
+      </div>
+      <div class="chiprow" id="quickChips">
+        <button class="chip surprise" id="surpriseBtn" type="button" data-i18n="home.surpriseMe">🎲 Surprise me</button>
+        <button class="chip" type="button" data-quick="under5" aria-pressed="false" data-i18n="home.under5min">Under 5 min</button>
+        <button class="chip" type="button" data-quick="easy" aria-pressed="false" data-i18n="home.easyOnly">Easy only</button>
+        <button class="chip" type="button" data-quick="anywhere" aria-pressed="false" data-i18n="home.anywhere">Anywhere</button>
+      </div>
+
+      <div class="meterwrap">
+        <div class="meter-title" data-i18n="meter.title">All of us, this month</div>
+        <div class="meter-goal" id="meterGoalLine"></div>
+        <div class="gauge">
+          <svg viewBox="0 0 300 176" role="img" aria-label="Collective progress toward this month's goal">
+            <path d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#14130F" stroke-width="30" stroke-linecap="round"/>
+            <path d="M20 130 A130 130 0 0 1 150 4" fill="none" stroke="#EDE9DA" stroke-width="22" stroke-linecap="round"/>
+            <path id="meterFillArc" d="M20 130 A130 130 0 0 1 150 4" fill="none" stroke="#00873E" stroke-width="22" stroke-linecap="round"/>
+            <g id="needle" class="needle" transform="rotate(-90 150 130)">
+              <path d="M150 130 L143 122 L150 34 L157 122 Z" fill="#14130F"/>
+            </g>
+            <circle cx="150" cy="130" r="15" fill="#14130F"/>
+            <circle cx="150" cy="130" r="6" fill="#FFD426"/>
+          </svg>
+        </div>
+        <div class="readout">
+          <div class="big" id="meterTick">0</div>
+          <div class="sub" id="meterSub"></div>
+        </div>
+      </div>
+
+      <div class="h2"><span data-i18n="categories.heading">Pick your battle</span> <span class="cnt" id="categoryCount"></span></div>
+      <div id="categoryList"></div>
+
+      <div class="h2" style="margin-top:22px"><span data-i18n="aggregate.heading">All of us</span> <span class="cnt" data-i18n="aggregate.public">public, always</span></div>
+      <div class="statrow">
+        <div class="stat o"><b id="statActionsLogged">0</b><span data-i18n="aggregate.actionsLogged">Actions logged</span></div>
+        <div class="stat p"><b id="statPeopleVerified">0</b><span data-i18n="aggregate.peopleVerified">People, verified</span></div>
+      </div>
+      <div id="communityGoals"></div>
+    </main>
+
+    <!-- ============ CATEGORY / ACTION LIST ============ -->
+    <main class="screen" id="s-cat" hidden>
+      <button class="back" id="catBackBtn" type="button">‹ <span data-i18n="categories.heading">Pick your battle</span></button>
+      <div class="h2" id="catHeading"></div>
+      <div id="catActionList"></div>
+    </main>
+
+    <!-- ============ ACTION DETAIL ============ -->
+    <main class="screen" id="s-detail" hidden>
+      <button class="back" id="detailBackBtn" type="button">‹ <span data-i18n="detail.back">Back</span></button>
+      <div id="detailContent"></div>
+    </main>
+
+    <!-- ============ SHELF (signed in) ============ -->
+    <main class="screen" id="s-shelf" hidden>
+      <div class="laddercard">
+        <div class="h2" style="margin-top:0" data-i18n="shelf.yourLevel">Your level</div>
+        <div class="lvlstrip"><span class="lvlname" id="shelfLvlName"></span><div class="segbar"><i id="shelfLvlBar" style="width:0%"></i></div><span class="lvlnext" id="shelfLvlNext"></span></div>
+        <p style="font-size:14px;font-weight:700;opacity:0.8;margin-top:10px" data-i18n="level.ladder"></p>
+      </div>
+
+      <div class="h2"><span data-i18n="shelf.yourShelf">Your shelf</span> <span class="cnt" id="shelfCount"></span></div>
+      <div class="badgegrid" id="badgeGrid"></div>
+
+      <div id="checkinsSection"></div>
+    </main>
+
+    <!-- ============ SHELF (signed-out empty state) ============ -->
+    <main class="screen" id="s-shelf-empty" hidden>
+      <div class="empty">
+        <div class="ico">🏅</div>
+        <h3 data-i18n="shelf.emptyTitle">Nothing on the shelf yet</h3>
+        <p data-i18n="shelf.emptyBody"></p>
+        <button class="btn" id="shelfSaveBtn" type="button" data-i18n="guest.save">Save my progress</button>
+      </div>
+    </main>
+
+    <!-- ============ YOU (signed in / guest-with-progress) ============ -->
+    <main class="screen" id="s-you" hidden>
+      <div class="h2" data-i18n="you.ledgerHeading">Your ledger</div>
+      <div class="statrow">
+        <div class="stat g"><b id="youActionsTaken">0</b><span data-i18n="you.actionsTaken">Actions taken</span></div>
+        <div class="stat p"><b id="youRedirected">€0</b><span data-i18n="you.redirectedPerYear">Redirected / yr</span></div>
+      </div>
+      <div class="statrow">
+        <div class="stat o"><b id="youBadges">0</b><span data-i18n="you.badgesEarned">Badges earned</span></div>
+        <div class="stat g"><b id="youStillHolding">0</b><span data-i18n="you.stillHolding">Still holding</span></div>
+      </div>
+
+      <div class="card">
+        <div class="h2" style="margin-top:0" data-i18n="you.whereItWent">Where it went</div>
+        <div class="receipt" id="ledgerReceipt"></div>
+        <p style="font-size:14px;font-weight:600;opacity:0.8" data-i18n="you.disclaimer"></p>
+      </div>
+
+      <button class="btn orn" id="shareLedgerBtn" type="button" data-i18n="you.shareLedger">Share your ledger</button>
+      <div id="accountTools" style="text-align:center;margin-top:16px"></div>
+    </main>
+
+    <!-- ============ YOU (signed-out empty state) ============ -->
+    <main class="screen" id="s-you-empty" hidden>
+      <div class="empty">
+        <div class="ico">🧾</div>
+        <h3 data-i18n="you.emptyTitle">No ledger yet</h3>
+        <p data-i18n="you.emptyBody"></p>
+        <button class="btn" id="youSaveBtn" type="button" data-i18n="guest.save">Save my progress</button>
+      </div>
+      <div class="card" style="background:var(--cream)">
+        <p style="font-size:14px;font-weight:600;line-height:1.6" data-i18n="you.guestNote"></p>
+      </div>
+    </main>
+
+  </div>
+
+  <nav class="nav">
+    <button type="button" data-nav="home" aria-current="true"><span class="i">🎯</span><span class="l" data-i18n="nav.home">Home</span></button>
+    <button type="button" data-nav="explore"><span class="i">🔍</span><span class="l" data-i18n="nav.explore">Explore</span></button>
+    <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Shelf</span></button>
+    <button type="button" data-nav="you"><span class="i">🧾</span><span class="l" data-i18n="nav.you">You</span></button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastMsg"></span>
+    <button type="button" id="toastUndoBtn" data-i18n="claim.undo">Undo</button>
+  </div>
+
+  <div class="pop" id="badgePop" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+    <div class="popcard">
+      <div class="stamp" id="popStamp" data-i18n="badge.stamp">Logged!</div>
+      <h3 id="popTitle"></h3>
+      <p id="popBody"></p>
+      <div class="receipt" id="popReceipt"></div>
+      <div class="shares" id="popShares"></div>
+      <button class="btn sm ghost" id="popCloseBtn" type="button" data-i18n="badge.close">Close</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="filterSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="filters.title">Filter actions</span>
+        <button class="sheetclose" id="closeFiltersBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.time">Time it takes</span>
+        <div class="chiprow" style="margin:0" id="filterTime"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.effort">Effort</span>
+        <div class="chiprow" style="margin:0" id="filterEffort"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.location">Where you live</span>
+        <div class="chiprow" style="margin:0" id="filterLocation"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.status">Status</span>
+        <div class="chiprow" style="margin:0" id="filterStatus"></div>
+      </div>
+      <button class="btn" id="showResultsBtn" type="button" data-i18n="filters.showResults">Show results</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="authSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="auth.title">Save your progress</span>
+        <button class="sheetclose" id="closeAuthBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+
+      <div class="authstep on" id="authStep1">
+        <p style="font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.5" data-i18n="auth.step1Body"></p>
+        <input type="email" id="authEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="" style="width:100%;border:3px solid var(--ink);border-radius:12px;padding:14px;font-size:16px;font-weight:600;margin-bottom:12px;min-height:48px">
+        <div id="turnstileWidget1"></div>
+        <button class="btn" id="sendCodeBtn" type="button" data-i18n="auth.sendCode">Send my code</button>
+        <p class="formError" id="authError1"></p>
+        <p class="privline" data-i18n="auth.privacy"></p>
+      </div>
+
+      <div class="authstep" id="authStep2">
+        <p style="font-size:15px;font-weight:600;margin-bottom:8px" data-i18n="auth.step2Body"></p>
+        <div class="otpboxes" id="otpBoxes">
+          <input maxlength="1" inputmode="numeric" aria-label="Digit 1"><input maxlength="1" inputmode="numeric" aria-label="Digit 2"><input maxlength="1" inputmode="numeric" aria-label="Digit 3"><input maxlength="1" inputmode="numeric" aria-label="Digit 4"><input maxlength="1" inputmode="numeric" aria-label="Digit 5"><input maxlength="1" inputmode="numeric" aria-label="Digit 6">
+        </div>
+        <div id="turnstileWidget2"></div>
+        <button class="btn" id="confirmCodeBtn" type="button" data-i18n="auth.confirm">Confirm</button>
+        <p class="formError" id="authError2"></p>
+        <p class="privline" style="text-align:center"><span data-i18n="auth.didntGetIt"></span> <button class="linkish" id="resendBtn" type="button" data-i18n="auth.resend">Resend</button></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>

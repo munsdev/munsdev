@@ -1,0 +1,53 @@
+name = "dollarsout-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+d1_databases = [
+  { binding = "DB", database_name = "dollarsout-db", database_id = "e684a7e6-5097-4bdd-a2e5-2209a3672391" }
+]
+
+kv_namespaces = [
+  { binding = "SESSIONS", id = "a09385441fbe481085c66721f9e22065" },
+  { binding = "COUNTERS", id = "631f6b0e948f4b889266f1a95437ab53" }
+]
+
+# Reconcile public aggregate counters every 10 min (fast-path KV read on every homepage load,
+# see spec S11); daily 3am sync pulls category copy from the Webflow Actions CMS (spec S8).
+[triggers]
+crons = ["*/10 * * * *", "0 3 * * *"]
+
+[vars]
+# Origin allowed to call this Worker with credentials -- the DollarsOut frontend.
+ALLOWED_ORIGIN = "https://dollarsout.1stand.org"
+# Cookie domain shared between the Worker's subdomain and the frontend, same pattern as
+# api.reflectingpool.us -- both need to live under the same zone for the session cookie to be
+# visible to both. Update if the Worker and the static frontend end up on different subdomains.
+SESSION_COOKIE_DOMAIN = ".1stand.org"
+
+# --- Webflow config (Actions CMS, spec S8) ---
+WEBFLOW_SITE_ID = "69a1a23b929de4a13af87819"
+WEBFLOW_ACTIONS_COLLECTION_ID = "69a446acb75c3e74816c32c0"
+
+# --- Disposable-email blocklist (spec S7.2) ---
+# A maintained, plain-text, newline-separated list of domains. Swappable without a redeploy.
+DISPOSABLE_DOMAIN_BLOCKLIST_URL = "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf"
+
+# --- Secrets -- set with `wrangler secret put <NAME>`, never here: ---
+#   WEBFLOW_API_TOKEN     Webflow API token, CMS read scope on the 1STAND.org site
+#   TURNSTILE_SITE_KEY    Cloudflare Turnstile site key (public, kept as a secret for convenience)
+#   TURNSTILE_SECRET_KEY  Cloudflare Turnstile secret key
+#   OTP_EMAIL_API_KEY     Transactional email vendor API key (see auth.ts sendOtpEmail --
+#                          vendor still needs confirming against the 1STAND Mobilizon setup)
+#   OTP_EMAIL_FROM        Verified "From" address for OTP mail, e.g. "DollarsOut <noreply@1stand.org>"
+
+# Bind this Worker to a subdomain of the same zone the frontend is served on (1stand.org is
+# already a Cloudflare-managed zone -- see the existing reverse-proxy Worker routing the apex to
+# Webflow). custom_domain = true makes wrangler auto-create the DNS record + cert on deploy.
+[[routes]]
+pattern = "api.dollarsout.1stand.org"
+custom_domain = true
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true
