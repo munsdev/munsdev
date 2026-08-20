@@ -106,14 +106,36 @@ function renderTopbar() {
 }
 
 // ---------------- meter (collective dial) ----------------
-// The fill arc and the background track share the exact same path (a fixed 180° semicircle from
-// the "0" end at (20,130) to the "full" end at (280,130)); progress is drawn with stroke-dasharray
-// / stroke-dashoffset against the path's real measured length (getTotalLength()) rather than by
-// recomputing an arc endpoint by hand each render.
-let meterArcLength = null;
-function getMeterArcLength() {
-  if (meterArcLength == null) meterArcLength = $("meterFillArc").getTotalLength();
-  return meterArcLength;
+// Gauge geometry, matching the static markup in index.html: a 180° band of radius 112 centred on
+// (168,160), swept left (0) to right (goal). The band shows the whole green->red scale at all
+// times -- it's the dial face, not a progress bar -- and the needle alone reports the live count.
+const GAUGE = { cx: 168, cy: 160, labelR: 146 };
+
+/** Compact scale label: 100000 -> "100K", 2500 -> "2.5K", 0 -> "0". */
+function compactNumber(n) {
+  if (n < 1000) return String(n);
+  const k = n / 1000;
+  return `${Number.isInteger(k) ? k : k.toFixed(1)}K`;
+}
+
+/** Draws the 0/¼/½/¾/goal numbers around the dial, derived from the live goal. */
+function renderMeterScale(goal) {
+  const g = $("meterScale");
+  g.innerHTML = "";
+  for (const f of [0, 0.25, 0.5, 0.75, 1]) {
+    const angle = ((180 - f * 180) * Math.PI) / 180;
+    const x = GAUGE.cx + GAUGE.labelR * Math.cos(angle);
+    const y = GAUGE.cy - GAUGE.labelR * Math.sin(angle);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x.toFixed(1));
+    // The 0 and goal labels come out level with the flat ends of the band and collide with them;
+    // drop just those two clear of it.
+    text.setAttribute("y", (f === 0 || f === 1 ? y + 17 : y).toFixed(1));
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.textContent = compactNumber(Math.round(goal * f));
+    g.appendChild(text);
+  }
 }
 
 function renderMeter() {
@@ -123,14 +145,11 @@ function renderMeter() {
   const pctRaw = goal > 0 ? count / goal : 0;
   const pct = Number.isFinite(pctRaw) ? Math.max(0, Math.min(1, pctRaw)) : 0;
 
-  const fillArc = $("meterFillArc");
-  const length = getMeterArcLength();
-  fillArc.style.strokeDasharray = `${length}`;
-  fillArc.style.strokeDashoffset = `${length * (1 - pct)}`;
+  renderMeterScale(goal);
+  $("needle").setAttribute("transform", `rotate(${(-90 + pct * 180).toFixed(2)} ${GAUGE.cx} ${GAUGE.cy})`);
 
-  $("needle").setAttribute("transform", `rotate(${(-90 + pct * 180).toFixed(2)} 150 130)`);
-
-  $("meterGoalLine").textContent = `${t("meter.goalPrefix")} ${goal.toLocaleString()} ${t("meter.actionsSuffix")}`;
+  // The dial carries no text of its own, so the accessible name has to state the reading.
+  $("meterSvg").setAttribute("aria-label", t("meter.aria", { count: count.toLocaleString(), goal: goal.toLocaleString() }));
 
   animateCount($("meterTick"), count);
 }
@@ -226,9 +245,6 @@ async function loadMoreLedger() {
 }
 
 function renderAggregate() {
-  $("statActionsLogged").textContent = (stats.period?.count ?? 0).toLocaleString();
-  $("statPeopleVerified").textContent = (stats.peopleVerified ?? 0).toLocaleString();
-
   const wrap = $("communityGoals");
   wrap.innerHTML = "";
   for (const goal of stats.communityGoals) {
@@ -872,6 +888,7 @@ function wireStaticEvents() {
   $("localeSwitch").addEventListener("click", openLanguageSheet);
   $("closeLanguageBtn").addEventListener("click", closeLanguageSheet);
 
+  $("goActionsBtn").addEventListener("click", () => { renderExplore(); go("explore"); });
   $("seeAllLedgerBtn").addEventListener("click", openLedgerPage);
   $("ledgerBackBtn").addEventListener("click", () => { go("home"); refreshHome(); });
   $("loadMoreLedgerBtn").addEventListener("click", loadMoreLedger);

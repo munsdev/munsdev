@@ -110,10 +110,14 @@ a { color: inherit; }
 
 /* the dial */
 .meterwrap { background: var(--cream); border: var(--line) solid var(--ink); border-radius: 20px;
-  box-shadow: 6px 6px 0 var(--ink); padding: 16px 16px 14px; margin-bottom: 18px; }
-.meter-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; text-align: center; margin-bottom: 4px; }
-.meter-goal { font-size: 14px; font-weight: 700; text-align: center; opacity: 0.75; margin-bottom: 8px; }
-.gauge { position: relative; width: 100%; aspect-ratio: 2 / 1.16; margin: 0 auto; }
+  box-shadow: 6px 6px 0 var(--ink); padding: 16px 14px 14px; margin-bottom: 16px; }
+/* Game-show nameplate: oversized Archivo Black with a hard offset shadow, sized down with the
+   viewport via clamp() so the long word never wraps mid-hyphen on a narrow phone. */
+.meter-title { font-family: "Archivo Black", Archivo, sans-serif; font-size: clamp(22px, 7.2vw, 32px);
+  line-height: 0.94; text-transform: uppercase; letter-spacing: -0.02em; text-align: center;
+  color: var(--ink); text-shadow: 3px 3px 0 var(--orn-solid); margin-bottom: 10px; }
+.gauge { position: relative; width: 100%; aspect-ratio: 336 / 200; margin: 0 auto; }
+.scalenums text { font-family: "Archivo Black", Archivo, sans-serif; font-size: 14px; fill: var(--ink); }
 .gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
 /* No transform-origin here on purpose: the needle's rotate(angle, 150, 130) is set as an SVG
    presentation attribute in JS, which already carries its own explicit pivot point. A CSS
@@ -121,8 +125,10 @@ a { color: inherit; }
    browsers and the SVG viewport in others -- on this needle's tiny bbox that mismatch sent the
    whole needle swinging around a point far outside the gauge instead of its center. */
 .needle { transition: transform 1.8s cubic-bezier(0.25, 1.2, 0.3, 1); }
-.readout { text-align: center; margin-top: 4px; }
-.readout .big { font-family: "Archivo Black"; font-size: 34px; line-height: 1; letter-spacing: -0.02em; }
+.readout { text-align: center; margin-top: 2px; }
+.readout .big { font-family: "Archivo Black"; font-size: 42px; line-height: 1; letter-spacing: -0.02em; }
+.readout .cap { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  opacity: 0.7; margin-top: 4px; }
 
 .h2 { font-family: "Archivo Black"; font-size: 15px; text-transform: uppercase; letter-spacing: 0.04em; margin: 20px 0 10px; }
 .h2:first-child { margin-top: 0; }
@@ -144,12 +150,6 @@ a { color: inherit; }
 .cat .txt span { font-size: 14px; font-weight: 600; opacity: 0.96; }
 .cat .go { font-family: "Archivo Black"; font-size: 22px; flex: 0 0 auto; }
 
-.statrow { display: flex; gap: 10px; margin-bottom: 12px; }
-.stat { flex: 1; border: 3px solid var(--ink); border-radius: 14px; padding: 12px 10px;
-  box-shadow: 4px 4px 0 var(--ink); text-align: center; color: #fff; }
-.stat.g { background: var(--grn-solid); } .stat.o { background: var(--orn-solid); } .stat.p { background: var(--pur-solid); }
-.stat b { display: block; font-family: "Archivo Black"; font-size: 23px; line-height: 1; }
-.stat span { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; display: block; margin-top: 5px; line-height: 1.25; }
 .goal { height: 26px; border: 3px solid var(--ink); border-radius: 99px; background: #fff; overflow: hidden; margin: 8px 0 6px; }
 .goal i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--orn-bright) 0 9px, var(--orn-solid) 9px 18px); }
 .mini { font-size: 14px; font-weight: 700; }
@@ -157,6 +157,8 @@ a { color: inherit; }
 /* action cards */
 .card { background: #fff; border: var(--line) solid var(--ink); border-radius: var(--radius);
   box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin-bottom: 12px; }
+.cardhead { font-family: "Archivo Black"; font-size: 15px; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 10px; }
 .act { display: flex; gap: 12px; align-items: flex-start; }
 .box { flex: 0 0 auto; width: 36px; height: 36px; border: 3px solid var(--ink); border-radius: 9px;
   background: #fff; display: grid; place-items: center; font-family: "Archivo Black"; font-size: 17px; }
@@ -179,6 +181,8 @@ a { color: inherit; }
 .btn.ghost { background: #fff; color: var(--ink); }
 .btn.orn { background: var(--orn-solid); }
 .btn.sm { font-size: 14px; padding: 12px; }
+.btn.big { font-size: 20px; padding: 20px 14px; border-radius: 16px; box-shadow: 6px 6px 0 var(--ink);
+  margin-bottom: 20px; letter-spacing: 0.01em; }
 .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
 .back { background: none; border: none; font-family: "Archivo Black"; font-size: 14px; text-transform: uppercase;
   cursor: pointer; margin-bottom: 14px; letter-spacing: 0.02em; min-height: 44px; padding: 4px 0; }
