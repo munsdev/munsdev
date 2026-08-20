@@ -7,7 +7,7 @@
 <meta name="description" content="Real-world economic actions, tracked. Cancel a subscription, switch banks, leave Amazon — and watch the collective count grow.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -17,16 +17,14 @@
     <div class="topbar-row">
       <div class="wordmark display" data-i18n="app.wordmark">DollarsOut</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="localeSwitch" id="localeSwitch" type="button" data-i18n-aria-label="lang.switch" aria-label="">EN</button>
+        <button class="iconbtn" id="settingsBtn" type="button" data-i18n-aria-label="settings.title" aria-label="">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/>
+            <path fill="currentColor" d="m19.4 13-.1-1 1.7-1.3a.7.7 0 0 0 .2-.9l-1.6-2.8a.7.7 0 0 0-.8-.3l-2 .8a7.4 7.4 0 0 0-1.7-1l-.3-2.1a.7.7 0 0 0-.7-.6h-3.2a.7.7 0 0 0-.7.6l-.3 2.1a7.4 7.4 0 0 0-1.7 1l-2-.8a.7.7 0 0 0-.8.3L2.8 9.8a.7.7 0 0 0 .2.9L4.7 12a8 8 0 0 0 0 2l-1.7 1.3a.7.7 0 0 0-.2.9l1.6 2.8a.7.7 0 0 0 .8.3l2-.8c.5.4 1.1.7 1.7 1l.3 2.1c0 .3.3.6.7.6h3.2c.4 0 .6-.3.7-.6l.3-2.1a7.4 7.4 0 0 0 1.7-1l2 .8a.7.7 0 0 0 .8-.3l1.6-2.8a.7.7 0 0 0-.2-.9L19.3 14l.1-1Zm-2 .8.2 1.6 1.4 1.1-.8 1.3-1.7-.7-1.3 1a5.9 5.9 0 0 1-.6.3l-.3 1.8h-1.5l-.3-1.8a5.9 5.9 0 0 1-1.9-1.1l-1.7.7-.8-1.3 1.4-1.1a6.2 6.2 0 0 1 0-2.4L6.1 12l.8-1.3 1.7.7 1.3-1a5.9 5.9 0 0 1 .6-.3l.3-1.8h1.5l.3 1.8c.7.2 1.3.6 1.9 1.1l1.7-.7.8 1.3-1.4 1.1.1.8Z"/>
+          </svg>
+        </button>
         <button class="pill ghostpill" id="authPill" type="button"></button>
       </div>
-    </div>
-    <div class="lvlstrip" id="lvlstrip" hidden>
-      <div class="lvlstrip-row">
-        <span class="lvlname" id="lvlName"></span>
-        <span class="lvlnext" id="lvlNext"></span>
-      </div>
-      <div class="segbar"><i id="lvlBar" style="width:0%"></i></div>
     </div>
   </div>
 
@@ -96,26 +94,47 @@
       </div>
     </main>
 
-    <!-- ============ ACTIONS (category picker) ============ -->
+    <!-- ============ ACTIONS (intro + search + tiles) ============ -->
     <main class="screen" id="s-explore" hidden data-panel="1">
+      <p class="intro" data-i18n="explore.intro">Every action here moves real money. Pick one and go.</p>
+
       <div class="searchbar">
         <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
         <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
       </div>
-      <div class="chiprow" id="quickChips">
-        <button class="chip surprise" id="surpriseBtn" type="button" data-i18n="home.surpriseMe">🎲 Surprise me</button>
-        <button class="chip" type="button" data-quick="under5" aria-pressed="false" data-i18n="home.under5min">Under 5 min</button>
-        <button class="chip" type="button" data-quick="easy" aria-pressed="false" data-i18n="home.easyOnly">Easy only</button>
-        <button class="chip" type="button" data-quick="anywhere" aria-pressed="false" data-i18n="home.anywhere">Anywhere</button>
+
+      <div class="tilegrid" id="exploreTiles">
+        <button class="tile t-all" type="button" data-tile="all">
+          <span class="ic">📋</span><span class="lb" data-i18n="explore.allActions">All actions</span>
+        </button>
+        <button class="tile t-surprise" type="button" data-tile="surprise">
+          <span class="ic">🎲</span><span class="lb" data-i18n="explore.surpriseMe">Surprise me</span>
+        </button>
+        <button class="tile t-quick" type="button" data-tile="under5">
+          <span class="ic">⚡</span><span class="lb" data-i18n="home.under5min">Under 5 min</span>
+        </button>
+        <button class="tile t-easy" type="button" data-tile="easy">
+          <span class="ic">👌</span><span class="lb" data-i18n="home.easyOnly">Easy only</span>
+        </button>
+        <button class="tile t-any" type="button" data-tile="anywhere">
+          <span class="ic">🌍</span><span class="lb" data-i18n="home.anywhere">Anywhere</span>
+        </button>
       </div>
 
+      <!-- live search results replace the tiles while there's a query -->
+      <div id="exploreResults" hidden></div>
+    </main>
+
+    <!-- ============ ALL ACTIONS (category picker) ============ -->
+    <main class="screen" id="s-categories" hidden>
+      <button class="back" id="categoriesBackBtn" type="button">‹ <span data-i18n="nav.explore">Actions</span></button>
       <div class="h2"><span data-i18n="categories.heading">Pick your battle</span> <span class="cnt" id="categoryCount"></span></div>
       <div id="categoryList"></div>
     </main>
 
-    <!-- ============ CATEGORY / ACTION LIST ============ -->
+    <!-- ============ CATEGORY / FILTERED ACTION LIST ============ -->
     <main class="screen" id="s-cat" hidden>
-      <button class="back" id="catBackBtn" type="button">‹ <span data-i18n="categories.heading">Pick your battle</span></button>
+      <button class="back" id="catBackBtn" type="button">‹ <span id="catBackLabel"></span></button>
       <div class="h2" id="catHeading"></div>
       <div id="catActionList"></div>
     </main>
@@ -240,6 +259,17 @@
       <button class="btn ghost" id="logoutBtn" type="button" data-i18n="account.logout" style="margin-bottom:10px">Log out</button>
       <button class="btn ghost" id="exportDataBtn" type="button" data-i18n="account.export" style="margin-bottom:10px">Export my data</button>
       <button class="btn ghost" id="deleteAccountBtn" type="button" data-i18n="account.delete">Delete my account</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="settingsSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="settings.title">Settings</span>
+        <button class="sheetclose" id="closeSettingsBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <button class="setrow" id="settingsLanguageBtn" type="button">
+        <span class="lb" data-i18n="lang.title">Language</span>
+        <span class="val" id="settingsLanguageValue"></span>
+      </button>
     </div>
   </div>
 

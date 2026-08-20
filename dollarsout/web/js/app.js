@@ -90,13 +90,7 @@ function renderTopbar() {
   const level = computeLevel(totalClaimed);
   const pct = levelProgressPct(totalClaimed, level);
 
-  $("lvlstrip").hidden = !session.loggedIn;
-  if (session.loggedIn) {
-    $("lvlName").textContent = `Lv${level.level} ${level.name}`;
-    $("lvlBar").style.width = `${pct}%`;
-    $("lvlNext").textContent = level.nextName ? t("level.toNext", { count: level.actionsToNext, name: level.nextName }) : "";
-  }
-
+  // Level progress lives on the Achievements screen only -- the top bar just carries identity.
   const shelfLvlName = $("shelfLvlName");
   if (shelfLvlName) {
     shelfLvlName.textContent = `Lv${level.level} ${level.name}`;
@@ -252,7 +246,7 @@ function renderAggregate() {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div style="font-family:'Archivo Black';font-size:14px;text-transform:uppercase;letter-spacing:0.02em">${esc(goal.label)}</div>
+      <div style="font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:0.02em">${esc(goal.label)}</div>
       <div class="goal"><i style="width:${pct}%"></i></div>
       <div class="mini">${t("aggregate.communityGoalSoFar", { count: goal.count.toLocaleString(), remaining: Math.max(0, goal.goal - goal.count).toLocaleString() })}</div>`;
     wrap.appendChild(card);
@@ -326,37 +320,67 @@ function filtersActive() {
 }
 
 // ---------------- screens ----------------
-const SCREENS = ["home", "explore", "cat", "detail", "shelf", "shelf-empty", "ledger"];
+const SCREENS = ["home", "explore", "categories", "cat", "detail", "shelf", "shelf-empty", "ledger"];
 function go(id) {
   for (const s of SCREENS) $("s-" + s).hidden = s !== id;
   document.querySelectorAll(".nav button[data-nav]").forEach((b) => b.setAttribute("aria-current", "false"));
-  const navMap = { home: "home", explore: "explore", cat: "explore", detail: "explore", shelf: "shelf", "shelf-empty": "shelf", ledger: "home" };
+  const navMap = { home: "home", explore: "explore", categories: "explore", cat: "explore", detail: "explore",
+    shelf: "shelf", "shelf-empty": "shelf", ledger: "home" };
   const navBtn = document.querySelector(`.nav button[data-nav="${navMap[id]}"]`);
   if (navBtn) navBtn.setAttribute("aria-current", "true");
   $("scrollBody").scrollTop = 0;
 }
 
-/** Re-renders whichever of Explore/category/detail is currently on screen, after a state change. */
+// The action-list screen is reached two ways -- drilling into a category, or tapping a shortcut
+// tile -- and it has to know which so Back and post-claim re-renders return to the right place.
+let catView = null; // {kind:"category", id} | {kind:"filter", title}
+
+function reopenCatView() {
+  if (!catView) return backToExplore();
+  if (catView.kind === "category") openCategory(catView.id);
+  else openFilteredList(catView.title);
+}
+
+function backToExplore() {
+  catView = null;
+  filters.quick = { under5: false, easy: false, anywhere: false };
+  renderExplore();
+  go("explore");
+}
+
+/** Re-renders whichever action-bearing screen is on top, after a state change. */
 function refreshCurrentScreen(actionId) {
-  if (!$("s-detail").hidden) openDetail(actionId ?? currentActionId, currentCategoryId);
-  else if (!$("s-cat").hidden) openCategory(currentCategoryId);
+  if (!$("s-detail").hidden) openDetail(actionId ?? currentActionId);
+  else if (!$("s-cat").hidden) reopenCatView();
+  else if (!$("s-categories").hidden) renderCategories();
   else if (!$("s-explore").hidden) renderExplore();
 }
 
+/** Actions tab: shortcut tiles, swapped for live results while there's a search query. */
 function renderExplore() {
-  const listEl = $("categoryList");
-  $("categoryCount").textContent = t("categories.count", { count: catalog.categories.length });
+  const query = filters.search.trim();
+  const results = $("exploreResults");
+  const tiles = $("exploreTiles");
 
-  if (filtersActive()) {
-    const actions = getFilteredActions(null);
-    listEl.innerHTML = "";
-    if (actions.length === 0) {
-      listEl.innerHTML = `<p style="font-weight:600;padding:12px 2px">${esc(t("common.error"))}</p>`;
-    }
-    for (const action of actions) listEl.appendChild(buildActionCard(action, null));
+  tiles.hidden = !!query;
+  results.hidden = !query;
+  if (!query) {
+    results.innerHTML = "";
     return;
   }
 
+  const actions = catalog.actions.filter(matchesFilters).sort((a, b) => a.sortOrder - b.sortOrder);
+  results.innerHTML = "";
+  if (actions.length === 0) {
+    results.innerHTML = `<p class="ledgerEmpty">${esc(t("explore.noMatches"))}</p>`;
+    return;
+  }
+  for (const action of actions) results.appendChild(buildActionCard(action));
+}
+
+function renderCategories() {
+  const listEl = $("categoryList");
+  $("categoryCount").textContent = t("categories.count", { count: catalog.categories.length });
   listEl.innerHTML = "";
   for (const cat of catalog.categories) {
     const frac = categoryFraction(cat.id);
@@ -374,19 +398,40 @@ function renderExplore() {
 
 function openCategory(categoryId) {
   currentCategoryId = categoryId;
+  catView = { kind: "category", id: categoryId };
   const cat = categoryById(categoryId);
   const actions = getFilteredActions(categoryId);
   const doneCount = actions.filter((a) => stateByActionId.get(a.id)?.status === "claimed").length;
 
+  $("catBackLabel").textContent = t("categories.heading");
   $("catHeading").innerHTML = `${esc(cat.name)} <span class="cnt">${doneCount} ${t("shelf.of")} ${actions.length} ${t("category.done")}</span>`;
-
-  const list = $("catActionList");
-  list.innerHTML = "";
-  for (const action of actions) list.appendChild(buildActionCard(action, categoryId));
+  renderCatList(actions);
   go("cat");
 }
 
-function buildActionCard(action, fromCategoryId) {
+/** Same action-list screen, filled from the active filters rather than one category. */
+function openFilteredList(title) {
+  currentCategoryId = null;
+  catView = { kind: "filter", title };
+  const actions = getFilteredActions(null);
+
+  $("catBackLabel").textContent = t("nav.explore");
+  $("catHeading").innerHTML = `${esc(title)} <span class="cnt">${actions.length}</span>`;
+  renderCatList(actions);
+  go("cat");
+}
+
+function renderCatList(actions) {
+  const list = $("catActionList");
+  list.innerHTML = "";
+  if (actions.length === 0) {
+    list.innerHTML = `<p class="ledgerEmpty">${esc(t("explore.noMatches"))}</p>`;
+    return;
+  }
+  for (const action of actions) list.appendChild(buildActionCard(action));
+}
+
+function buildActionCard(action) {
   const state = stateByActionId.get(action.id);
   const card = document.createElement("div");
   card.className = "card";
@@ -401,14 +446,14 @@ function buildActionCard(action, fromCategoryId) {
       ${done ? "" : `<button class="btn sm" style="margin-top:12px" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>`}
     </div></div>`;
 
-  card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id, fromCategoryId));
+  card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id));
   if (!done) {
     card.querySelector('[data-role="idid"]').addEventListener("click", () => doClaim(action));
   }
   return card;
 }
 
-function openDetail(actionId, fromCategoryId) {
+function openDetail(actionId) {
   currentActionId = actionId;
   const action = catalog.actions.find((a) => a.id === actionId);
   const state = stateByActionId.get(actionId);
@@ -427,14 +472,7 @@ function openDetail(actionId, fromCategoryId) {
   if (state?.status !== "claimed") {
     $("detailClaimBtn").addEventListener("click", () => doClaim(action));
   }
-  $("detailBackBtn").onclick = () => {
-    const target = fromCategoryId !== undefined ? fromCategoryId : currentCategoryId;
-    if (target) openCategory(target);
-    else {
-      renderExplore();
-      go("explore");
-    }
-  };
+  $("detailBackBtn").onclick = reopenCatView;
   go("detail");
 }
 
@@ -598,7 +636,7 @@ async function renderCheckins() {
     card.className = "card";
     card.style.background = "var(--cream)";
     card.innerHTML = `
-      <h3 style="font-family:'Archivo Black';font-size:16px;margin-bottom:6px">${esc(item.action.name)}</h3>
+      <h3 style="font-weight:900;font-size:16px;margin-bottom:6px">${esc(item.action.name)}</h3>
       <p style="font-size:14px;font-weight:600;margin-bottom:12px">${esc(t("shelf.stillHolding"))}</p>
       <div style="display:flex;gap:10px">
         <button class="btn sm" type="button" data-role="still">${esc(t("shelf.stillOffIt"))}</button>
@@ -665,6 +703,37 @@ async function handleDeleteAccount() {
   refreshHome();
 }
 
+// ---------------- actions-screen tiles ----------------
+/** Each shortcut tile applies exactly one quick filter and opens the matching list. */
+const TILE_FILTERS = { under5: "home.under5min", easy: "home.easyOnly", anywhere: "home.anywhere" };
+
+function handleTile(kind) {
+  if (kind === "all") {
+    renderCategories();
+    go("categories");
+    return;
+  }
+  if (kind === "surprise") {
+    const undone = catalog.actions.filter((a) => stateByActionId.get(a.id)?.status !== "claimed");
+    const pool = undone.length ? undone : catalog.actions;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pick) openDetail(pick.id);
+    return;
+  }
+  filters.quick = { under5: false, easy: false, anywhere: false };
+  filters.quick[kind] = true;
+  openFilteredList(t(TILE_FILTERS[kind]));
+}
+
+// ---------------- settings sheet ----------------
+function openSettingsSheet() {
+  $("settingsLanguageValue").textContent = LOCALE_NAMES[currentLocale()] || currentLocale();
+  $("settingsSheet").classList.add("on");
+}
+function closeSettingsSheet() {
+  $("settingsSheet").classList.remove("on");
+}
+
 // ---------------- language sheet ----------------
 const LOCALE_NAMES = { en: "English", de: "Deutsch", es: "Español", fr: "Français" };
 
@@ -696,7 +765,8 @@ async function selectLocale(loc) {
   renderAggregate();
   refreshRecentLedger();
   if (!$("s-explore").hidden) renderExplore();
-  if (!$("s-cat").hidden) openCategory(currentCategoryId);
+  if (!$("s-categories").hidden) renderCategories();
+  if (!$("s-cat").hidden) reopenCatView();
   if (!$("s-shelf").hidden) renderShelf();
 }
 
@@ -747,12 +817,19 @@ async function handleSendCode() {
     $("authError1").textContent = t("common.error");
     return;
   }
+  const messages = {
+    invalid_email: "auth.errInvalidEmail",
+    disposable_email: "auth.errDisposableEmail",
+    rate_limited: "auth.errRateLimited",
+    email_not_configured: "auth.errEmailDown",
+    email_send_failed: "auth.errEmailDown",
+  };
   try {
     const result = await api.requestCode(email, token);
     if (!result.ok) throw new Error(result.error || "failed");
     showAuthStep(2);
-  } catch {
-    $("authError1").textContent = t("common.error");
+  } catch (err) {
+    $("authError1").textContent = t(messages[err?.message] || "common.error");
   }
 }
 
@@ -821,8 +898,11 @@ function closeFilters() {
 }
 function applyFiltersAndClose() {
   closeFilters();
-  renderExplore();
-  if (!$("s-cat").hidden) openCategory(currentCategoryId);
+  // From a category or an existing result list, re-filter in place; from the tile screen, the
+  // filters have nothing to narrow yet, so open a result list for them.
+  if (!$("s-cat").hidden) reopenCatView();
+  else if (filtersActive()) openFilteredList(t("explore.filtered"));
+  else renderExplore();
 }
 
 // ---------------- static wiring ----------------
@@ -831,7 +911,7 @@ function wireStaticEvents() {
     btn.addEventListener("click", () => {
       const dest = btn.dataset.nav;
       if (dest === "home") { go("home"); refreshHome(); }
-      else if (dest === "explore") { renderExplore(); go("explore"); }
+      else if (dest === "explore") backToExplore();
       else if (dest === "shelf") renderShelf();
     });
   });
@@ -859,7 +939,11 @@ function wireStaticEvents() {
     });
   });
 
-  $("catBackBtn").addEventListener("click", () => { renderExplore(); go("explore"); });
+  $("catBackBtn").addEventListener("click", () => {
+    if (catView?.kind === "category") { renderCategories(); go("categories"); }
+    else backToExplore();
+  });
+  $("categoriesBackBtn").addEventListener("click", backToExplore);
   $("toastUndoBtn").addEventListener("click", doUndoClaimLast);
   $("popCloseBtn").addEventListener("click", () => $("badgePop").classList.remove("on"));
 
@@ -871,24 +955,16 @@ function wireStaticEvents() {
     filters.search = e.target.value;
     renderExplore();
   });
-  $("quickChips").querySelectorAll("[data-quick]").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const key = chip.dataset.quick;
-      filters.quick[key] = !filters.quick[key];
-      chip.setAttribute("aria-pressed", String(filters.quick[key]));
-      renderExplore();
-    });
-  });
-  $("surpriseBtn").addEventListener("click", () => {
-    const undone = catalog.actions.filter((a) => stateByActionId.get(a.id)?.status !== "claimed" && stateByActionId.get(a.id)?.status !== "na");
-    const pick = (undone.length ? undone : catalog.actions)[Math.floor(Math.random() * (undone.length ? undone.length : catalog.actions.length))];
-    if (pick) openDetail(pick.id, pick.categoryId);
+  $("exploreTiles").querySelectorAll("[data-tile]").forEach((tile) => {
+    tile.addEventListener("click", () => handleTile(tile.dataset.tile));
   });
 
-  $("localeSwitch").addEventListener("click", openLanguageSheet);
+  $("settingsBtn").addEventListener("click", openSettingsSheet);
+  $("closeSettingsBtn").addEventListener("click", closeSettingsSheet);
+  $("settingsLanguageBtn").addEventListener("click", () => { closeSettingsSheet(); openLanguageSheet(); });
   $("closeLanguageBtn").addEventListener("click", closeLanguageSheet);
 
-  $("goActionsBtn").addEventListener("click", () => { renderExplore(); go("explore"); });
+  $("goActionsBtn").addEventListener("click", backToExplore);
   $("seeAllLedgerBtn").addEventListener("click", openLedgerPage);
   $("ledgerBackBtn").addEventListener("click", () => { go("home"); refreshHome(); });
   $("loadMoreLedgerBtn").addEventListener("click", loadMoreLedger);
@@ -929,12 +1005,9 @@ function wireSwipeNav() {
       if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
 
       const screen = currentScreenId();
-      if (screen === "cat" || screen === "detail" || screen === "ledger") {
-        if (dx > 0) {
-          if (screen === "cat") $("catBackBtn").click();
-          else if (screen === "detail") $("detailBackBtn").click();
-          else if (screen === "ledger") $("ledgerBackBtn").click();
-        }
+      const backBtns = { cat: "catBackBtn", categories: "categoriesBackBtn", detail: "detailBackBtn", ledger: "ledgerBackBtn" };
+      if (backBtns[screen]) {
+        if (dx > 0) $(backBtns[screen]).click();
         return;
       }
 

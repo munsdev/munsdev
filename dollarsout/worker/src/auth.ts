@@ -143,24 +143,59 @@ async function sha256Hex(input: string): Promise<string> {
  * OTP_EMAIL_API_KEY / OTP_EMAIL_FROM are read from secrets so swapping vendors is a config change,
  * not a code change -- this Postmark-style call is a placeholder shape, not a final integration.
  */
+const OTP_SUBJECT = "Your DollarsOut code";
+
+function otpBody(code: string): string {
+  return `Your one-time code is ${code}. It expires in 10 minutes. If you didn't request this, ignore this email.`;
+}
+
+/**
+ * Sends the OTP through whichever transactional vendor is configured. Resend keys are prefixed
+ * `re_`, so the vendor can be inferred from the key rather than needing a second setting.
+ *
+ * Throws when the send fails, including when no vendor is configured at all: an unconfigured
+ * sender used to be swallowed here, so /auth/request-code answered {ok:true} and the UI advanced
+ * to the code screen for a code that was never going to arrive. A sign-in that cannot complete has
+ * to surface as an error, not as a success.
+ */
 async function sendOtpEmail(env: Env, email: string, code: string): Promise<void> {
-  if (!env.OTP_EMAIL_API_KEY) {
-    console.log(`[dev-only] OTP for ${email}: ${code}`);
-    return;
+  if (!env.OTP_EMAIL_API_KEY || !env.OTP_EMAIL_FROM) {
+    throw new Error("email_not_configured");
   }
-  await fetch("https://api.postmarkapp.com/email", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Postmark-Server-Token": env.OTP_EMAIL_API_KEY,
-    },
-    body: JSON.stringify({
-      From: env.OTP_EMAIL_FROM,
-      To: email,
-      Subject: `Your DollarsOut code: ${code}`,
-      TextBody: `Your one-time code is ${code}. It expires in 10 minutes. If you didn't request this, ignore this email.`,
-    }),
-  });
+
+  const isResend = env.OTP_EMAIL_API_KEY.startsWith("re_");
+  const resp = isResend
+    ? await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${env.OTP_EMAIL_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: env.OTP_EMAIL_FROM,
+          to: [email],
+          subject: `${OTP_SUBJECT}: ${code}`,
+          text: otpBody(code),
+        }),
+      })
+    : await fetch("https://api.postmarkapp.com/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Postmark-Server-Token": env.OTP_EMAIL_API_KEY,
+        },
+        body: JSON.stringify({
+          From: env.OTP_EMAIL_FROM,
+          To: email,
+          Subject: `${OTP_SUBJECT}: ${code}`,
+          TextBody: otpBody(code),
+        }),
+      });
+
+  if (!resp.ok) {
+    console.error(`OTP send failed (${isResend ? "resend" : "postmark"}) ${resp.status}: ${await resp.text()}`);
+    throw new Error("email_send_failed");
+  }
 }
 
 export async function requestOtp(env: Env, email: string): Promise<{ ok: boolean; error?: string }> {
@@ -178,7 +213,13 @@ export async function requestOtp(env: Env, email: string): Promise<{ ok: boolean
     .bind(crypto.randomUUID(), normalized, codeHash, expiresAt)
     .run();
 
-  await sendOtpEmail(env, normalized, code);
+  try {
+    await sendOtpEmail(env, normalized, code);
+  } catch (err) {
+    // The pending row is left to expire on its own (10 min) rather than being cleaned up here --
+    // it is unusable without the code, which only ever existed in the email we failed to send.
+    return { ok: false, error: (err as Error).message || "email_send_failed" };
+  }
   return { ok: true };
 }
 
