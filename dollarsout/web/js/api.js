@@ -36,8 +36,6 @@ export const api = {
 
   claim: (actionId) => request("/claims", { method: "POST", body: JSON.stringify({ actionId }) }),
   undoClaim: (actionId) => request(`/claims/${encodeURIComponent(actionId)}`, { method: "DELETE" }),
-  markNA: (actionId) => request(`/na/${encodeURIComponent(actionId)}`, { method: "POST" }),
-  undoNA: (actionId) => request(`/na/${encodeURIComponent(actionId)}`, { method: "DELETE" }),
 
   checkin: (actionId, result) =>
     request("/checkins", { method: "POST", body: JSON.stringify({ actionId, result }) }),

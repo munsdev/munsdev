@@ -13,7 +13,7 @@ let currentCategoryId = null;
 let currentActionId = null;
 let toastTimer = null;
 let lastUndo = null; // {kind:'claim', actionId}
-let pendingAction = null; // {type:'claim'|'na', actionId} -- resumed automatically right after sign-in
+let pendingAction = null; // actionId -- resumed automatically right after sign-in
 let turnstileRendered = { 1: false, 2: false };
 
 const LOCALES = ["en", "de", "es", "fr"];
@@ -130,15 +130,9 @@ function renderMeter() {
 
   $("needle").setAttribute("transform", `rotate(${(-90 + pct * 180).toFixed(2)} 150 130)`);
 
-  let daysLeft = "";
-  if (period?.endsAt) {
-    const days = Math.max(0, Math.ceil((new Date(period.endsAt).getTime() - Date.now()) / 86400000));
-    daysLeft = " · " + t("meter.resetsIn", { days });
-  }
-  $("meterGoalLine").textContent = `${t("meter.goalPrefix")} ${goal.toLocaleString()} ${t("meter.actionsSuffix")}${daysLeft}`;
+  $("meterGoalLine").textContent = `${t("meter.goalPrefix")} ${goal.toLocaleString()} ${t("meter.actionsSuffix")}`;
 
   animateCount($("meterTick"), count);
-  $("meterSub").textContent = t("meter.loggedSoFar", { goal: goal.toLocaleString() });
 }
 
 function animateCount(el, target) {
@@ -381,19 +375,6 @@ function buildActionCard(action, fromCategoryId) {
   const card = document.createElement("div");
   card.className = "card";
 
-  if (state?.status === "na") {
-    card.innerHTML = `<div class="act na"><span class="box">–</span><div>
-      <h3><button class="actTitle" type="button">${esc(action.name)}</button></h3>
-      <p class="nastate">${esc(t("action.markedNA"))} <button class="linkish" type="button" data-role="undoNA">${esc(t("action.undo"))}</button></p>
-    </div></div>`;
-    card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id, fromCategoryId));
-    card.querySelector('[data-role="undoNA"]').addEventListener("click", async (e) => {
-      e.stopPropagation();
-      await doUndoNA(action.id);
-    });
-    return card;
-  }
-
   const done = state?.status === "claimed";
   const tags = [tagLabel(action.mode), `${action.timeEstimate}`, tagLabel(action.effort), tagLabel(action.availability)];
 
@@ -401,16 +382,12 @@ function buildActionCard(action, fromCategoryId) {
       <h3><button class="actTitle" type="button">${esc(action.name)}</button></h3>
       <p>${esc(action.shortDescription)}</p>
       <div class="tags">${tags.map((tg) => `<span class="tag">${esc(tg)}</span>`).join("")}</div>
-      ${done ? "" : `<div class="actbtns">
-        <button class="btn sm" style="flex:1" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>
-        <button class="naLink" type="button" data-role="na">${esc(t("action.doesntApply"))}</button>
-      </div>`}
+      ${done ? "" : `<button class="btn sm" style="margin-top:12px" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>`}
     </div></div>`;
 
   card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id, fromCategoryId));
   if (!done) {
     card.querySelector('[data-role="idid"]').addEventListener("click", () => doClaim(action));
-    card.querySelector('[data-role="na"]').addEventListener("click", () => doMarkNA(action.id));
   }
   return card;
 }
@@ -428,13 +405,11 @@ function openDetail(actionId, fromCategoryId) {
       <p style="font-size:15px;line-height:1.6;margin-bottom:14px">${esc(action.longDescriptionHtml || action.shortDescription)}</p>
       ${action.helpfulLinks.length ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
       <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:700">${esc(l.label)} →</a>`).join("<br>")}</p>` : ""}
-      ${state?.status === "claimed" ? "" : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>
-      <button class="btn ghost sm" style="margin-top:10px" type="button" id="detailNABtn">${esc(t("action.doesntApply"))}</button>`}
+      ${state?.status === "claimed" ? "" : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>`}
     </div>`;
 
   if (state?.status !== "claimed") {
     $("detailClaimBtn").addEventListener("click", () => doClaim(action));
-    $("detailNABtn").addEventListener("click", () => doMarkNA(actionId));
   }
   $("detailBackBtn").onclick = () => {
     const target = fromCategoryId !== undefined ? fromCategoryId : currentCategoryId;
@@ -447,10 +422,10 @@ function openDetail(actionId, fromCategoryId) {
   go("detail");
 }
 
-// ---------------- claim / NA / undo (sign-in required to track) ----------------
-async function requireAuthThen(type, actionId, run) {
+// ---------------- claim / undo (sign-in required to track) ----------------
+async function requireAuthThen(actionId, run) {
   if (!session.loggedIn) {
-    pendingAction = { type, actionId };
+    pendingAction = actionId;
     openAuth();
     return;
   }
@@ -458,7 +433,7 @@ async function requireAuthThen(type, actionId, run) {
 }
 
 async function doClaim(action) {
-  await requireAuthThen("claim", action.id, async () => {
+  await requireAuthThen(action.id, async () => {
     const result = await api.claim(action.id);
     await refreshUserState();
     renderTopbar();
@@ -488,21 +463,6 @@ async function doUndoClaimLast() {
   renderTopbar();
   renderAggregate();
   refreshCurrentScreen();
-}
-
-async function doMarkNA(actionId) {
-  await requireAuthThen("na", actionId, async () => {
-    await api.markNA(actionId);
-    await refreshUserState();
-    refreshCurrentScreen(actionId);
-  });
-}
-
-async function doUndoNA(actionId) {
-  await api.undoNA(actionId);
-  await refreshUserState();
-  refreshCurrentScreen(actionId);
-  showToast(t("action.restoredActive"));
 }
 
 // ---------------- toast ----------------
@@ -794,13 +754,10 @@ async function handleConfirmCode() {
     renderTopbar();
 
     if (pendingAction) {
-      const { type, actionId } = pendingAction;
+      const actionId = pendingAction;
       pendingAction = null;
       const action = catalog.actions.find((a) => a.id === actionId);
-      if (action) {
-        if (type === "claim") await doClaim(action);
-        else if (type === "na") await doMarkNA(actionId);
-      }
+      if (action) await doClaim(action);
     } else {
       renderExplore();
       renderAggregate();

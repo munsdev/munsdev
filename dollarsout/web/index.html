@@ -34,11 +34,12 @@
 
     <!-- ============ HOME (meter) ============ -->
     <main class="screen" id="s-home" data-panel="0">
+      <p class="intro" data-i18n="home.intro">Sick of the corruption? Take back control — take your DOLLARS OUT.</p>
       <div class="meterwrap">
-        <div class="meter-title" data-i18n="meter.title">All of us, this month</div>
+        <div class="meter-title" data-i18n="meter.title">Impact-O-Meter</div>
         <div class="meter-goal" id="meterGoalLine"></div>
         <div class="gauge">
-          <svg viewBox="0 0 300 176" role="img" aria-label="Collective progress toward this month's goal">
+          <svg viewBox="0 0 300 176" role="img" aria-label="Impact-O-Meter progress toward this month's goal">
             <path d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#14130F" stroke-width="30" stroke-linecap="round"/>
             <path id="meterFillArc" d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#00873E" stroke-width="22" stroke-linecap="round"/>
             <g id="needle" class="needle" transform="rotate(-90 150 130)">
@@ -50,11 +51,10 @@
         </div>
         <div class="readout">
           <div class="big" id="meterTick">0</div>
-          <div class="sub" id="meterSub"></div>
         </div>
       </div>
 
-      <div class="h2"><span data-i18n="aggregate.heading">All of us</span> <span class="cnt" data-i18n="aggregate.public">public, always</span></div>
+      <div class="h2"><span data-i18n="aggregate.heading">The Tally</span> <span class="cnt" data-i18n="aggregate.public">public, always</span></div>
       <div class="statrow">
         <div class="stat o"><b id="statActionsLogged">0</b><span data-i18n="aggregate.actionsLogged">Actions logged</span></div>
         <div class="stat p"><b id="statPeopleVerified">0</b><span data-i18n="aggregate.peopleVerified">People, verified</span></div>
