@@ -18,9 +18,22 @@
       <div class="wordmark display" data-i18n="app.wordmark">DollarsOut</div>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="iconbtn" id="settingsBtn" type="button" data-i18n-aria-label="settings.title" aria-label="">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/>
-            <path fill="currentColor" d="m19.4 13-.1-1 1.7-1.3a.7.7 0 0 0 .2-.9l-1.6-2.8a.7.7 0 0 0-.8-.3l-2 .8a7.4 7.4 0 0 0-1.7-1l-.3-2.1a.7.7 0 0 0-.7-.6h-3.2a.7.7 0 0 0-.7.6l-.3 2.1a7.4 7.4 0 0 0-1.7 1l-2-.8a.7.7 0 0 0-.8.3L2.8 9.8a.7.7 0 0 0 .2.9L4.7 12a8 8 0 0 0 0 2l-1.7 1.3a.7.7 0 0 0-.2.9l1.6 2.8a.7.7 0 0 0 .8.3l2-.8c.5.4 1.1.7 1.7 1l.3 2.1c0 .3.3.6.7.6h3.2c.4 0 .6-.3.7-.6l.3-2.1a7.4 7.4 0 0 0 1.7-1l2 .8a.7.7 0 0 0 .8-.3l1.6-2.8a.7.7 0 0 0-.2-.9L19.3 14l.1-1Zm-2 .8.2 1.6 1.4 1.1-.8 1.3-1.7-.7-1.3 1a5.9 5.9 0 0 1-.6.3l-.3 1.8h-1.5l-.3-1.8a5.9 5.9 0 0 1-1.9-1.1l-1.7.7-.8-1.3 1.4-1.1a6.2 6.2 0 0 1 0-2.4L6.1 12l.8-1.3 1.7.7 1.3-1a5.9 5.9 0 0 1 .6-.3l.3-1.8h1.5l.3 1.8c.7.2 1.3.6 1.9 1.1l1.7-.7.8 1.3-1.4 1.1.1.8Z"/>
+          <!-- Gear drawn as a stroked ring + hub + 8 radial teeth on exact 45° steps, rather than
+               one long filled path -- same silhouette, but the geometry is verifiable by eye. -->
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"
+               fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <g>
+              <line x1="18.5" y1="12" x2="21.6" y2="12"/>
+              <line x1="16.60" y1="7.40" x2="18.79" y2="5.21"/>
+              <line x1="12" y1="5.5" x2="12" y2="2.4"/>
+              <line x1="7.40" y1="7.40" x2="5.21" y2="5.21"/>
+              <line x1="5.5" y1="12" x2="2.4" y2="12"/>
+              <line x1="7.40" y1="16.60" x2="5.21" y2="18.79"/>
+              <line x1="12" y1="18.5" x2="12" y2="21.6"/>
+              <line x1="16.60" y1="16.60" x2="18.79" y2="18.79"/>
+            </g>
+            <circle cx="12" cy="12" r="6.5"/>
+            <circle cx="12" cy="12" r="2.4"/>
           </svg>
         </button>
         <button class="pill ghostpill" id="authPill" type="button"></button>
@@ -172,6 +185,41 @@
       </div>
     </main>
 
+    <!-- ============ HELP ============ -->
+    <main class="screen" id="s-help" hidden>
+      <button class="back" id="helpBackBtn" type="button">‹ <span data-i18n="settings.title">Settings</span></button>
+      <div class="h2" data-i18n="help.title">Help</div>
+      <div class="card"><div class="cardhead" data-i18n="help.q1">How does logging an action work?</div>
+        <p class="prose" data-i18n="help.a1"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q2">Why do I have to sign in?</div>
+        <p class="prose" data-i18n="help.a2"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q3">What does the Impact-O-Meter show?</div>
+        <p class="prose" data-i18n="help.a3"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q4">Can other people see what I did?</div>
+        <p class="prose" data-i18n="help.a4"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q5">I made a mistake — can I undo it?</div>
+        <p class="prose" data-i18n="help.a5"></p></div>
+    </main>
+
+    <!-- ============ ABOUT ============ -->
+    <main class="screen" id="s-about" hidden>
+      <button class="back" id="aboutBackBtn" type="button">‹ <span data-i18n="settings.title">Settings</span></button>
+      <div class="h2" data-i18n="about.title">About</div>
+      <div class="card">
+        <p class="prose" data-i18n="about.body1"></p>
+        <p class="prose" data-i18n="about.body2"></p>
+        <p class="prose" data-i18n="about.body3"></p>
+        <p style="margin-top:14px">
+          <a href="https://1stand.org" target="_blank" rel="noopener"
+             style="text-decoration:underline;font-weight:800" data-i18n="about.link">1STAND.org →</a>
+        </p>
+      </div>
+      <div class="card">
+        <div class="cardhead" data-i18n="about.privacyHeading">Your data</div>
+        <p class="prose" data-i18n="about.privacyBody"></p>
+      </div>
+    </main>
+
     <!-- ============ GLOBAL LEDGER (public, anonymized) ============ -->
     <main class="screen" id="s-ledger" hidden>
       <button class="back" id="ledgerBackBtn" type="button">‹ <span data-i18n="nav.home">Home</span></button>
@@ -269,6 +317,12 @@
       <button class="setrow" id="settingsLanguageBtn" type="button">
         <span class="lb" data-i18n="lang.title">Language</span>
         <span class="val" id="settingsLanguageValue"></span>
+      </button>
+      <button class="setrow" id="settingsHelpBtn" type="button">
+        <span class="lb" data-i18n="help.title">Help</span><span class="val">›</span>
+      </button>
+      <button class="setrow" id="settingsAboutBtn" type="button">
+        <span class="lb" data-i18n="about.title">About</span><span class="val">›</span>
       </button>
     </div>
   </div>

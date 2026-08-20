@@ -41,6 +41,31 @@ function requireAccount(env: Env, request: Request) {
   return currentAccount(env, request);
 }
 
+/**
+ * Forces every static asset to be revalidated before it is reused.
+ *
+ * None of web/ is content-hashed (no build step -- the browser loads app.js, styles.css and the
+ * locale JSON by their real names), so a cached copy of any of them is indistinguishable from a
+ * current one and a deploy would otherwise take an unpredictable amount of time to become
+ * visible. The assets binding already sends `max-age=0, must-revalidate`, but that was being
+ * served from Cloudflare's edge cache as a HIT without revalidating against the origin, so
+ * deploys kept showing stale HTML and JS.
+ *
+ * `CDN-Cache-Control: no-store` opts the edge out specifically, while `no-cache` lets the browser
+ * keep its copy and revalidate it -- with the ETag the binding already sets, an unchanged file
+ * still costs only a 304, so this stays cheap while making deploys land immediately.
+ */
+function revalidatingAsset(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-cache, must-revalidate");
+  headers.set("CDN-Cache-Control", "no-store");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -214,7 +239,7 @@ export default {
       // ---- static frontend (spec §11: keep hosting simple -- one Worker serves both the API
       // and the static web/ build via the ASSETS binding, one deploy, one domain) ----
       if (request.method === "GET" && env.ASSETS) {
-        return env.ASSETS.fetch(request);
+        return revalidatingAsset(await env.ASSETS.fetch(request));
       }
 
       return json(env, { error: "not_found" }, 404);

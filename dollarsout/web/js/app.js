@@ -320,12 +320,12 @@ function filtersActive() {
 }
 
 // ---------------- screens ----------------
-const SCREENS = ["home", "explore", "categories", "cat", "detail", "shelf", "shelf-empty", "ledger"];
+const SCREENS = ["home", "explore", "categories", "cat", "detail", "shelf", "shelf-empty", "ledger", "help", "about"];
 function go(id) {
   for (const s of SCREENS) $("s-" + s).hidden = s !== id;
   document.querySelectorAll(".nav button[data-nav]").forEach((b) => b.setAttribute("aria-current", "false"));
   const navMap = { home: "home", explore: "explore", categories: "explore", cat: "explore", detail: "explore",
-    shelf: "shelf", "shelf-empty": "shelf", ledger: "home" };
+    shelf: "shelf", "shelf-empty": "shelf", ledger: "home", help: "home", about: "home" };
   const navBtn = document.querySelector(`.nav button[data-nav="${navMap[id]}"]`);
   if (navBtn) navBtn.setAttribute("aria-current", "true");
   $("scrollBody").scrollTop = 0;
@@ -962,6 +962,10 @@ function wireStaticEvents() {
   $("settingsBtn").addEventListener("click", openSettingsSheet);
   $("closeSettingsBtn").addEventListener("click", closeSettingsSheet);
   $("settingsLanguageBtn").addEventListener("click", () => { closeSettingsSheet(); openLanguageSheet(); });
+  $("settingsHelpBtn").addEventListener("click", () => { closeSettingsSheet(); go("help"); });
+  $("settingsAboutBtn").addEventListener("click", () => { closeSettingsSheet(); go("about"); });
+  $("helpBackBtn").addEventListener("click", openSettingsSheet);
+  $("aboutBackBtn").addEventListener("click", openSettingsSheet);
   $("closeLanguageBtn").addEventListener("click", closeLanguageSheet);
 
   $("goActionsBtn").addEventListener("click", backToExplore);
@@ -1005,7 +1009,8 @@ function wireSwipeNav() {
       if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
 
       const screen = currentScreenId();
-      const backBtns = { cat: "catBackBtn", categories: "categoriesBackBtn", detail: "detailBackBtn", ledger: "ledgerBackBtn" };
+      const backBtns = { cat: "catBackBtn", categories: "categoriesBackBtn", detail: "detailBackBtn",
+        ledger: "ledgerBackBtn", help: "helpBackBtn", about: "aboutBackBtn" };
       if (backBtns[screen]) {
         if (dx > 0) $(backBtns[screen]).click();
         return;

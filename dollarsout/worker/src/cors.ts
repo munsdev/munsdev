@@ -22,7 +22,16 @@ export function json(env: Env, data: unknown, status = 200, extraHeaders: Header
     env,
     new Response(JSON.stringify(data), {
       status,
-      headers: { "Content-Type": "application/json", ...extraHeaders },
+      headers: {
+        "Content-Type": "application/json",
+        // Every one of these is live state (the meter, the ledger, the signed-in user's own
+        // rows). Without an explicit directive the edge is free to apply its own heuristics and
+        // hand the next visitor a stale count, so opt out at both layers -- CDN-Cache-Control
+        // targets Cloudflare's cache specifically, Cache-Control the browser's.
+        "Cache-Control": "no-store",
+        "CDN-Cache-Control": "no-store",
+        ...extraHeaders,
+      },
     })
   );
 }

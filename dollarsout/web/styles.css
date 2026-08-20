@@ -177,6 +177,8 @@ a { color: inherit; }
 /* action cards */
 .card { background: #fff; border: var(--line) solid var(--ink); border-radius: var(--radius);
   box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin-bottom: 12px; }
+.prose { font-size: 15px; font-weight: 400; line-height: 1.6; }
+.prose + .prose { margin-top: 10px; }
 .cardhead { font-weight: 900; font-size: 15px; text-transform: uppercase;
   letter-spacing: 0.04em; margin-bottom: 10px; }
 .act { display: flex; gap: 12px; align-items: flex-start; }
