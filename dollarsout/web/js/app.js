@@ -9,6 +9,7 @@ let stats = { period: null, peopleVerified: 0, communityGoals: [] };
 let session = { loggedIn: false, email: null };
 let stateByActionId = new Map(); // actionId -> {status, nextCheckinDue, ...} -- empty when signed out
 let earnedBadgeIds = new Set();
+let earnedBadgeDates = new Map(); // badgeId -> earnedAt, for the achievement detail sheet
 let currentCategoryId = null;
 let currentActionId = null;
 let toastTimer = null;
@@ -59,6 +60,7 @@ async function refreshUserState() {
   if (!session.loggedIn) {
     stateByActionId = new Map();
     earnedBadgeIds = new Set();
+    earnedBadgeDates = new Map();
     return;
   }
   try {
@@ -66,9 +68,11 @@ async function refreshUserState() {
     stateByActionId = new Map(me.states.claimed.map((s) => [s.actionId, s]));
     for (const actionId of me.states.na) stateByActionId.set(actionId, { status: "na" });
     earnedBadgeIds = new Set(me.badges.map((b) => b.id));
+    earnedBadgeDates = new Map(me.badges.map((b) => [b.id, b.earnedAt]));
   } catch {
     stateByActionId = new Map();
     earnedBadgeIds = new Set();
+    earnedBadgeDates = new Map();
   }
 }
 
@@ -272,6 +276,9 @@ function tagLabel(key) {
 
 function categoryById(id) {
   return catalog.categories.find((c) => c.id === id);
+}
+function actionById(id) {
+  return catalog.actions.find((a) => a.id === id);
 }
 function actionsInCategory(id) {
   return catalog.actions.filter((a) => a.categoryId === id);
@@ -613,14 +620,153 @@ function renderShelf() {
 
   for (const badge of catalog.badges) {
     const unlocked = earnedBadgeIds.has(badge.id);
-    const tile = document.createElement("div");
+    const tile = document.createElement("button");
+    tile.type = "button";
     tile.className = `badge ${unlocked ? "" : "locked"}`;
-    tile.innerHTML = `<div class="ico">${badge.icon}</div><div class="nm">${esc(badge.name)}</div><div class="st">${unlocked ? "" : t("badge.locked")}</div>`;
+
+    let statusHtml = `<div class="st">${esc(t("badge.locked"))}</div>`;
+    if (!unlocked && badge.kind === "counter") {
+      const count = badgeCounterCount(badge.scope || "");
+      const pct = Math.max(0, Math.min(100, Math.round((count / badge.threshold) * 100)));
+      statusHtml = `<div class="minibar"><i style="width:${pct}%"></i></div><div class="st">${count}/${badge.threshold}</div>`;
+    } else if (!unlocked && badge.kind === "time_served") {
+      const due = nextCheckinDueDate();
+      if (due) statusHtml = `<div class="st">${esc(t("badge.checkinDue", { when: formatCountdown(due) }))}</div>`;
+    } else if (unlocked) {
+      statusHtml = "";
+    }
+
+    tile.innerHTML = `<div class="ico">${badge.icon}</div><div class="nm">${esc(badge.name)}</div>${statusHtml}`;
+    tile.addEventListener("click", () => openBadgeSheet(badge));
     badgeGrid.appendChild(tile);
   }
 
   renderCheckins();
   go("shelf");
+}
+
+/** [actionId, state] pairs for the signed-in user's currently claimed actions. */
+function claimedEntries() {
+  return [...stateByActionId.entries()].filter(([, s]) => s.status === "claimed");
+}
+
+/** How far a counter badge's progress toward its threshold currently stands. */
+function badgeCounterCount(scope) {
+  const claimed = claimedEntries();
+  if (scope === "total") return claimed.length;
+  // Long Haul x3: actions that have reached the terminal 6-month check-in and are still holding.
+  if (scope === "checkin:6mo") {
+    return claimed.filter(([, s]) => s.lastCheckinResult === "holding" && s.nextCheckinDue === null).length;
+  }
+  if (scope.startsWith("category:") && scope.includes(":mode:")) {
+    const [, categoryId, , mode] = scope.split(":");
+    return claimed.filter(([id]) => actionById(id)?.categoryId === categoryId && actionById(id)?.mode === mode).length;
+  }
+  if (scope.startsWith("category:")) {
+    const categoryId = scope.split(":")[1];
+    return claimed.filter(([id]) => actionById(id)?.categoryId === categoryId).length;
+  }
+  if (scope.startsWith("mode:")) {
+    const mode = scope.split(":")[1];
+    return claimed.filter(([id]) => actionById(id)?.mode === mode).length;
+  }
+  return 0;
+}
+
+/**
+ * The soonest upcoming check-in among claimed actions, if any. Time-served badges are milestone
+ * awards (Still Going / The Long Haul fire once, on whichever action reaches 3 or 6 months first),
+ * so this is deliberately not attributed to one specific badge -- it is the honest answer to "when
+ * is my next check-in", not a claim about which badge it will unlock.
+ */
+function nextCheckinDueDate() {
+  const dueDates = claimedEntries()
+    .map(([, s]) => s.nextCheckinDue)
+    .filter(Boolean)
+    .sort();
+  return dueDates[0] || null;
+}
+
+function formatCountdown(iso) {
+  const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+  return days <= 0 ? t("badge.dueNow") : t("badge.dueInDays", { count: days });
+}
+
+/** Human description of what a badge takes to earn, phrased tense-neutrally so it reads fine both
+ *  locked ("takes 6 actions") and unlocked (as a record of what was done). */
+function badgeRequirementText(badge) {
+  if (badge.kind === "one_shot") {
+    const action = actionById(badge.actionId);
+    return t("badge.reqOneShot", { action: action ? action.name : "" });
+  }
+  if (badge.kind === "time_served") {
+    return badge.scope === "checkin:6mo" ? t("badge.reqTimeServed6mo") : t("badge.reqTimeServed3mo");
+  }
+  const scope = badge.scope || "";
+  const count = badge.threshold;
+  if (scope === "total") return t("badge.reqCounterTotal", { count });
+  if (scope === "checkin:6mo") return t("badge.reqCounterCheckin6mo", { count });
+  if (scope.startsWith("category:") && scope.includes(":mode:")) {
+    const [, categoryId, , mode] = scope.split(":");
+    return t("badge.reqCounterCategoryMode", { count, mode: tagLabel(mode), category: categoryById(categoryId)?.name || "" });
+  }
+  if (scope.startsWith("category:")) {
+    const categoryId = scope.split(":")[1];
+    return t("badge.reqCounterCategory", { count, category: categoryById(categoryId)?.name || "" });
+  }
+  if (scope.startsWith("mode:")) {
+    return t("badge.reqCounterMode", { count, mode: tagLabel(scope.split(":")[1]) });
+  }
+  return "";
+}
+
+function openBadgeSheet(badge) {
+  const unlocked = earnedBadgeIds.has(badge.id);
+  $("badgeSheetName").textContent = badge.name;
+  $("badgeSheetIcon").textContent = badge.icon;
+  $("badgeSheetReq").textContent = badgeRequirementText(badge);
+
+  const actionBtn = $("badgeSheetActionBtn");
+  actionBtn.hidden = true;
+  const progress = $("badgeSheetProgress");
+  progress.innerHTML = "";
+
+  const statusEl = $("badgeSheetStatus");
+  if (unlocked) {
+    const earnedAt = earnedBadgeDates.get(badge.id);
+    statusEl.textContent = earnedAt ? t("badge.unlockedAgo", { time: formatRelativeTime(earnedAt) }) : t("badge.detailUnlocked");
+    statusEl.className = "badgeStatus unlocked";
+  } else {
+    statusEl.textContent = t("badge.locked");
+    statusEl.className = "badgeStatus";
+
+    if (badge.kind === "counter") {
+      const count = badgeCounterCount(badge.scope || "");
+      const pct = Math.max(0, Math.min(100, Math.round((count / badge.threshold) * 100)));
+      progress.innerHTML = `<div class="segbar" style="margin:10px 0 6px"><i style="width:${pct}%"></i></div>
+        <p class="mini">${esc(t("badge.progressLabel", { count, threshold: badge.threshold }))}</p>`;
+    } else if (badge.kind === "time_served") {
+      const due = nextCheckinDueDate();
+      progress.innerHTML = due
+        ? `<p class="mini">${esc(t("badge.timeServedHintPending", { when: formatCountdown(due) }))}</p>`
+        : `<p class="prose">${esc(t("badge.timeServedHintNone"))}</p>`;
+    } else if (badge.kind === "one_shot") {
+      const action = actionById(badge.actionId);
+      if (action) {
+        actionBtn.hidden = false;
+        actionBtn.textContent = t("badge.viewAction");
+        actionBtn.onclick = () => {
+          closeBadgeSheet();
+          openDetail(action.id);
+        };
+      }
+    }
+  }
+
+  $("badgeSheet").classList.add("on");
+}
+function closeBadgeSheet() {
+  $("badgeSheet").classList.remove("on");
 }
 
 async function renderCheckins() {
@@ -971,6 +1117,7 @@ function wireStaticEvents() {
   $("helpBackBtn").addEventListener("click", openSettingsSheet);
   $("aboutBackBtn").addEventListener("click", openSettingsSheet);
   $("closeLanguageBtn").addEventListener("click", closeLanguageSheet);
+  $("closeBadgeSheetBtn").addEventListener("click", closeBadgeSheet);
 
   $("goActionsBtn").addEventListener("click", backToExplore);
   $("seeAllLedgerBtn").addEventListener("click", openLedgerPage);

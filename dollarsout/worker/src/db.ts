@@ -291,6 +291,14 @@ export async function listEarnedBadgeIds(env: Env, accountId: string): Promise<S
   return new Set((results || []).map((r: any) => r.badge_id));
 }
 
+/** badgeId -> when it was earned, for the achievement detail sheet's "Unlocked N ago" line. */
+export async function listEarnedBadgeDates(env: Env, accountId: string): Promise<Map<string, string>> {
+  const { results } = await env.DB.prepare("SELECT badge_id, earned_at FROM user_badges WHERE account_id=?")
+    .bind(accountId)
+    .all();
+  return new Map((results || []).map((r: any) => [r.badge_id, r.earned_at]));
+}
+
 export async function awardBadge(env: Env, accountId: string, badgeId: string): Promise<boolean> {
   try {
     await env.DB.prepare(

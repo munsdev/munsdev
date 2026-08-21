@@ -5,6 +5,7 @@ import {
   listActions,
   listBadges,
   listDueCheckins,
+  listEarnedBadgeDates,
   listEarnedBadgeIds,
   listUserActionState,
   logAnomaly,
@@ -110,9 +111,10 @@ export async function handleDueCheckins(env: Env, account: Account) {
 }
 
 export async function handleMe(env: Env, account: Account) {
-  const [states, earnedBadgeIds, allBadges, actions] = await Promise.all([
+  const [states, earnedBadgeIds, earnedBadgeDates, allBadges, actions] = await Promise.all([
     listUserActionState(env, account.id),
     listEarnedBadgeIds(env, account.id),
+    listEarnedBadgeDates(env, account.id),
     listBadges(env),
     listActions(env),
   ]);
@@ -128,7 +130,10 @@ export async function handleMe(env: Env, account: Account) {
     return action?.isTimeServed && s.nextCheckinDue !== null;
   }).length;
 
-  const earnedBadges = allBadges.filter((b) => earnedBadgeIds.has(b.id));
+  // earnedAt lets the achievement detail sheet show "Unlocked N ago" instead of a bare checkmark.
+  const earnedBadges = allBadges
+    .filter((b) => earnedBadgeIds.has(b.id))
+    .map((b) => ({ ...b, earnedAt: earnedBadgeDates.get(b.id) ?? null }));
 
   return {
     status: 200 as const,
