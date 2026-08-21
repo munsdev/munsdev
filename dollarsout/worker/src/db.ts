@@ -317,10 +317,15 @@ export async function logAnomaly(
     .run();
 }
 
-export async function getCurrentPeriod(env: Env): Promise<{ id: string; goal: number; startsAt: string; endsAt: string } | null> {
+/**
+ * The meter's target. The row is still the place the goal is configured, but its date columns are
+ * no longer read -- the window is now the trailing ROLLING_WINDOW_DAYS, computed at query time
+ * rather than being a stored calendar period that has to be rolled over.
+ */
+export async function getCurrentPeriod(env: Env): Promise<{ id: string; goal: number } | null> {
   const row = await env.DB.prepare("SELECT * FROM aggregate_periods WHERE is_current = 1 LIMIT 1").first();
   if (!row) return null;
-  return { id: row.id as string, goal: row.goal as number, startsAt: row.starts_at as string, endsAt: row.ends_at as string };
+  return { id: row.id as string, goal: row.goal as number };
 }
 
 export async function listActiveCommunityGoals(
@@ -335,23 +340,25 @@ export async function listActiveCommunityGoals(
   }));
 }
 
+/** How far back the public meter looks. Claims older than this roll off it on their own. */
+export const ROLLING_WINDOW_DAYS = 90;
+const WINDOW_START_SQL = `datetime('now', '-${ROLLING_WINDOW_DAYS} days')`;
+
 /**
- * Counts claimed actions from accounts past their 48h quarantine window (spec S7.4) --
- * this is the number that feeds public aggregate stats, never the raw claim count.
+ * Counts claims inside the rolling window that feeds the public meter.
+ *
+ * Every active account counts from its first claim -- there is no quarantine hold, so a new
+ * signup's first action moves the needle immediately. Withdrawing a claim deletes the row, so it
+ * leaves this count the same way it entered it, and anything older than the window ages out
+ * without needing a reset: a recurring action has to be logged again to keep counting.
  */
-export async function countVerifiedClaimsInPeriod(
-  env: Env,
-  startsAt: string,
-  endsAt: string
-): Promise<number> {
+export async function countClaimsInWindow(env: Env): Promise<number> {
   const row = await env.DB.prepare(
     `SELECT COUNT(*) as n FROM user_action_state uas
      JOIN accounts a ON a.id = uas.account_id
-     WHERE uas.status = 'claimed' AND uas.claimed_at BETWEEN ? AND ?
-       AND a.quarantine_until <= datetime('now') AND a.status = 'active'`
-  )
-    .bind(startsAt, endsAt)
-    .first();
+     WHERE uas.status = 'claimed' AND uas.claimed_at >= ${WINDOW_START_SQL}
+       AND a.status = 'active'`
+  ).first();
   return (row?.n as number) || 0;
 }
 
@@ -360,7 +367,7 @@ export async function countVerifiedClaimsForAction(env: Env, actionId: string): 
     `SELECT COUNT(*) as n FROM user_action_state uas
      JOIN accounts a ON a.id = uas.account_id
      WHERE uas.status = 'claimed' AND uas.action_id = ?
-       AND a.quarantine_until <= datetime('now') AND a.status = 'active'`
+       AND uas.claimed_at >= ${WINDOW_START_SQL} AND a.status = 'active'`
   )
     .bind(actionId)
     .first();
@@ -369,7 +376,7 @@ export async function countVerifiedClaimsForAction(env: Env, actionId: string): 
 
 export async function countVerifiedPeople(env: Env): Promise<number> {
   const row = await env.DB.prepare(
-    "SELECT COUNT(*) as n FROM accounts WHERE quarantine_until <= datetime('now') AND status = 'active'"
+    "SELECT COUNT(*) as n FROM accounts WHERE status = 'active'"
   ).first();
   return (row?.n as number) || 0;
 }
@@ -381,9 +388,7 @@ export interface LedgerEntry {
 
 /**
  * Global, fully anonymized activity feed -- action name and timestamp only, never an account id,
- * email, or anything else that could identify who did it. Filtered by the same 48h quarantine
- * window as every other public number (spec S7.4), so this can't be used to watch a fresh batch
- * of fake accounts claim things in real time.
+ * email, or anything else that could identify who did it.
  */
 export async function listRecentClaimsGlobal(
   env: Env,
@@ -395,7 +400,7 @@ export async function listRecentClaimsGlobal(
      FROM user_action_state uas
      JOIN actions a ON a.id = uas.action_id
      JOIN accounts acc ON acc.id = uas.account_id
-     WHERE uas.status = 'claimed' AND acc.quarantine_until <= datetime('now') AND acc.status = 'active'
+     WHERE uas.status = 'claimed' AND acc.status = 'active'
      ORDER BY uas.claimed_at DESC
      LIMIT ? OFFSET ?`
   )

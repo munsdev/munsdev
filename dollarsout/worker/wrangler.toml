@@ -18,10 +18,6 @@ kv_namespaces = [
 directory = "../web"
 binding = "ASSETS"
 
-# Reconcile public aggregate counters every 10 min (fast-path KV read on every homepage load,
-# see spec S11).
-[triggers]
-crons = ["*/10 * * * *"]
 
 [vars]
 # Frontend and API are now the same origin (this Worker serves both), so this is mostly a

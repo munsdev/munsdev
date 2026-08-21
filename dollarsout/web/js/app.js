@@ -12,7 +12,6 @@ let earnedBadgeIds = new Set();
 let currentCategoryId = null;
 let currentActionId = null;
 let toastTimer = null;
-let lastUndo = null; // {kind:'claim', actionId}
 let pendingAction = null; // actionId -- resumed automatically right after sign-in
 let turnstileRendered = { 1: false, 2: false };
 
@@ -144,6 +143,10 @@ function renderMeter() {
 
   // The dial carries no text of its own, so the accessible name has to state the reading.
   $("meterSvg").setAttribute("aria-label", t("meter.aria", { count: count.toLocaleString(), goal: goal.toLocaleString() }));
+
+  // Help quotes the live goal, so it is filled here rather than by the static-string pass -- that
+  // pass has no way to substitute {goal}, and this runs on both boot and every locale change.
+  $("helpMeterAnswer").textContent = t("help.a3", { goal: goal.toLocaleString() });
 
   animateCount($("meterTick"), count);
 }
@@ -443,13 +446,14 @@ function buildActionCard(action) {
       <h3><button class="actTitle" type="button">${esc(action.name)}</button></h3>
       <p>${esc(action.shortDescription)}</p>
       <div class="tags">${tags.map((tg) => `<span class="tag">${esc(tg)}</span>`).join("")}</div>
-      ${done ? "" : `<button class="btn sm" style="margin-top:12px" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>`}
+      ${done
+        ? `<button class="removeLink" type="button" data-role="remove">${esc(t("action.remove"))}</button>`
+        : `<button class="btn sm" style="margin-top:12px" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>`}
     </div></div>`;
 
   card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id));
-  if (!done) {
-    card.querySelector('[data-role="idid"]').addEventListener("click", () => doClaim(action));
-  }
+  card.querySelector(done ? '[data-role="remove"]' : '[data-role="idid"]')
+    .addEventListener("click", () => (done ? doWithdraw(action.id) : doClaim(action)));
   return card;
 }
 
@@ -466,10 +470,15 @@ function openDetail(actionId) {
       <p style="font-size:15px;line-height:1.6;margin-bottom:14px">${esc(action.longDescriptionHtml || action.shortDescription)}</p>
       ${action.helpfulLinks.length ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
       <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:700">${esc(l.label)} →</a>`).join("<br>")}</p>` : ""}
-      ${state?.status === "claimed" ? "" : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>`}
+      ${state?.status === "claimed"
+        ? `<div class="doneRow"><span class="doneMark">✓ ${esc(t("action.logged"))}</span>
+             <button class="removeLink" type="button" id="detailRemoveBtn">${esc(t("action.remove"))}</button></div>`
+        : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>`}
     </div>`;
 
-  if (state?.status !== "claimed") {
+  if (state?.status === "claimed") {
+    $("detailRemoveBtn").addEventListener("click", () => doWithdraw(actionId));
+  } else {
     $("detailClaimBtn").addEventListener("click", () => doClaim(action));
   }
   $("detailBackBtn").onclick = reopenCatView;
@@ -493,8 +502,6 @@ async function doClaim(action) {
     renderTopbar();
     renderAggregate();
 
-    lastUndo = { kind: "claim", actionId: action.id };
-    showToast(t("claim.logged", { title: action.name }));
     refreshCurrentScreen(action.id);
 
     if (result.newBadges?.length || result.levelUp) {
@@ -508,15 +515,13 @@ async function doClaim(action) {
   });
 }
 
-async function doUndoClaimLast() {
-  if (!lastUndo || lastUndo.kind !== "claim") return;
-  await api.undoClaim(lastUndo.actionId);
-  lastUndo = null;
-  hideToast();
+/** Withdraws a claim. Available on any claimed action forever, not just the one just logged. */
+async function doWithdraw(actionId) {
+  await api.undoClaim(actionId);
   await refreshUserState();
   renderTopbar();
-  renderAggregate();
-  refreshCurrentScreen();
+  refreshHome();
+  refreshCurrentScreen(actionId);
 }
 
 // ---------------- toast ----------------
@@ -944,7 +949,6 @@ function wireStaticEvents() {
     else backToExplore();
   });
   $("categoriesBackBtn").addEventListener("click", backToExplore);
-  $("toastUndoBtn").addEventListener("click", doUndoClaimLast);
   $("popCloseBtn").addEventListener("click", () => $("badgePop").classList.remove("on"));
 
   $("openFiltersBtn").addEventListener("click", openFilters);

@@ -1,22 +1,19 @@
 import type { Env } from "./types";
 import {
+  countClaimsInWindow,
   countVerifiedClaimsForAction,
-  countVerifiedClaimsInPeriod,
   countVerifiedPeople,
   getCurrentPeriod,
   listActiveCommunityGoals,
+  ROLLING_WINDOW_DAYS,
 } from "./db";
-
-const KV_PERIOD_KEY = "agg:period:current";
-const KV_PEOPLE_KEY = "agg:people";
-const KV_GOAL_PREFIX = "agg:goal:";
 
 export interface PublicPeriodStats {
   periodId: string;
   goal: number;
   count: number;
-  startsAt: string;
-  endsAt: string;
+  /** Claims are counted over the trailing N days rather than a calendar period. */
+  windowDays: number;
 }
 
 export interface PublicGoalStats {
@@ -33,57 +30,41 @@ export interface PublicStats {
 }
 
 /**
- * Recomputes the fast-path public counters from D1 (source of truth) into KV.
- * Run on a schedule (see index.ts scheduled()) so homepage reads never hit D1 directly --
- * spec S11 calls this out explicitly to avoid hammering D1 on every load.
+ * Reads the public counters straight from D1 on every request.
+ *
+ * These used to be precomputed into KV by a ten-minute cron so homepage loads never touched D1.
+ * That bought very little and cost the thing the meter is for: a claim did not move the needle
+ * until the next reconcile, so the number on screen could be up to ten minutes behind what the
+ * user had just done, and withdrawing a claim looked like it had not worked.
+ *
+ * These are three indexed COUNT(*)s over a small table against a goal in the low thousands, so
+ * serving them live is cheap and the meter is now honest the moment anything changes.
  */
-export async function reconcileAggregates(env: Env): Promise<void> {
-  const period = await getCurrentPeriod(env);
-  if (period) {
-    const count = await countVerifiedClaimsInPeriod(env, period.startsAt, period.endsAt);
-    const stats: PublicPeriodStats = {
-      periodId: period.id,
-      goal: period.goal,
-      count,
-      startsAt: period.startsAt,
-      endsAt: period.endsAt,
-    };
-    await env.COUNTERS.put(KV_PERIOD_KEY, JSON.stringify(stats));
-  }
-
-  const people = await countVerifiedPeople(env);
-  await env.COUNTERS.put(KV_PEOPLE_KEY, String(people));
-
-  const goals = await listActiveCommunityGoals(env);
-  for (const goal of goals) {
-    const count = goal.scopeActionId ? await countVerifiedClaimsForAction(env, goal.scopeActionId) : 0;
-    const stats: PublicGoalStats = { id: goal.id, label: goal.label, goal: goal.goal, count };
-    await env.COUNTERS.put(`${KV_GOAL_PREFIX}${goal.id}`, JSON.stringify(stats));
-  }
-}
-
 export async function getPublicStats(env: Env): Promise<PublicStats> {
-  const [periodRaw, peopleRaw] = await Promise.all([
-    env.COUNTERS.get(KV_PERIOD_KEY),
-    env.COUNTERS.get(KV_PEOPLE_KEY),
+  const [periodRow, peopleVerified, goals] = await Promise.all([
+    getCurrentPeriod(env),
+    countVerifiedPeople(env),
+    listActiveCommunityGoals(env),
   ]);
 
-  let period: PublicPeriodStats | null = periodRaw ? JSON.parse(periodRaw) : null;
-  let peopleVerified = peopleRaw ? parseInt(peopleRaw, 10) : 0;
-
-  if (!period) {
-    // Cold start (first request before any scheduled reconcile has run) -- compute once and cache.
-    await reconcileAggregates(env);
-    const [p2, ppl2] = await Promise.all([env.COUNTERS.get(KV_PERIOD_KEY), env.COUNTERS.get(KV_PEOPLE_KEY)]);
-    period = p2 ? JSON.parse(p2) : null;
-    peopleVerified = ppl2 ? parseInt(ppl2, 10) : 0;
+  let period: PublicPeriodStats | null = null;
+  if (periodRow) {
+    period = {
+      periodId: periodRow.id,
+      goal: periodRow.goal,
+      count: await countClaimsInWindow(env),
+      windowDays: ROLLING_WINDOW_DAYS,
+    };
   }
 
-  const goals = await listActiveCommunityGoals(env);
   const communityGoals: PublicGoalStats[] = [];
   for (const goal of goals) {
-    const raw = await env.COUNTERS.get(`${KV_GOAL_PREFIX}${goal.id}`);
-    communityGoals.push(raw ? JSON.parse(raw) : { id: goal.id, label: goal.label, goal: goal.goal, count: 0 });
+    communityGoals.push({
+      id: goal.id,
+      label: goal.label,
+      goal: goal.goal,
+      count: goal.scopeActionId ? await countVerifiedClaimsForAction(env, goal.scopeActionId) : 0,
+    });
   }
 
   return { period, peopleVerified, communityGoals };

@@ -195,6 +195,16 @@ a { color: inherit; }
   border: 2px solid var(--ink); border-radius: 99px; padding: 4px 10px; background: var(--bg); }
 .tag.p { background: var(--pur-bright); } .tag.o { background: var(--orn-bright); }
 
+/* Withdrawing a claim is always available, so it needs a permanent home on the card -- kept
+   quiet rather than a second primary button, since it is the rarer of the two actions. */
+.removeLink { background: none; border: none; margin-top: 10px; padding: 6px 0; min-height: 44px;
+  font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.02em;
+  text-decoration: underline; cursor: pointer; opacity: 0.7; color: var(--ink); }
+.removeLink:hover { opacity: 1; }
+.doneRow { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-top: 18px; }
+.doneMark { font-weight: 900; font-size: 15px; text-transform: uppercase; color: var(--grn-solid); }
+
 .btn { display: block; width: 100%; font-weight: 900; font-size: 16px; text-transform: uppercase;
   letter-spacing: 0.01em; padding: 15px; border: var(--line) solid var(--ink); border-radius: 14px;
   background: var(--grn-solid); color: #fff; box-shadow: 5px 5px 0 var(--ink); cursor: pointer;

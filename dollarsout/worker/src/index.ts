@@ -26,7 +26,6 @@ import {
   handleUndoNA,
 } from "./claims";
 import { createShare, getShare, renderCardPng } from "./shareImage";
-import { reconcileAggregates } from "./aggregate";
 import { getLedgerPage, getRecentLedger } from "./ledger";
 
 async function readJson<T>(request: Request): Promise<T | null> {
@@ -67,6 +66,8 @@ function revalidatingAsset(response: Response): Response {
 }
 
 export default {
+  // No scheduled() handler: the public counters are read live from D1 per request now,
+  // so there is nothing left for a cron to precompute.
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
@@ -247,9 +248,5 @@ export default {
       console.error(err);
       return json(env, { error: "internal_error" }, 500);
     }
-  },
-
-  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(reconcileAggregates(env));
   },
 };

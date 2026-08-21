@@ -194,7 +194,7 @@
       <div class="card"><div class="cardhead" data-i18n="help.q2">Why do I have to sign in?</div>
         <p class="prose" data-i18n="help.a2"></p></div>
       <div class="card"><div class="cardhead" data-i18n="help.q3">What does the Impact-O-Meter show?</div>
-        <p class="prose" data-i18n="help.a3"></p></div>
+        <p class="prose" id="helpMeterAnswer"></p></div>
       <div class="card"><div class="cardhead" data-i18n="help.q4">Can other people see what I did?</div>
         <p class="prose" data-i18n="help.a4"></p></div>
       <div class="card"><div class="cardhead" data-i18n="help.q5">I made a mistake — can I undo it?</div>
@@ -237,9 +237,10 @@
     <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Achievements</span></button>
   </nav>
 
+  <!-- Transient confirmations only (copied a link, signed in). Claiming does not raise a toast --
+       a claimed action carries its own Remove control instead, available for as long as it stands. -->
   <div class="toast" id="toast" role="status" aria-live="polite">
     <span id="toastMsg"></span>
-    <button type="button" id="toastUndoBtn" data-i18n="claim.undo">Undo</button>
   </div>
 
   <div class="pop" id="badgePop" role="dialog" aria-modal="true" aria-labelledby="popTitle">
