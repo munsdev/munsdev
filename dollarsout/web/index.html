@@ -371,8 +371,29 @@
   // Registered outside the module so a service-worker failure can never take the app down with
   // it -- an install that fails just means no offline support, not a blank screen.
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    window.addEventListener("load", async () => {
+      try {
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        // register() alone does not guarantee a check for a newer sw.js -- the browser's own
+        // background check is opportunistic and can sit for a long time on an installed app that
+        // is reopened rather than freshly navigated to, which is exactly the case (an icon tap
+        // resuming an already-open PWA) where a deploy is most likely to go unnoticed. Ask
+        // outright on load, and again whenever the app regains focus.
+        reg.update().catch(() => {});
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") reg.update().catch(() => {});
+        });
+      } catch {}
+    });
+
+    // Once a new service worker actually takes over, the page already sitting in memory is still
+    // running the old HTML/CSS/JS it loaded with -- reload once so the update is on screen right
+    // away instead of silently waiting for some later navigation.
+    let swRefreshed = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (swRefreshed) return;
+      swRefreshed = true;
+      location.reload();
     });
   }
 </script>

@@ -38,6 +38,10 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px 12px;
+  /* vh first as a fallback for browsers that don't parse dvh (pre-15.4 Safari): an unsupported
+     value is dropped at parse time, not substituted, so without this line those browsers would
+     fall through to no min-height rule for body at all rather than a merely-imprecise one. */
+  min-height: 100vh;
   min-height: 100dvh;
 }
 
@@ -78,6 +82,11 @@ a { color: inherit; }
   body { padding: 0; align-items: stretch; }
   .app {
     max-width: 100%;
+    /* Same vh-then-dvh fallback as body above: without the plain vh line, a browser that can't
+       parse dvh drops this whole declaration and .app falls back all the way to the desktop card
+       rule's `height: min(920px, 95vh)` -- leaving the bottom nav short of the real screen edge
+       even though every other edge-to-edge rule in this block took effect. */
+    height: 100vh;
     height: 100dvh;
     border-width: 0;
     border-radius: 0;
