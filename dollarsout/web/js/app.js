@@ -1050,6 +1050,35 @@ function applyFiltersAndClose() {
   else renderExplore();
 }
 
+function closeBadgePop() {
+  $("badgePop").classList.remove("on");
+}
+
+/**
+ * Dismisses an overlay when the dimmed backdrop behind the card is clicked.
+ *
+ * `.sheet` / `.pop` are the full-screen dimmed layer and the card is a child, so "clicked the
+ * backdrop" is exactly "the event target is the overlay itself" -- anything inside the card has
+ * that element as its target instead.
+ *
+ * The pointerdown check exists because a plain click fires on the nearest common ancestor of
+ * press and release: pressing inside the card and releasing outside it (selecting text, or a
+ * slightly draggy tap) reports the overlay as the target and would otherwise dismiss the sheet
+ * out from under someone mid-interaction. Requiring the press to have started on the backdrop too
+ * means only a genuine backdrop tap closes it.
+ */
+function wireBackdropDismiss(overlayId, close) {
+  const overlay = $(overlayId);
+  let pressedBackdrop = false;
+  overlay.addEventListener("pointerdown", (e) => {
+    pressedBackdrop = e.target === overlay;
+  });
+  overlay.addEventListener("click", (e) => {
+    if (pressedBackdrop && e.target === overlay) close();
+    pressedBackdrop = false;
+  });
+}
+
 // ---------------- static wiring ----------------
 function wireStaticEvents() {
   document.querySelectorAll(".nav button[data-nav]").forEach((btn) => {
@@ -1089,7 +1118,16 @@ function wireStaticEvents() {
     else backToExplore();
   });
   $("categoriesBackBtn").addEventListener("click", backToExplore);
-  $("popCloseBtn").addEventListener("click", () => $("badgePop").classList.remove("on"));
+  $("popCloseBtn").addEventListener("click", closeBadgePop);
+
+  // Every dimmed overlay dismisses on a backdrop tap, same as its X / Close button.
+  wireBackdropDismiss("badgePop", closeBadgePop);
+  wireBackdropDismiss("filterSheet", closeFilters);
+  wireBackdropDismiss("authSheet", closeAuth);
+  wireBackdropDismiss("accountSheet", closeAccountSheet);
+  wireBackdropDismiss("settingsSheet", closeSettingsSheet);
+  wireBackdropDismiss("languageSheet", closeLanguageSheet);
+  wireBackdropDismiss("badgeSheet", closeBadgeSheet);
 
   $("openFiltersBtn").addEventListener("click", openFilters);
   $("closeFiltersBtn").addEventListener("click", closeFilters);
