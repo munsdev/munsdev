@@ -441,27 +441,22 @@ function renderCatList(actions) {
   for (const action of actions) list.appendChild(buildActionCard(action));
 }
 
+/** Compact list row -- checkbox, name, time-estimate chip. Full detail (description, tags,
+ *  claim/remove) lives only in openDetail, reached by tapping the row. */
 function buildActionCard(action) {
   const state = stateByActionId.get(action.id);
-  const card = document.createElement("div");
-  card.className = "card";
-
   const done = state?.status === "claimed";
-  const tags = [tagLabel(action.mode), `${action.timeEstimate}`, tagLabel(action.effort), tagLabel(action.availability)];
 
-  card.innerHTML = `<div class="act ${done ? "done" : ""}"><span class="box">${done ? "✓" : ""}</span><div style="flex:1">
-      <h3><button class="actTitle" type="button">${esc(action.name)}</button></h3>
-      <p>${esc(action.shortDescription)}</p>
-      <div class="tags">${tags.map((tg) => `<span class="tag">${esc(tg)}</span>`).join("")}</div>
-      ${done
-        ? `<button class="removeLink" type="button" data-role="remove">${esc(t("action.remove"))}</button>`
-        : `<button class="btn sm" style="margin-top:12px" type="button" data-role="idid">${esc(t("action.iDidThis"))}</button>`}
-    </div></div>`;
-
-  card.querySelector(".actTitle").addEventListener("click", () => openDetail(action.id));
-  card.querySelector(done ? '[data-role="remove"]' : '[data-role="idid"]')
-    .addEventListener("click", () => (done ? doWithdraw(action.id) : doClaim(action)));
-  return card;
+  const row = document.createElement("button");
+  row.type = "button";
+  row.className = `actrow ${done ? "done" : ""}`;
+  row.innerHTML = `
+    <span class="box">${done ? "✓" : ""}</span>
+    <span class="nm">${esc(action.name)}</span>
+    <span class="chip">${esc(action.timeEstimate)}</span>
+    <span class="go">›</span>`;
+  row.addEventListener("click", () => openDetail(action.id));
+  return row;
 }
 
 function openDetail(actionId) {
