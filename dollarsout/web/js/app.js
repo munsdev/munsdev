@@ -441,7 +441,7 @@ function renderCatList(actions) {
   for (const action of actions) list.appendChild(buildActionCard(action));
 }
 
-/** Compact list row -- checkbox, name, time-estimate chip. Full detail (description, tags,
+/** Compact list row -- checkbox, name, chevron. Full detail (description, tags, time estimate,
  *  claim/remove) lives only in openDetail, reached by tapping the row. */
 function buildActionCard(action) {
   const state = stateByActionId.get(action.id);
@@ -453,7 +453,6 @@ function buildActionCard(action) {
   row.innerHTML = `
     <span class="box">${done ? "✓" : ""}</span>
     <span class="nm">${esc(action.name)}</span>
-    <span class="chip">${esc(action.timeEstimate)}</span>
     <span class="go">›</span>`;
   row.addEventListener("click", () => openDetail(action.id));
   return row;
@@ -471,7 +470,7 @@ function openDetail(actionId) {
       <h3 style="font-size:20px;margin-bottom:10px">${esc(action.name)}</h3>
       <p style="font-size:15px;line-height:1.6;margin-bottom:14px">${esc(action.longDescriptionHtml || action.shortDescription)}</p>
       ${action.helpfulLinks.length ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
-      <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener" style="text-decoration:underline;font-weight:700">${esc(l.label)} →</a>`).join("<br>")}</p>` : ""}
+      <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;font-weight:700">${esc(l.label)} ↗</a>`).join("<br>")}</p>` : ""}
       ${state?.status === "claimed"
         ? `<div class="doneRow"><span class="doneMark">✓ ${esc(t("action.logged"))}</span>
              <button class="removeLink" type="button" id="detailRemoveBtn">${esc(t("action.remove"))}</button></div>`
@@ -590,7 +589,7 @@ async function showBadgePop({ badges, levelUp, receipt, shareCard }) {
           whatsapp: `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
           bluesky: `https://bsky.app/intent/compose?text=${encodeURIComponent(shareUrl)}`,
         };
-        if (urls[kind]) window.open(urls[kind], "_blank", "noopener");
+        if (urls[kind]) window.open(urls[kind], "_blank", "noopener,noreferrer");
         else {
           await navigator.clipboard.writeText(shareUrl).catch(() => {});
           showToast(t("share.copied"));
