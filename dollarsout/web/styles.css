@@ -79,15 +79,22 @@ a { color: inherit; }
    installed there is no "browser" for the card metaphor to sit inside, so it goes edge-to-edge
    unconditionally, regardless of how wide that device's viewport happens to be. */
 @media (max-width: 600px), (display-mode: standalone) {
-  body { padding: 0; align-items: stretch; }
+  /* Percentage heights, not viewport units, and no document scroll.
+     `height: 100dvh` here sized the shell off the *dynamic viewport*, which on Android Chrome in a
+     standalone PWA with viewport-fit=cover resolves to include the strip behind the system bars --
+     taller than the actually-visible window. Nothing stopped the document from scrolling, so the
+     shell overflowed by that difference and the whole thing (top bar and nav together) slid up and
+     down as one unit: scrolled up, the nav sat below the fold; scrolled down, the top bar went
+     above it. Neither was "stuck" to anything.
+     A 100% chain from html instead resolves against the initial containing block -- the real
+     visible viewport -- with no vh/dvh/safe-area ambiguity, and overflow:hidden makes page-level
+     scrolling impossible, so .body's own overflow-y is the only thing that can move. The top bar
+     and nav are then pinned by construction rather than by arithmetic that has to come out right. */
+  html, body { height: 100%; overflow: hidden; }
+  body { padding: 0; align-items: stretch; min-height: 0; }
   .app {
     max-width: 100%;
-    /* Same vh-then-dvh fallback as body above: without the plain vh line, a browser that can't
-       parse dvh drops this whole declaration and .app falls back all the way to the desktop card
-       rule's `height: min(920px, 95vh)` -- leaving the bottom nav short of the real screen edge
-       even though every other edge-to-edge rule in this block took effect. */
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
     border-width: 0;
     border-radius: 0;
   }

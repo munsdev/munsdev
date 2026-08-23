@@ -8,7 +8,7 @@
 //
 // So: network always wins. The cache is only ever read when the network actually fails.
 
-const CACHE = "dollarsout-shell-v1";
+const CACHE = "dollarsout-shell-v2";
 
 // Enough to render something recognisable offline. Deliberately small -- every entry here is a
 // file that could be served stale in an offline session, so it earns its place or stays out.
