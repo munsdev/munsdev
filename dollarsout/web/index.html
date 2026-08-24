@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DollarsOut — Take your money out.</title>
+<meta name="description" content="Real-world economic actions, tracked. Cancel a subscription, switch banks, leave Amazon — and watch the collective count grow.">
+
+<!-- Installable app. theme-color matches the top bar so the OS chrome continues it rather than
+     framing it; Android reads the manifest, iOS ignores it and needs the apple-* tags instead. -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#C93E0B">
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DollarsOut">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="wordmark display" data-i18n="app.wordmark">DollarsOut</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="iconbtn" id="settingsBtn" type="button" data-i18n-aria-label="settings.title" aria-label="">
+          <!-- Gear drawn as a stroked ring + hub + 8 radial teeth on exact 45° steps, rather than
+               one long filled path -- same silhouette, but the geometry is verifiable by eye. -->
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"
+               fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <g>
+              <line x1="18.5" y1="12" x2="21.6" y2="12"/>
+              <line x1="16.60" y1="7.40" x2="18.79" y2="5.21"/>
+              <line x1="12" y1="5.5" x2="12" y2="2.4"/>
+              <line x1="7.40" y1="7.40" x2="5.21" y2="5.21"/>
+              <line x1="5.5" y1="12" x2="2.4" y2="12"/>
+              <line x1="7.40" y1="16.60" x2="5.21" y2="18.79"/>
+              <line x1="12" y1="18.5" x2="12" y2="21.6"/>
+              <line x1="16.60" y1="16.60" x2="18.79" y2="18.79"/>
+            </g>
+            <circle cx="12" cy="12" r="6.5"/>
+            <circle cx="12" cy="12" r="2.4"/>
+          </svg>
+        </button>
+        <button class="pill ghostpill" id="authPill" type="button"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="body" id="scrollBody">
+
+    <!-- ============ HOME (meter) ============ -->
+    <main class="screen" id="s-home" data-panel="0">
+      <p class="intro" data-i18n="home.intro">Sick of the corruption? Take back control — take your DOLLARS OUT.</p>
+      <div class="meterwrap">
+        <div class="meter-title" data-i18n="meter.title">Impact-O-Meter</div>
+        <div class="gauge">
+          <svg viewBox="0 0 336 200" role="img" id="meterSvg" aria-label="">
+            <defs>
+              <linearGradient id="meterGrad" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="280" y2="0">
+                <stop offset="0" stop-color="#00873E"/>
+                <stop offset="0.34" stop-color="#FFD426"/>
+                <stop offset="0.68" stop-color="#FF8A5B"/>
+                <stop offset="1" stop-color="#C93E0B"/>
+              </linearGradient>
+            </defs>
+
+            <!-- band: ink outline underneath, gradient face on top -->
+            <path d="M56 160 A112 112 0 0 1 280 160" fill="none" stroke="#14130F" stroke-width="32"/>
+            <path d="M56 160 A112 112 0 0 1 280 160" fill="none" stroke="url(#meterGrad)" stroke-width="26"/>
+
+            <!-- minor ticks (every 12.5%), inside the band face -->
+            <g stroke="#14130F" stroke-width="2" opacity="0.55">
+              <line x1="71.92" y1="120.20" x2="57.13" y2="114.08"/>
+              <line x1="128.20" y1="63.92" x2="122.08" y2="49.13"/>
+              <line x1="207.80" y1="63.92" x2="213.92" y2="49.13"/>
+              <line x1="264.08" y1="120.20" x2="278.87" y2="114.08"/>
+            </g>
+
+            <!-- major ticks (every 25%), poking out past the band on both edges -->
+            <g stroke="#14130F" stroke-width="4" stroke-linecap="round">
+              <line x1="76" y1="160" x2="36" y2="160"/>
+              <line x1="102.95" y1="94.95" x2="74.66" y2="66.66"/>
+              <line x1="168" y1="68" x2="168" y2="28"/>
+              <line x1="233.05" y1="94.95" x2="261.34" y2="66.66"/>
+              <line x1="260" y1="160" x2="300" y2="160"/>
+            </g>
+
+            <!-- scale numbers, filled in from the live goal -->
+            <g id="meterScale" class="scalenums"></g>
+
+            <g id="needle" class="needle" transform="rotate(-90 168 160)">
+              <path d="M168 160 L159 150 L168 62 L177 150 Z" fill="#14130F"/>
+            </g>
+            <circle cx="168" cy="160" r="18" fill="#14130F"/>
+            <circle cx="168" cy="160" r="8" fill="#FFD426"/>
+          </svg>
+        </div>
+        <div class="readout">
+          <div class="big" id="meterTick">0</div>
+          <div class="cap" data-i18n="meter.countLabel">Actions logged</div>
+        </div>
+      </div>
+
+      <button class="btn big" id="goActionsBtn" type="button" data-i18n="home.logActions">Log your actions</button>
+
+      <div id="communityGoals"></div>
+
+      <div class="card">
+        <div class="cardhead" data-i18n="ledger.recentHeading">Recent activity</div>
+        <div id="recentLedger"></div>
+        <button class="linkish" id="seeAllLedgerBtn" type="button" data-i18n="ledger.seeAll" style="margin-top:10px">See all</button>
+      </div>
+    </main>
+
+    <!-- ============ ACTIONS (intro + search + tiles) ============ -->
+    <main class="screen" id="s-explore" hidden data-panel="1">
+      <p class="intro" data-i18n="explore.intro">Every action here moves real money. Pick one and go.</p>
+
+      <div class="searchbar">
+        <input type="text" id="searchInput" data-i18n-placeholder="home.searchPlaceholder" placeholder="">
+        <button class="filterbtn" id="openFiltersBtn" type="button" data-i18n-aria-label="home.filters" aria-label="">⚙</button>
+      </div>
+
+      <div class="tilegrid" id="exploreTiles">
+        <button class="tile t-all" type="button" data-tile="all">
+          <span class="ic">📋</span><span class="lb" data-i18n="explore.allActions">All actions</span>
+        </button>
+        <button class="tile t-surprise" type="button" data-tile="surprise">
+          <span class="ic">🎲</span><span class="lb" data-i18n="explore.surpriseMe">Surprise me</span>
+        </button>
+        <button class="tile t-quick" type="button" data-tile="under5">
+          <span class="ic">⚡</span><span class="lb" data-i18n="home.under5min">Under 5 min</span>
+        </button>
+        <button class="tile t-easy" type="button" data-tile="easy">
+          <span class="ic">👌</span><span class="lb" data-i18n="home.easyOnly">Easy only</span>
+        </button>
+        <button class="tile t-any" type="button" data-tile="anywhere">
+          <span class="ic">🌍</span><span class="lb" data-i18n="home.anywhere">Anywhere</span>
+        </button>
+      </div>
+
+      <!-- live search results replace the tiles while there's a query -->
+      <div id="exploreResults" hidden></div>
+    </main>
+
+    <!-- ============ ALL ACTIONS (category picker) ============ -->
+    <main class="screen" id="s-categories" hidden>
+      <button class="back" id="categoriesBackBtn" type="button">‹ <span data-i18n="nav.explore">Actions</span></button>
+      <div class="h2"><span data-i18n="categories.heading">Pick your battle</span> <span class="cnt" id="categoryCount"></span></div>
+      <div id="categoryList"></div>
+    </main>
+
+    <!-- ============ CATEGORY / FILTERED ACTION LIST ============ -->
+    <main class="screen" id="s-cat" hidden>
+      <button class="back" id="catBackBtn" type="button">‹ <span id="catBackLabel"></span></button>
+      <div class="h2" id="catHeading"></div>
+      <div id="catActionList"></div>
+    </main>
+
+    <!-- ============ ACTION DETAIL ============ -->
+    <main class="screen" id="s-detail" hidden>
+      <button class="back" id="detailBackBtn" type="button">‹ <span data-i18n="detail.back">Back</span></button>
+      <div id="detailContent"></div>
+    </main>
+
+    <!-- ============ ACHIEVEMENTS (signed in) ============ -->
+    <main class="screen" id="s-shelf" hidden data-panel="2">
+      <div class="laddercard">
+        <div class="h2" style="margin-top:0" data-i18n="shelf.yourLevel">Your level</div>
+        <div class="lvlstrip lvlstrip-static">
+          <div class="lvlstrip-row"><span class="lvlname" id="shelfLvlName"></span><span class="lvlnext" id="shelfLvlNext"></span></div>
+          <div class="segbar"><i id="shelfLvlBar" style="width:0%"></i></div>
+        </div>
+        <p style="font-size:14px;font-weight:700;opacity:0.8;margin-top:10px" data-i18n="level.ladder"></p>
+      </div>
+
+      <div class="h2"><span data-i18n="shelf.yourShelf">Your achievements</span> <span class="cnt" id="shelfCount"></span></div>
+      <div class="badgegrid" id="badgeGrid"></div>
+
+      <div id="checkinsSection"></div>
+    </main>
+
+    <!-- ============ ACHIEVEMENTS (signed-out empty state) ============ -->
+    <main class="screen" id="s-shelf-empty" hidden data-panel="2">
+      <div class="empty">
+        <div class="ico">🏅</div>
+        <h3 data-i18n="shelf.emptyTitle">Nothing here yet</h3>
+        <p data-i18n="shelf.emptyBody"></p>
+        <button class="btn" id="shelfSaveBtn" type="button" data-i18n="auth.ctaSignIn">Sign In</button>
+      </div>
+    </main>
+
+    <!-- ============ HELP ============ -->
+    <main class="screen" id="s-help" hidden>
+      <button class="back" id="helpBackBtn" type="button">‹ <span data-i18n="settings.title">Settings</span></button>
+      <div class="h2" data-i18n="help.title">Help</div>
+      <div class="card"><div class="cardhead" data-i18n="help.q1">How does logging an action work?</div>
+        <p class="prose" data-i18n="help.a1"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q2">Why do I have to sign in?</div>
+        <p class="prose" data-i18n="help.a2"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q3">What does the Impact-O-Meter show?</div>
+        <p class="prose" id="helpMeterAnswer"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q4">Can other people see what I did?</div>
+        <p class="prose" data-i18n="help.a4"></p></div>
+      <div class="card"><div class="cardhead" data-i18n="help.q5">I made a mistake — can I undo it?</div>
+        <p class="prose" data-i18n="help.a5"></p></div>
+    </main>
+
+    <!-- ============ ABOUT ============ -->
+    <main class="screen" id="s-about" hidden>
+      <button class="back" id="aboutBackBtn" type="button">‹ <span data-i18n="settings.title">Settings</span></button>
+      <div class="h2" data-i18n="about.title">About</div>
+      <div class="card">
+        <p class="prose" data-i18n="about.body1"></p>
+        <p class="prose" data-i18n="about.body2"></p>
+        <p class="prose" data-i18n="about.body3"></p>
+        <p style="margin-top:14px">
+          <a href="https://1stand.org" target="_blank" rel="noopener noreferrer"
+             style="text-decoration:underline;font-weight:800" data-i18n="about.link">1STAND.org ↗</a>
+        </p>
+      </div>
+      <div class="card">
+        <div class="cardhead" data-i18n="about.privacyHeading">Your data</div>
+        <p class="prose" data-i18n="about.privacyBody"></p>
+      </div>
+    </main>
+
+    <!-- ============ GLOBAL LEDGER (public, anonymized) ============ -->
+    <main class="screen" id="s-ledger" hidden>
+      <button class="back" id="ledgerBackBtn" type="button">‹ <span data-i18n="nav.home">Home</span></button>
+      <div class="h2" data-i18n="ledger.pageTitle">Global ledger</div>
+      <p style="font-size:14px;font-weight:600;opacity:0.75;margin-bottom:14px" data-i18n="ledger.pageSubtitle"></p>
+      <div id="fullLedger"></div>
+      <button class="btn ghost sm" id="loadMoreLedgerBtn" type="button" data-i18n="ledger.loadMore" style="margin-top:10px">Load more</button>
+    </main>
+
+  </div>
+
+  <nav class="nav">
+    <button type="button" data-nav="home" aria-current="true"><span class="i">🎯</span><span class="l" data-i18n="nav.home">Home</span></button>
+    <button type="button" data-nav="explore"><span class="i">🔍</span><span class="l" data-i18n="nav.explore">Actions</span></button>
+    <button type="button" data-nav="shelf"><span class="i">🏅</span><span class="l" data-i18n="nav.shelf">Achievements</span></button>
+  </nav>
+
+  <!-- Transient confirmations only (copied a link, signed in). Claiming does not raise a toast --
+       a claimed action carries its own Remove control instead, available for as long as it stands. -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span id="toastMsg"></span>
+  </div>
+
+  <div class="pop" id="badgePop" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+    <div class="popcard">
+      <div class="stamp" id="popStamp" data-i18n="badge.stamp">Logged!</div>
+      <h3 id="popTitle"></h3>
+      <p id="popBody"></p>
+      <div class="receipt" id="popReceipt"></div>
+      <div class="shares" id="popShares"></div>
+      <button class="btn sm ghost" id="popCloseBtn" type="button" data-i18n="badge.close">Close</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="filterSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="filters.title">Filter actions</span>
+        <button class="sheetclose" id="closeFiltersBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.time">Time it takes</span>
+        <div class="chiprow" style="margin:0" id="filterTime"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.effort">Effort</span>
+        <div class="chiprow" style="margin:0" id="filterEffort"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.location">Where you live</span>
+        <div class="chiprow" style="margin:0" id="filterLocation"></div>
+      </div>
+      <div class="fgroup"><span class="lbl" data-i18n="filters.status">Status</span>
+        <div class="chiprow" style="margin:0" id="filterStatus"></div>
+      </div>
+      <button class="btn" id="showResultsBtn" type="button" data-i18n="filters.showResults">Show results</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="authSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="auth.title">Save your progress</span>
+        <button class="sheetclose" id="closeAuthBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+
+      <div class="authstep on" id="authStep1">
+        <p style="font-size:15px;font-weight:600;margin-bottom:14px;line-height:1.5" data-i18n="auth.step1Body"></p>
+        <input type="email" id="authEmail" data-i18n-placeholder="auth.emailPlaceholder" placeholder="" style="width:100%;border:3px solid var(--ink);border-radius:12px;padding:14px;font-size:16px;font-weight:600;margin-bottom:12px;min-height:48px">
+        <div id="turnstileWidget1"></div>
+        <button class="btn" id="sendCodeBtn" type="button" data-i18n="auth.sendCode">Send my code</button>
+        <p class="formError" id="authError1"></p>
+        <p class="privline" data-i18n="auth.privacy"></p>
+      </div>
+
+      <div class="authstep" id="authStep2">
+        <p style="font-size:15px;font-weight:600;margin-bottom:8px" data-i18n="auth.step2Body"></p>
+        <div class="otpboxes" id="otpBoxes">
+          <input maxlength="1" inputmode="numeric" aria-label="Digit 1"><input maxlength="1" inputmode="numeric" aria-label="Digit 2"><input maxlength="1" inputmode="numeric" aria-label="Digit 3"><input maxlength="1" inputmode="numeric" aria-label="Digit 4"><input maxlength="1" inputmode="numeric" aria-label="Digit 5"><input maxlength="1" inputmode="numeric" aria-label="Digit 6">
+        </div>
+        <div id="turnstileWidget2"></div>
+        <button class="btn" id="confirmCodeBtn" type="button" data-i18n="auth.confirm">Confirm</button>
+        <p class="formError" id="authError2"></p>
+        <p class="privline" style="text-align:center"><span data-i18n="auth.didntGetIt"></span> <button class="linkish" id="resendBtn" type="button" data-i18n="auth.resend">Resend</button></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="accountSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="account.title">Account</span>
+        <button class="sheetclose" id="closeAccountBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <button class="btn ghost" id="logoutBtn" type="button" data-i18n="account.logout" style="margin-bottom:10px">Log out</button>
+      <button class="btn ghost" id="exportDataBtn" type="button" data-i18n="account.export" style="margin-bottom:10px">Export my data</button>
+      <button class="btn ghost" id="deleteAccountBtn" type="button" data-i18n="account.delete">Delete my account</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="settingsSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="settings.title">Settings</span>
+        <button class="sheetclose" id="closeSettingsBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <button class="setrow" id="settingsLanguageBtn" type="button">
+        <span class="lb" data-i18n="lang.title">Language</span>
+        <span class="val" id="settingsLanguageValue"></span>
+      </button>
+      <button class="setrow" id="settingsHelpBtn" type="button">
+        <span class="lb" data-i18n="help.title">Help</span><span class="val">›</span>
+      </button>
+      <button class="setrow" id="settingsAboutBtn" type="button">
+        <span class="lb" data-i18n="about.title">About</span><span class="val">›</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sheet" id="languageSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span data-i18n="lang.title">Language</span>
+        <button class="sheetclose" id="closeLanguageBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <div id="languageOptions"></div>
+    </div>
+  </div>
+
+  <!-- ============ ACHIEVEMENT DETAIL ============ -->
+  <div class="sheet" id="badgeSheet">
+    <div class="sheetcard">
+      <div class="sheettitle"><span id="badgeSheetName"></span>
+        <button class="sheetclose" id="closeBadgeSheetBtn" type="button" data-i18n-aria-label="common.close" aria-label="">✕</button></div>
+      <div class="badgeDetail">
+        <div class="ico2" id="badgeSheetIcon"></div>
+        <div class="badgeStatus" id="badgeSheetStatus"></div>
+        <p class="prose" id="badgeSheetReq"></p>
+        <div id="badgeSheetProgress"></div>
+        <button class="btn" id="badgeSheetActionBtn" type="button" hidden></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="./js/app.js"></script>
+<script>
+  // Registered outside the module so a service-worker failure can never take the app down with
+  // it -- an install that fails just means no offline support, not a blank screen.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        // register() alone does not guarantee a check for a newer sw.js -- the browser's own
+        // background check is opportunistic and can sit for a long time on an installed app that
+        // is reopened rather than freshly navigated to, which is exactly the case (an icon tap
+        // resuming an already-open PWA) where a deploy is most likely to go unnoticed. Ask
+        // outright on load, and again whenever the app regains focus.
+        reg.update().catch(() => {});
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") reg.update().catch(() => {});
+        });
+      } catch {}
+    });
+
+    // Once a new service worker actually takes over, the page already sitting in memory is still
+    // running the old HTML/CSS/JS it loaded with -- reload once so the update is on screen right
+    // away instead of silently waiting for some later navigation.
+    let swRefreshed = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (swRefreshed) return;
+      swRefreshed = true;
+      location.reload();
+    });
+  }
+</script>
+</body>
+</html>

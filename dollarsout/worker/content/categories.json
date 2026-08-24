@@ -1,0 +1,79 @@
+[
+  {
+    "id": "everyday-spending",
+    "webflowItemId": "6a8578266d00107b3bf3f481",
+    "webflowSlug": "shift-everyday-spending",
+    "name": "Everyday Spending",
+    "tagline": "Groceries, brands, leaving Amazon",
+    "shortDescription": "Groceries, household goods, and retail — learn who actually owns the brands in your basket, then redirect that spending one aisle at a time.",
+    "website": "https://www.goodsuniteus.com/",
+    "colorKey": "c1",
+    "sortOrder": 1
+  },
+  {
+    "id": "subscriptions",
+    "webflowItemId": "6a8578266d00107b3bf3f483",
+    "webflowSlug": "cancel-replace-digital-subscriptions",
+    "name": "Subscriptions",
+    "tagline": "What's quietly billing you monthly",
+    "shortDescription": "Recurring digital revenue is what moves valuations. Audit every subscription you pay, cancel what you can, and move the rest to providers outside the target set.",
+    "website": "https://european-alternatives.eu/",
+    "colorKey": "c2",
+    "sortOrder": 2
+  },
+  {
+    "id": "money-banking",
+    "webflowItemId": "6a8578266d00107b3bf3f485",
+    "webflowSlug": "move-your-money-change-how-you-pay",
+    "name": "Money & Banking",
+    "tagline": "Where your money sleeps at night",
+    "shortDescription": "Your deposits are working capital that your bank lends and invests. Move them to member-owned institutions and pay on rails that don't route a fee to a US network.",
+    "website": "https://prisonfreefunds.org",
+    "colorKey": "c3",
+    "sortOrder": 3
+  },
+  {
+    "id": "investments",
+    "webflowItemId": "6a8578266d00107b3bf3f487",
+    "webflowSlug": "audit-move-your-investments",
+    "name": "Investments",
+    "tagline": "You may own what you're boycotting",
+    "shortDescription": "You are probably already funding what you're boycotting. Find out what your pension holds, then decide whether to move it, vote it, or organise around it.",
+    "website": "https://www.asyousow.org/",
+    "colorKey": "c1",
+    "sortOrder": 4
+  },
+  {
+    "id": "travel",
+    "webflowItemId": "6a85786ec61c6c719566ef1c",
+    "webflowSlug": "withhold-travel-transport-spending",
+    "name": "Travel",
+    "tagline": "The one with a public scoreboard",
+    "shortDescription": "The only category with a public scoreboard — inbound tourism and vehicle registrations are published monthly. Skip the trip, skip the brand, and say why.",
+    "website": "https://actionnetwork.org/event_campaigns/teslatakedown",
+    "colorKey": "c2",
+    "sortOrder": 5
+  },
+  {
+    "id": "institutions",
+    "webflowItemId": "6a85786ec61c6c719566ef1e",
+    "webflowSlug": "change-what-institutions-buy",
+    "name": "Institutions",
+    "tagline": "Highest impact, most effort",
+    "shortDescription": "One organisation switching outweighs a thousand individual consumers. Your employer, council, union, club and congregation all sign contracts — and someone has to raise it.",
+    "website": "https://eurostack.eu/",
+    "colorKey": "c3",
+    "sortOrder": 6
+  },
+  {
+    "id": "attention",
+    "webflowItemId": "6a85786ec61c6c719566ef20",
+    "webflowSlug": "reclaim-your-attention",
+    "name": "Attention",
+    "tagline": "You're the inventory. Stop supplying it.",
+    "shortDescription": "Your attention, your posts and your data are the product these platforms sell. Withdraw the supply, block the ads, and fund the alternative with what you save.",
+    "website": "https://ublockorigin.com/",
+    "colorKey": "c1",
+    "sortOrder": 7
+  }
+]
