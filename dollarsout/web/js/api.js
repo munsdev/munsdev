@@ -34,7 +34,20 @@ export const api = {
     request("/auth/verify-code", { method: "POST", body: JSON.stringify({ email, code, turnstileToken }) }),
   logout: () => request("/auth/logout", { method: "POST" }),
 
-  claim: (actionId) => request("/claims", { method: "POST", body: JSON.stringify({ actionId }) }),
+  /**
+   * Logs an action. `claimedAt` backdates it ("I did this before finding the app").
+   *
+   * A rejected claim -- repeatable action still in cooldown, or a one-off already logged --
+   * is an expected outcome the UI explains rather than an error it should blow up on, so those
+   * come back as a plain `{error}` object instead of throwing.
+   */
+  claim: (actionId, claimedAt) =>
+    request("/claims", { method: "POST", body: JSON.stringify({ actionId, claimedAt }) }).catch(
+      (err) => {
+        if (err.status === 409 || err.status === 400) return err.data ?? { error: err.message };
+        throw err;
+      }
+    ),
   undoClaim: (actionId) => request(`/claims/${encodeURIComponent(actionId)}`, { method: "DELETE" }),
 
   checkin: (actionId, result) =>

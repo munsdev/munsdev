@@ -142,10 +142,15 @@ export default {
         if (!account) return json(env, { error: "sign_in_required" }, 401);
 
         if (request.method === "POST" && pathname === "/claims") {
-          const body = await readJson<{ actionId: string }>(request);
+          const body = await readJson<{ actionId: string; claimedAt?: string }>(request);
           if (!body?.actionId) return json(env, { error: "missing_action_id" }, 400);
           const result = await handleClaim(env, account, body);
-          return json(env, "body" in result ? result.body : { error: result.error }, result.status);
+          if (!("body" in result)) {
+            const err: Record<string, unknown> = { error: result.error };
+            if ("retryAfter" in result) err.retryAfter = result.retryAfter;
+            return json(env, err, result.status);
+          }
+          return json(env, result.body, result.status);
         }
 
         if (request.method === "DELETE" && pathname.startsWith("/claims/")) {

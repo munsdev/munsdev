@@ -1,0 +1,338 @@
+[
+  {
+    "id": "subs-list-everything",
+    "name": "List every subscription you're paying for",
+    "shortDescription": "One sitting, one list. Most people are wrong about the total.",
+    "longDescription": "Bank and card statements make this a fifteen-minute job: write down every recurring charge, what it is, and what it costs a year. You can't cancel what you've forgotten you're paying for, and the annual figure is usually the thing that prompts the rest of this category.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "subs-cancel-netflix",
+    "name": "Cancel Netflix",
+    "shortDescription": "A settings page and about ninety seconds.",
+    "longDescription": "Cancelling leaves your profile and viewing history intact until the end of the billing period, and you can restart any time — which is precisely why it's an easy one to do now rather than deliberate over.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "subs-cancel-disney",
+    "name": "Cancel Disney+",
+    "shortDescription": "One streaming subscription, cancelled or paused.",
+    "longDescription": "Disney+ is bundled aggressively and auto-renews annually in many markets, so it's a common line item people don't realise is still active.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-cancel-prime-video",
+    "name": "Cancel Prime Video",
+    "shortDescription": "Separate from Prime itself in most markets.",
+    "longDescription": "Prime Video is often billed as a standalone subscription or an add-on channel even for people who already cancelled Prime membership. Check both.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-cancel-apple-tv",
+    "name": "Cancel Apple TV+",
+    "shortDescription": "Frequently still running from a free trial attached to a device.",
+    "longDescription": "Apple TV+ is bundled with hardware purchases and with Apple One. It's one of the most commonly forgotten active subscriptions because it never appears as its own card charge.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-cancel-max-paramount",
+    "name": "Cancel Max or Paramount+",
+    "shortDescription": "The third streaming service is usually the one you forgot.",
+    "longDescription": "Whichever of these you signed up for during a single series and never cancelled. Both are US studio-owned and both auto-renew.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-cancel-audible",
+    "name": "Cancel Audible",
+    "shortDescription": "Your library stays yours after you cancel.",
+    "longDescription": "Audible credits and purchased titles remain accessible after cancellation in most markets. Libraries in most European countries lend audiobooks free through apps, and several independent audiobook shops sell DRM-free.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "targets": {
+      "default": [
+        "your public library's audiobook app",
+        "Libro.fm",
+        "BookBeat"
+      ],
+      "de": [
+        "Onleihe",
+        "Thalia",
+        "BookBeat"
+      ],
+      "nl": [
+        "Bibliotheek app",
+        "Storytel"
+      ],
+      "uk": [
+        "BorrowBox",
+        "Libro.fm"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-public-broadcaster",
+    "name": "Watch your public broadcaster instead",
+    "shortDescription": "You already pay for it. Most people barely use it.",
+    "longDescription": "European public broadcasters have large free catalogues of drama, documentary and film, funded by a licence fee or tax you are paying whether you watch or not. Making one of them a default replaces streaming spend with something already bought.",
+    "points": 10,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "eu",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Arte"
+      ],
+      "de": [
+        "ARD Mediathek",
+        "ZDF Mediathek",
+        "Arte"
+      ],
+      "at": [
+        "ORF ON",
+        "Arte"
+      ],
+      "fr": [
+        "france.tv",
+        "Arte"
+      ],
+      "it": [
+        "RAI Play"
+      ],
+      "es": [
+        "RTVE Play"
+      ],
+      "nl": [
+        "NPO Start"
+      ],
+      "se": [
+        "SVT Play"
+      ],
+      "uk": [
+        "BBC iPlayer",
+        "Channel 4"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "subs-european-streaming",
+    "name": "Subscribe to a European streaming service",
+    "shortDescription": "If you're going to pay for one, pay a European one.",
+    "longDescription": "Replacing rather than merely cancelling keeps the habit and moves the money. European services tend to carry deeper European and arthouse catalogues than the US majors do.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "MUBI",
+        "Filmin",
+        "Viaplay"
+      ],
+      "de": [
+        "Joyn",
+        "MUBI",
+        "WOW"
+      ],
+      "es": [
+        "Filmin",
+        "MUBI"
+      ],
+      "nl": [
+        "Videoland",
+        "MUBI"
+      ],
+      "se": [
+        "Viaplay",
+        "SF Anytime"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "subs-move-cloud-storage",
+    "name": "Move your cloud storage off Google, Apple or Microsoft",
+    "shortDescription": "Photos and files, migrated to a European provider.",
+    "longDescription": "The migration is the only real friction — most providers offer a direct import or a desktop sync client that handles it overnight. Do it once and the monthly charge simply moves. Storage is also the subscription most likely to be silently upgraded as you fill it.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu",
+      "accounts_moved"
+    ],
+    "targets": {
+      "default": [
+        "Proton Drive",
+        "pCloud",
+        "Nextcloud",
+        "Filen"
+      ],
+      "de": [
+        "Hetzner Storage Share",
+        "Nextcloud",
+        "Your Secure Cloud"
+      ],
+      "ch": [
+        "Infomaniak kDrive",
+        "pCloud",
+        "Proton Drive"
+      ],
+      "fr": [
+        "Infomaniak kDrive",
+        "OVHcloud"
+      ],
+      "no": [
+        "Jottacloud"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "European Alternatives",
+        "url": "https://european-alternatives.eu/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "subs-move-email",
+    "name": "Move your email off Gmail or Outlook",
+    "shortDescription": "The highest-leverage switch on the list, and the most work.",
+    "longDescription": "Your mailbox is the recovery address for every other account you own, which is exactly why moving it matters and why it takes an afternoon. Most providers import your existing mail and contacts automatically, and can forward from the old address indefinitely while you update logins.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu",
+      "accounts_moved"
+    ],
+    "targets": {
+      "default": [
+        "Proton Mail",
+        "Tuta",
+        "Mailbox.org",
+        "Infomaniak"
+      ],
+      "de": [
+        "Mailbox.org",
+        "Posteo",
+        "Tuta"
+      ],
+      "ch": [
+        "Proton Mail",
+        "Infomaniak"
+      ],
+      "fr": [
+        "Infomaniak",
+        "Proton Mail"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "European Alternatives",
+        "url": "https://european-alternatives.eu/"
+      }
+    ],
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "subs-replace-office-suite",
+    "name": "Replace your US office suite",
+    "shortDescription": "Documents, spreadsheets, slides — without the subscription.",
+    "longDescription": "For most personal use the free European and open-source suites are a straight replacement and read Microsoft formats without conversion. If you collaborate, the hosted options handle shared editing too.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu",
+      "subs_cancelled"
+    ],
+    "targets": {
+      "default": [
+        "LibreOffice",
+        "OnlyOffice",
+        "CryptPad",
+        "Nextcloud Office"
+      ]
+    },
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "subs-european-vpn",
+    "name": "Switch to a European VPN",
+    "shortDescription": "A VPN sees everything. Jurisdiction matters more here than anywhere.",
+    "longDescription": "A VPN provider can see the traffic your ISP can't, so where it is incorporated and what it is legally obliged to hand over is the whole product. Prefer audited, no-log providers under European jurisdiction.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Proton VPN",
+        "Mullvad",
+        "IVPN"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

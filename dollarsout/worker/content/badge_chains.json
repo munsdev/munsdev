@@ -1,0 +1,170 @@
+[
+  {
+    "id": "chain-unsubscribed",
+    "name": "Unsubscribed",
+    "description": "Recurring charges you've ended for good.",
+    "counter": "subs_cancelled",
+    "icon": "✂️",
+    "sortOrder": 1,
+    "tiers": [
+      { "tier": 1, "name": "First Cancellation", "threshold": 1 },
+      { "tier": 2, "name": "Trimmed", "threshold": 5 },
+      { "tier": 3, "name": "Cut Loose", "threshold": 15 },
+      { "tier": 4, "name": "Nothing Recurring", "threshold": 30 }
+    ]
+  },
+  {
+    "id": "chain-rerouted",
+    "name": "Rerouted",
+    "description": "Purchases sent somewhere else.",
+    "counter": "purchases_redirected",
+    "icon": "↩️",
+    "sortOrder": 2,
+    "tiers": [
+      { "tier": 1, "name": "First Detour", "threshold": 1 },
+      { "tier": 2, "name": "Diverted", "threshold": 10 },
+      { "tier": 3, "name": "Rerouted", "threshold": 30 },
+      { "tier": 4, "name": "New Default", "threshold": 75 }
+    ]
+  },
+  {
+    "id": "chain-erasure",
+    "name": "Erasure",
+    "description": "Rights exercised against companies holding your data.",
+    "counter": "gdpr_requests",
+    "icon": "🧽",
+    "sortOrder": 3,
+    "tiers": [
+      { "tier": 1, "name": "First Request", "threshold": 1 },
+      { "tier": 2, "name": "On the Record", "threshold": 5 },
+      { "tier": 3, "name": "Persistent", "threshold": 15 },
+      { "tier": 4, "name": "Right to Be Forgotten", "threshold": 30 }
+    ]
+  },
+  {
+    "id": "chain-off-the-rails",
+    "name": "Off the Rails",
+    "description": "Payments made without a US network in the middle.",
+    "counter": "non_us_payments",
+    "icon": "💳",
+    "sortOrder": 4,
+    "tiers": [
+      { "tier": 1, "name": "First Bypass", "threshold": 1 },
+      { "tier": 2, "name": "Off Network", "threshold": 25 },
+      { "tier": 3, "name": "Domestic Rails", "threshold": 100 },
+      { "tier": 4, "name": "A Year Off the Rails", "threshold": 365 }
+    ]
+  },
+  {
+    "id": "chain-rolling-stock",
+    "name": "Rolling Stock",
+    "description": "Journeys taken by rail or coach instead of by air.",
+    "counter": "train_over_flight",
+    "icon": "🚆",
+    "sortOrder": 5,
+    "tiers": [
+      { "tier": 1, "name": "First Departure", "threshold": 1 },
+      { "tier": 2, "name": "Regular Service", "threshold": 5 },
+      { "tier": 3, "name": "Season Ticket", "threshold": 15 },
+      { "tier": 4, "name": "Rolling Stock", "threshold": 40 }
+    ]
+  },
+  {
+    "id": "chain-deposits",
+    "name": "Deposits",
+    "description": "Accounts and balances moved to member-owned institutions.",
+    "counter": "accounts_moved",
+    "icon": "🏦",
+    "sortOrder": 6,
+    "tiers": [
+      { "tier": 1, "name": "Account Opened", "threshold": 1 },
+      { "tier": 2, "name": "Balance Moved", "threshold": 2 },
+      { "tier": 3, "name": "Relocated", "threshold": 4 },
+      { "tier": 4, "name": "Fully Moved", "threshold": 6 }
+    ]
+  },
+  {
+    "id": "chain-substituted",
+    "name": "Substituted",
+    "description": "Services replaced with European or open alternatives.",
+    "counter": "services_swapped_eu",
+    "icon": "🔁",
+    "sortOrder": 7,
+    "tiers": [
+      { "tier": 1, "name": "First Swap", "threshold": 1 },
+      { "tier": 2, "name": "Substituted", "threshold": 5 },
+      { "tier": 3, "name": "Re-stacked", "threshold": 12 },
+      { "tier": 4, "name": "Own Stack", "threshold": 25 }
+    ]
+  },
+  {
+    "id": "chain-on-the-record",
+    "name": "On the Record",
+    "description": "Comments, letters and complaints filed where they're minuted.",
+    "counter": "comments_filed",
+    "icon": "🖊️",
+    "sortOrder": 8,
+    "tiers": [
+      { "tier": 1, "name": "First Filing", "threshold": 1 },
+      { "tier": 2, "name": "Noted", "threshold": 3 },
+      { "tier": 3, "name": "On the Record", "threshold": 8 },
+      { "tier": 4, "name": "Known Correspondent", "threshold": 20 }
+    ]
+  },
+  {
+    "id": "chain-withdrawn",
+    "name": "Withdrawn",
+    "description": "Accounts closed rather than abandoned.",
+    "counter": "accounts_closed",
+    "icon": "🚪",
+    "sortOrder": 9,
+    "tiers": [
+      { "tier": 1, "name": "First Exit", "threshold": 1 },
+      { "tier": 2, "name": "Closed Out", "threshold": 5 },
+      { "tier": 3, "name": "Withdrawn", "threshold": 12 },
+      { "tier": 4, "name": "No Forwarding Address", "threshold": 25 }
+    ]
+  },
+  {
+    "id": "chain-local",
+    "name": "Local",
+    "description": "Money spent within reach of where you live.",
+    "counter": "local_purchases",
+    "icon": "🏪",
+    "sortOrder": 10,
+    "tiers": [
+      { "tier": 1, "name": "First Local", "threshold": 1 },
+      { "tier": 2, "name": "Regular", "threshold": 10 },
+      { "tier": 3, "name": "Known by Name", "threshold": 30 },
+      { "tier": 4, "name": "Local Economy", "threshold": 75 }
+    ]
+  },
+  {
+    "id": "chain-convener",
+    "name": "Convener",
+    "description": "Actions taken through an organisation rather than alone.",
+    "counter": "institutional_actions",
+    "icon": "🏛️",
+    "sortOrder": 11,
+    "tiers": [
+      { "tier": 1, "name": "First Ask", "threshold": 1 },
+      { "tier": 2, "name": "Raised It", "threshold": 3 },
+      { "tier": 3, "name": "Convener", "threshold": 8 },
+      { "tier": 4, "name": "Institutional Memory", "threshold": 15 }
+    ]
+  },
+  {
+    "id": "chain-portfolio",
+    "name": "Portfolio",
+    "description": "What you already own, found and dealt with.",
+    "counter": "investment_actions",
+    "icon": "📈",
+    "sortOrder": 12,
+    "tiers": [
+      { "tier": 1, "name": "Looked", "threshold": 1 },
+      { "tier": 2, "name": "Asked", "threshold": 3 },
+      { "tier": 3, "name": "Moved", "threshold": 6 },
+      { "tier": 4, "name": "Portfolio", "threshold": 10 }
+    ]
+  }
+]

@@ -1,0 +1,392 @@
+[
+  {
+    "id": "everyday-cancel-amazon-prime",
+    "name": "Cancel Amazon Prime",
+    "shortDescription": "One membership, six businesses you're also funding.",
+    "longDescription": "Prime bundles retail, logistics, cloud, advertising and media into a single recurring charge. Cancelling is an account setting, not a boycott of every seller who happens to list there — and it stops the part of the bill that funds the bundle.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "everyday-delete-amazon-app",
+    "name": "Delete the Amazon app from your phone",
+    "shortDescription": "Removes the two-tap path from idle thumb to checkout.",
+    "longDescription": "Most impulse orders come from the app, not the website. Deleting it doesn't close your account — it just puts a browser and a login between you and the purchase, which is enough friction to break the habit.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "everyday-remove-saved-card",
+    "name": "Remove your saved card from one online retailer",
+    "shortDescription": "One-click buying only works if the card is already there.",
+    "longDescription": "Stored payment details are the whole design of frictionless retail. Deleting the card from one retailer's account means the next purchase is a decision rather than a reflex. Repeat it per retailer.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "everyday-independent-bookshop",
+    "name": "Buy your next book from an independent bookshop",
+    "shortDescription": "Same book, and the margin stays in your town.",
+    "longDescription": "Independent bookshops order most titles within a couple of days, and many run their own online shops. The book costs about the same; the difference is which balance sheet it lands on.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "local_purchases",
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "your nearest independent bookshop"
+      ],
+      "de": [
+        "Genialokal",
+        "Buch7",
+        "Ocelot",
+        "your local Buchhandlung"
+      ],
+      "nl": [
+        "Libris",
+        "Athenaeum"
+      ],
+      "fr": [
+        "Place des Libraires",
+        "Librairies Indépendantes"
+      ],
+      "uk": [
+        "Bookshop.org UK",
+        "Hive",
+        "your local high-street bookshop"
+      ],
+      "es": [
+        "Todos tus Libros"
+      ],
+      "us": [
+        "Bookshop.org",
+        "your local independent bookstore"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-switch-cleaning-brand",
+    "name": "Switch one cleaning brand off P&G or Unilever",
+    "shortDescription": "Detergent, dish soap, surface spray. Decided once, bought for years.",
+    "longDescription": "A handful of conglomerates own most of the cleaning aisle. Pick one product you rebuy on autopilot and change the default — the switch only has to be made once, but it repeats every time the cupboard empties.",
+    "points": 25,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "an independent or cooperative household brand"
+      ],
+      "de": [
+        "Frosch",
+        "Sonett",
+        "Sodasan",
+        "Ecover",
+        "Klar"
+      ],
+      "at": [
+        "Frosch",
+        "Sonett",
+        "Klar"
+      ],
+      "nl": [
+        "Ecover",
+        "Sonett"
+      ],
+      "fr": [
+        "L'Arbre Vert",
+        "Rainett",
+        "Ecover"
+      ],
+      "uk": [
+        "Ecover",
+        "Bio-D",
+        "Splosh"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-switch-personal-care",
+    "name": "Switch your personal care brand",
+    "shortDescription": "Shampoo, toothpaste, deodorant — same shelf, different owner.",
+    "longDescription": "Personal care is one of the most concentrated aisles in the shop. Changing one product you buy monthly redirects a small amount reliably, which is worth more than a large one-off.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "Weleda",
+        "Dr. Bronner's",
+        "an independent care brand"
+      ],
+      "de": [
+        "Weleda",
+        "Speick",
+        "Lavera",
+        "Alverde",
+        "Dr. Bronner's"
+      ],
+      "at": [
+        "Weleda",
+        "Speick",
+        "Lavera"
+      ],
+      "fr": [
+        "Cattier",
+        "Melvita",
+        "Weleda"
+      ],
+      "uk": [
+        "Faith in Nature",
+        "Weleda",
+        "Dr. Bronner's"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-cooperative-grocer",
+    "name": "Move your regular shop to a cooperative grocer",
+    "shortDescription": "The weekly shop is the largest recurring number most people control.",
+    "longDescription": "Groceries go on autopilot to whichever shop is nearest or already in an app. Changing the default — to a co-op, a regional chain, a food cooperative — redirects a recurring amount rather than a single purchase. This one is worth checking in on, because defaults drift back.",
+    "points": 50,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected",
+      "local_purchases"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-buy-refurbished",
+    "name": "Buy your next device refurbished instead of new",
+    "shortDescription": "A phone that already exists doesn't book a new unit sale.",
+    "longDescription": "Refurbished marketplaces sell graded, warrantied devices at a discount. The manufacturer records no new sale, and the device that would have been built isn't. Warranties are typically 12–24 months.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "Back Market",
+        "Swappie",
+        "Rebuy"
+      ],
+      "de": [
+        "Back Market",
+        "Rebuy",
+        "Refurbed",
+        "Swappie"
+      ],
+      "at": [
+        "Refurbed",
+        "Back Market"
+      ],
+      "fr": [
+        "Back Market",
+        "Recommerce"
+      ],
+      "nl": [
+        "Back Market",
+        "Swappie"
+      ],
+      "uk": [
+        "Back Market",
+        "Music Magpie",
+        "Swappie"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-replace-soft-drink",
+    "name": "Replace one US soft drink brand for good",
+    "shortDescription": "The most replaceable recurring purchase in the shop.",
+    "longDescription": "Soft drinks are bought by habit and brand recall, and nearly every European market has an independent cola or lemonade with a real following. This is the lowest-friction permanent swap on the list.",
+    "points": 10,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "a local or independent soft drink brand"
+      ],
+      "de": [
+        "Fritz-Kola",
+        "Afri-Cola",
+        "Bionade",
+        "Club-Mate"
+      ],
+      "at": [
+        "Almdudler",
+        "Makava"
+      ],
+      "nl": [
+        "Fritz-Kola",
+        "Rivella"
+      ],
+      "fr": [
+        "Breizh Cola",
+        "Meuh Cola"
+      ],
+      "uk": [
+        "Karma Cola",
+        "Fentimans"
+      ],
+      "es": [
+        "Fritz-Kola",
+        "Casera"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "everyday-buy-secondhand",
+    "name": "Buy it secondhand instead of new",
+    "shortDescription": "Clothes, furniture, tools — the resale market is enormous and local.",
+    "longDescription": "Secondhand purchases move money between people rather than to a manufacturer. Most European countries have a dominant local marketplace that isn't US-owned.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "Vinted",
+        "a local secondhand marketplace"
+      ],
+      "de": [
+        "Vinted",
+        "Kleinanzeigen",
+        "Momox"
+      ],
+      "at": [
+        "Willhaben",
+        "Vinted"
+      ],
+      "fr": [
+        "Leboncoin",
+        "Vinted"
+      ],
+      "nl": [
+        "Marktplaats",
+        "Vinted"
+      ],
+      "es": [
+        "Wallapop",
+        "Vinted"
+      ],
+      "uk": [
+        "Vinted",
+        "Gumtree"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-skip-fast-food-chain",
+    "name": "Skip a US fast-food chain for a local place",
+    "shortDescription": "Same lunch, and the money stays within a few streets.",
+    "longDescription": "Fast food is the most franchised category there is, and a franchise fee leaves the local economy on every order. The independent equivalent is usually the same price and closer.",
+    "points": 5,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "global",
+    "counters": [
+      "local_purchases",
+      "purchases_redirected"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "everyday-unsubscribe-marketing",
+    "name": "Unsubscribe from one retailer's marketing emails",
+    "shortDescription": "Cuts the prompt that generates the purchase.",
+    "longDescription": "Retail email exists to manufacture a purchase occasion you weren't going to have. One unsubscribe link removes a recurring nudge permanently, and under GDPR the retailer has to honour it.",
+    "points": 5,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "everyday-local-market",
+    "name": "Shop at your local market this week",
+    "shortDescription": "Producers, not distributors.",
+    "longDescription": "Market traders and producers keep a far larger share of what you hand over than a supermarket supply chain passes back. Once a week is a meaningful recurring redirect.",
+    "points": 5,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "local_purchases"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "everyday-cancel-warehouse-club",
+    "name": "Cancel a warehouse club membership",
+    "shortDescription": "An annual fee for the privilege of spending more.",
+    "longDescription": "Warehouse memberships charge up front and then rely on bulk purchasing to justify themselves. Cancelling ends both the fee and the sunk-cost pull to keep shopping there.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "subs_cancelled"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

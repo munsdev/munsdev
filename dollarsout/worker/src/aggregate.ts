@@ -3,13 +3,12 @@ import {
   countClaimsInWindow,
   countVerifiedClaimsForAction,
   countVerifiedPeople,
-  getCurrentPeriod,
+  getMeterGoal,
   listActiveCommunityGoals,
   ROLLING_WINDOW_DAYS,
 } from "./db";
 
 export interface PublicPeriodStats {
-  periodId: string;
   goal: number;
   count: number;
   /** Claims are counted over the trailing N days rather than a calendar period. */
@@ -24,7 +23,7 @@ export interface PublicGoalStats {
 }
 
 export interface PublicStats {
-  period: PublicPeriodStats | null;
+  period: PublicPeriodStats;
   peopleVerified: number;
   communityGoals: PublicGoalStats[];
 }
@@ -37,35 +36,34 @@ export interface PublicStats {
  * until the next reconcile, so the number on screen could be up to ten minutes behind what the
  * user had just done, and withdrawing a claim looked like it had not worked.
  *
- * These are three indexed COUNT(*)s over a small table against a goal in the low thousands, so
- * serving them live is cheap and the meter is now honest the moment anything changes.
+ * These are a handful of indexed COUNT(*)s over a small table against a goal in the low
+ * thousands, so serving them live is cheap and the meter is honest the moment anything changes.
+ *
+ * `period` is no longer nullable. It used to depend on a calendar row somebody had to insert
+ * every month, and a missing successor row blanked the entire meter -- the goal now comes from
+ * a settings row that always exists, with a hardcoded fallback behind it.
  */
 export async function getPublicStats(env: Env): Promise<PublicStats> {
-  const [periodRow, peopleVerified, goals] = await Promise.all([
-    getCurrentPeriod(env),
+  const [goal, count, peopleVerified, goals] = await Promise.all([
+    getMeterGoal(env),
+    countClaimsInWindow(env),
     countVerifiedPeople(env),
     listActiveCommunityGoals(env),
   ]);
 
-  let period: PublicPeriodStats | null = null;
-  if (periodRow) {
-    period = {
-      periodId: periodRow.id,
-      goal: periodRow.goal,
-      count: await countClaimsInWindow(env),
-      windowDays: ROLLING_WINDOW_DAYS,
-    };
-  }
-
   const communityGoals: PublicGoalStats[] = [];
-  for (const goal of goals) {
+  for (const g of goals) {
     communityGoals.push({
-      id: goal.id,
-      label: goal.label,
-      goal: goal.goal,
-      count: goal.scopeActionId ? await countVerifiedClaimsForAction(env, goal.scopeActionId) : 0,
+      id: g.id,
+      label: g.label,
+      goal: g.goal,
+      count: g.scopeActionId ? await countVerifiedClaimsForAction(env, g.scopeActionId) : 0,
     });
   }
 
-  return { period, peopleVerified, communityGoals };
+  return {
+    period: { goal, count, windowDays: ROLLING_WINDOW_DAYS },
+    peopleVerified,
+    communityGoals,
+  };
 }

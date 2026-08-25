@@ -1,0 +1,236 @@
+[
+  {
+    "id": "travel-redirect-us-trip",
+    "name": "Cancel or redirect a US trip, and say why",
+    "shortDescription": "Inbound tourism is counted and published monthly.",
+    "longDescription": "Travel is the one category with a public scoreboard: arrivals and tourism receipts are reported as national statistics. Cancelling or redirecting a trip registers there — and telling the airline, hotel or tourist board why turns a data point into a stated reason.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "comments_filed"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-train-over-short-haul",
+    "name": "Take the train instead of a short-haul flight",
+    "shortDescription": "Under about five hours, the train usually wins door to door.",
+    "longDescription": "Once you count airport transfer, security and boarding, most European city pairs under 700km are faster by rail. Booking direct with the national operator also avoids a platform fee.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "train_over_flight"
+    ],
+    "targets": {
+      "default": [
+        "DB",
+        "SNCF",
+        "Trenitalia",
+        "ÖBB",
+        "Trainline"
+      ],
+      "de": [
+        "DB",
+        "ÖBB"
+      ],
+      "fr": [
+        "SNCF Connect",
+        "Trainline"
+      ],
+      "it": [
+        "Trenitalia",
+        "Italo"
+      ],
+      "es": [
+        "Renfe"
+      ],
+      "at": [
+        "ÖBB"
+      ],
+      "nl": [
+        "NS International"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-night-train",
+    "name": "Book a night train",
+    "shortDescription": "Replaces a flight and a hotel night at once.",
+    "longDescription": "Europe's sleeper network has expanded considerably — Nightjet, European Sleeper and Snälltåget now connect most of the continent. Booking one removes a flight from the count and a hotel night from the bill.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "eu",
+    "counters": [
+      "train_over_flight"
+    ],
+    "targets": {
+      "default": [
+        "ÖBB Nightjet",
+        "European Sleeper",
+        "Snälltåget"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-interrail-pass",
+    "name": "Get an Interrail or Eurail pass",
+    "shortDescription": "Prepays a season of travel onto European rail.",
+    "longDescription": "A pass commits a block of travel spending to European rail operators up front, and tends to change how you plan trips for the rest of the year — flights stop being the default option because the rail is already paid for.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "train_over_flight"
+    ],
+    "targets": {
+      "default": [
+        "Interrail",
+        "Eurail"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-holiday-in-europe",
+    "name": "Holiday in Europe this year",
+    "shortDescription": "The whole trip, not one leg of it.",
+    "longDescription": "Choosing a European destination for your main holiday moves flights, accommodation, food and local spending together. It's the single largest discretionary redirect most households make in a year, which is why it's worth checking in on rather than logging once.",
+    "points": 25,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "eu",
+    "counters": [],
+    "effort": "Moderate",
+    "timeEstimate": "Varies"
+  },
+  {
+    "id": "travel-european-carrier",
+    "name": "Fly a European carrier instead of a US one",
+    "shortDescription": "When you do fly, the airline is still a choice.",
+    "longDescription": "On transatlantic and intra-European routes there is nearly always a European operator on the same city pair, often codesharing the identical flight. Booking the European metal keeps the fare with the European carrier.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-book-hotel-direct",
+    "name": "Book your hotel direct instead of through a platform",
+    "shortDescription": "Booking.com is US-owned. Most people assume otherwise.",
+    "longDescription": "Booking.com reads as European because of the Amsterdam office and the .com trading name, but it is owned by Booking Holdings, a US company headquartered in Connecticut — as are Kayak, Priceline, Agoda and OpenTable. Booking direct with the hotel avoids a commission that commonly runs 15–20% of the room rate, and hotels will usually match or beat the platform price if you ask.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-skip-airbnb",
+    "name": "Skip Airbnb for a local guesthouse or Fairbnb",
+    "shortDescription": "A pension, a guesthouse, or a cooperative platform.",
+    "longDescription": "Independent guesthouses and small hotels keep the whole rate, and cooperative platforms return a share of their commission to local projects. In most European cities this is also the cheaper option once cleaning and service fees are counted.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "purchases_redirected",
+      "local_purchases"
+    ],
+    "targets": {
+      "default": [
+        "Fairbnb.coop",
+        "a local guesthouse or pension"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-european-car-rental",
+    "name": "Rent from a European car company",
+    "shortDescription": "Same car class, European operator.",
+    "longDescription": "Hertz, Avis, Budget and Enterprise are US groups; Sixt and Europcar are European and operate the same airport and city desks at comparable rates.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "eu",
+    "counters": [
+      "purchases_redirected"
+    ],
+    "targets": {
+      "default": [
+        "Sixt",
+        "Europcar"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-national-tourist-board",
+    "name": "Use a national tourist board instead of a US platform",
+    "shortDescription": "Better information, no commission, no tracking.",
+    "longDescription": "National and regional tourist boards publish the same accommodation, transport and event listings the platforms aggregate, and usually link straight to the operator. Planning from there avoids feeding a booking platform's ranking data.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-take-the-coach",
+    "name": "Take the coach instead",
+    "shortDescription": "The cheapest way to not take a flight.",
+    "longDescription": "Long-distance coaches cover routes rail doesn't and undercut both rail and air on price. For a short hop it's the lowest-cost substitution available.",
+    "points": 5,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "train_over_flight"
+    ],
+    "targets": {
+      "default": [
+        "Flixbus",
+        "ALSA",
+        "Eurolines"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "travel-tell-operator-why",
+    "name": "Tell an operator why you changed your booking",
+    "shortDescription": "Cancellations are counted. Reasons are not, unless you give one.",
+    "longDescription": "Airlines, hotels and booking platforms all run cancellation surveys and none of them infer motive. A sentence in the feedback box or a short email to customer relations puts your reason into a dataset someone reports on.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "comments_filed"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  }
+]

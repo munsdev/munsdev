@@ -1,0 +1,232 @@
+[
+  {
+    "id": "invest-get-pension-holdings",
+    "name": "Get your pension's holdings list",
+    "shortDescription": "You may already own what you're boycotting.",
+    "longDescription": "Workplace pensions are handed to you with a default fund nobody explains. Ask your provider or scheme administrator in writing for the full holdings list of the fund you are in — most are obliged to supply it, and many publish it already. This single request replaces asking your employer, your provider and your scheme separately: one email, addressed to whoever administers the plan, gets the document all three would point you to.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "As You Sow",
+        "url": "https://www.asyousow.org/"
+      },
+      {
+        "label": "ShareAction",
+        "url": "https://shareaction.org/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-find-plan-administrator",
+    "name": "Find out who administers your workplace plan",
+    "shortDescription": "You can't ask the right question until you know who to send it to.",
+    "longDescription": "The company you work for, the scheme trustee and the asset manager are three different organisations, and only one of them can change what the fund holds. Your payslip or HR portal names the provider; that's the address for everything else in this category.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-move-to-european-broker",
+    "name": "Move a self-managed account to a European broker",
+    "shortDescription": "Same holdings, custodied in Europe.",
+    "longDescription": "Most European brokers accept in-kind transfers, so you move the positions rather than selling them — which usually avoids triggering a taxable disposal. Check the transfer-out fee at your current broker; many European brokers reimburse it.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "investment_actions",
+      "accounts_moved"
+    ],
+    "targets": {
+      "default": [
+        "Trade Republic",
+        "Scalable Capital",
+        "DEGIRO",
+        "Nordnet"
+      ],
+      "de": [
+        "Trade Republic",
+        "Scalable Capital",
+        "Comdirect"
+      ],
+      "nl": [
+        "DEGIRO",
+        "Bux"
+      ],
+      "be": [
+        "Bolero",
+        "DEGIRO"
+      ],
+      "se": [
+        "Nordnet",
+        "Avanza"
+      ],
+      "fr": [
+        "Boursorama",
+        "DEGIRO"
+      ]
+    },
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "invest-switch-to-screened-fund",
+    "name": "Switch one fund to a screened alternative",
+    "shortDescription": "Most plans offer one. Almost nobody changes the default.",
+    "longDescription": "Workplace schemes typically include at least one screened or sustainable fund alongside the default, and switching is a form rather than a transaction. Read what the screen actually excludes before you move — the labels vary far more than the marketing suggests.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "targets": {
+      "default": [
+        "a screened or exclusion-based fund in your plan"
+      ],
+      "de": [
+        "Triodos",
+        "GLS",
+        "Ökoworld"
+      ],
+      "nl": [
+        "Triodos",
+        "ASN"
+      ]
+    },
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "invest-us-etf-to-ucits",
+    "name": "Move a US-domiciled ETF into a UCITS equivalent",
+    "shortDescription": "Same index, European domicile, usually better tax treatment.",
+    "longDescription": "For most European residents a UCITS version of the same index is the more sensible domicile anyway — US-domiciled funds can carry withholding tax and estate-tax exposure that the UCITS equivalent doesn't. This is a like-for-like change of wrapper, not a change of strategy.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "investment_actions"
+    ],
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "invest-divest-named-holding",
+    "name": "Divest one named holding",
+    "shortDescription": "One position, identified and exited deliberately.",
+    "longDescription": "Pick a single holding you can name and justify exiting, and exit it. This is the action that turns a holdings list into a decision — and unlike a whole-portfolio move it can be done in an afternoon.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-vote-proxy",
+    "name": "Vote your proxy",
+    "shortDescription": "You get a ballot every year. Most go straight in the bin.",
+    "longDescription": "If you hold shares directly, your broker sends you voting materials before each AGM. Unvoted shares often end up supporting management by default. Voting takes minutes and is the cheapest influence a small holder has.",
+    "points": 50,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "ShareAction",
+        "url": "https://shareaction.org/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-back-shareholder-resolution",
+    "name": "Back a shareholder resolution",
+    "shortDescription": "Filed resolutions need supporting votes to survive.",
+    "longDescription": "Campaign groups file resolutions on climate, tax and labour every AGM season and publish which ones need retail support. Backing one is a specific vote on a specific question rather than a general protest.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "ShareAction",
+        "url": "https://shareaction.org/"
+      },
+      {
+        "label": "As You Sow",
+        "url": "https://www.asyousow.org/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-ask-for-exclusion-list",
+    "name": "Ask your provider to publish its exclusion list",
+    "shortDescription": "Plenty of funds have one. Far fewer publish it.",
+    "longDescription": "A fund that markets itself as sustainable should be able to tell you what it excludes and at what threshold. Asking in writing costs nothing, and providers count these requests when deciding what to disclose.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions",
+      "comments_filed"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "invest-attend-member-meeting",
+    "name": "Attend your pension scheme's member meeting",
+    "shortDescription": "Usually sparsely attended, and questions get minuted.",
+    "longDescription": "Schemes hold member meetings that hardly anyone goes to, which means a single prepared question lands with unusual weight and enters the record. Ask what the scheme holds and how it votes.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "investment_actions",
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "invest-works-council-plan-provider",
+    "name": "Ask your works council to raise the plan provider",
+    "shortDescription": "A works council can put this on an agenda. You can't.",
+    "longDescription": "In much of Europe the works council or staff committee has formal consultation rights over occupational pension arrangements. Raising the provider through them turns an individual complaint into an agenda item with a required response.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "investment_actions",
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

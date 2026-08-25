@@ -1,0 +1,230 @@
+[
+  {
+    "id": "inst-ask-employer-cloud-provider",
+    "name": "Ask your employer who its cloud provider is",
+    "shortDescription": "One email to IT. The answer is rarely a secret.",
+    "longDescription": "Most organisations run on one of three US hyperscalers and have never been asked about it by an employee. The question is legitimate, cheap, and it's the opening move for every other action in this category.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "institutional_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "EuroStack",
+        "url": "https://eurostack.eu/"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-propose-procurement-change",
+    "name": "Propose one procurement change in writing",
+    "shortDescription": "One organisation switching outweighs a thousand consumers.",
+    "longDescription": "A written proposal — one named system, one named alternative, a cost comparison and a migration sketch — is the artefact that actually moves a procurement decision. It has to be written down to be considered, and almost nobody writes it down.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "institutional_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "EuroStack",
+        "url": "https://eurostack.eu/"
+      },
+      {
+        "label": "European Alternatives",
+        "url": "https://european-alternatives.eu/"
+      }
+    ],
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "inst-raise-vendor-works-council",
+    "name": "Raise a vendor at your works council or union",
+    "shortDescription": "A works council has consultation rights you don't.",
+    "longDescription": "Works councils and unions can require a response on decisions that affect working conditions, including monitoring software and platform contracts. Raising a vendor there converts an individual objection into a formal process with a timetable.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-ask-school-software",
+    "name": "Ask your child's school which software it runs on",
+    "shortDescription": "Schools hand children a platform account for a decade.",
+    "longDescription": "Most schools have standardised on a US education suite without a data protection assessment a parent has ever seen. Several European DPAs have ruled on exactly this. Asking as a parent is a question the school is obliged to engage with.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-public-comment-contract",
+    "name": "Submit a public comment on a public contract",
+    "shortDescription": "Consultations get a handful of responses. Yours is read.",
+    "longDescription": "Councils, agencies and public bodies run formal consultations on procurement and technology decisions, and typically receive very few responses — so each one is read and logged. Find an open consultation on a contract in your area and file a comment on the record. This covers writing to your local authority as well: the consultation is the channel where it counts.",
+    "points": 50,
+    "recurrence": "repeatable",
+    "cooldownDays": 14,
+    "scopeRegion": "global",
+    "counters": [
+      "comments_filed",
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "inst-look-up-contract-ted",
+    "name": "Look up a contract on TED or your procurement portal",
+    "shortDescription": "Public contracts above threshold are published. Anyone can read them.",
+    "longDescription": "TED (Tenders Electronic Daily) publishes EU public procurement notices, and every member state runs a national portal. Looking up what your council or university has signed, and with whom, is the research that makes a public comment specific rather than general.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "institutional_actions"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "TED — Tenders Electronic Daily",
+        "url": "https://ted.europa.eu/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-attend-council-meeting",
+    "name": "Attend a council or shareholder meeting",
+    "shortDescription": "Public bodies have public meetings with a question slot.",
+    "longDescription": "Council meetings, university senates and AGMs all reserve time for questions from members or the public, and those questions are minuted. Turning up with one specific, answerable question is disproportionately effective because so few people do.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "global",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "inst-sign-eci",
+    "name": "Sign a European Citizens' Initiative",
+    "shortDescription": "A million signatures obliges the Commission to respond.",
+    "longDescription": "The ECI is the EU's formal citizen-initiative instrument: reach one million verified signatures across at least seven member states and the Commission must meet the organisers and state publicly what it will do. Signing is verified against your ID number, so each signature genuinely counts once.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "eu",
+    "counters": [
+      "comments_filed"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "European Citizens' Initiative",
+        "url": "https://citizens-initiative.europa.eu/"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-write-mep-digital-sovereignty",
+    "name": "Write to your MEP about digital sovereignty",
+    "shortDescription": "MEPs receive far less constituent mail than national politicians.",
+    "longDescription": "Individual, non-form letters are weighted heavily by parliamentary offices precisely because they're rare. Name a specific file — procurement rules, cloud certification, DMA enforcement — rather than writing generally.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "eu",
+    "counters": [
+      "comments_filed"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "Find your MEP",
+        "url": "https://www.europarl.europa.eu/meps/en/home"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-petition-european-parliament",
+    "name": "Petition the European Parliament",
+    "shortDescription": "A right of every EU resident, and it gets a formal reply.",
+    "longDescription": "Anyone residing in the EU can petition Parliament on a matter within EU competence. The Committee on Petitions must consider it and respond — an individual can put an item in front of a parliamentary committee without any organisation behind them.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 30,
+    "scopeRegion": "eu",
+    "counters": [
+      "comments_filed"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "Parliament petitions portal",
+        "url": "https://www.europarl.europa.eu/petitions/en/home"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "inst-vote-local-election-eu-resident",
+    "name": "Vote in your local election as an EU resident",
+    "shortDescription": "You can vote where you live, not only where you're from.",
+    "longDescription": "EU citizens have the right to vote and stand in municipal elections in their country of residence, and in European Parliament elections. In most member states you have to register on a specific roll first, often months ahead — which is the step people miss.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-register-to-vote",
+    "name": "Register to vote, or confirm you're registered",
+    "shortDescription": "Registrations get purged. Check rather than assume.",
+    "longDescription": "Voter rolls are periodically cleaned, and a move, a name change or simply not voting in a cycle can remove you. Confirming takes a couple of minutes online in most states.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "us",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "inst-ask-club-contracts",
+    "name": "Ask your Verein or club about its contracts",
+    "shortDescription": "Clubs sign for software, banking and insurance too.",
+    "longDescription": "A Verein, sports club or association has a committee, a budget and contracts nobody reviews between AGMs. Members can ask, and the AGM is the place where the answer has to be given.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

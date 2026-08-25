@@ -1,0 +1,259 @@
+[
+  {
+    "id": "data-erasure-request",
+    "name": "File a GDPR erasure request (Art. 17)",
+    "shortDescription": "The right to be forgotten, used once, on one company.",
+    "longDescription": "Article 17 lets you require deletion of your personal data where there is no longer a lawful basis to keep it, or where it was processed unlawfully in the first place. The controller has one month to respond. Use the wording noyb or your national data protection authority publishes — both maintain current text, and a request that cites the article correctly is much harder to deflect.",
+    "points": 50,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "noyb — Your right to erasure (Art. 17)",
+        "url": "https://noyb.eu/en/your-right-erasure-article-17"
+      },
+      {
+        "label": "Find your data protection authority",
+        "url": "https://www.edpb.europa.eu/about-edpb/about-edpb/members_en"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-subject-access-request",
+    "name": "File a subject access request (Art. 15)",
+    "shortDescription": "Find out what they hold before you decide what to do about it.",
+    "longDescription": "Article 15 gives you the right to a copy of your personal data, the purposes it is processed for, who it has been shared with and how long it is kept. It is usually the first step to exercising any other right, because it tells you what there is to object to. noyb's own testing found most controllers answer these badly — cite the article and set the one-month deadline explicitly.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "noyb — Your right of access (Art. 15)",
+        "url": "https://noyb.eu/en/your-right-access-article-15"
+      },
+      {
+        "label": "Find your data protection authority",
+        "url": "https://www.edpb.europa.eu/about-edpb/about-edpb/members_en"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-object-direct-marketing",
+    "name": "Object to direct marketing processing (Art. 21)",
+    "shortDescription": "For direct marketing, the objection is absolute.",
+    "longDescription": "Article 21 lets you object to processing based on legitimate interest or public interest. Where the processing is for direct marketing there is no balancing test and no exception: the controller must stop, full stop. That makes it the strongest and simplest of the GDPR rights to exercise.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "noyb — Your right to object (Art. 21)",
+        "url": "https://noyb.eu/en/exercise-your-rights-article-21-gdpr-object-processing"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-export-before-leaving",
+    "name": "Export your data before you leave (Art. 20)",
+    "shortDescription": "Portability is what makes deletion survivable.",
+    "longDescription": "Article 20 entitles you to receive data you provided in a structured, commonly used, machine-readable format — and, where technically feasible, to have it transmitted directly to another provider. Doing this before you close an account is what stops the switch costing you your history.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "noyb — Exercise your rights",
+        "url": "https://noyb.eu/en/exercise-your-rights"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-complaint-to-dpa",
+    "name": "File a complaint with your data protection authority",
+    "shortDescription": "Free, and the regulator has to handle it.",
+    "longDescription": "If a controller ignores your request or answers it inadequately, you can lodge a complaint with the supervisory authority in your country of residence, work, or where the infringement happened. It costs nothing, the authority is obliged to investigate and inform you of the outcome, and complaint volume is what drives enforcement priorities.",
+    "points": 75,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests",
+      "comments_filed"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "Find your data protection authority",
+        "url": "https://www.edpb.europa.eu/about-edpb/about-edpb/members_en"
+      },
+      {
+        "label": "noyb — Helpful tips",
+        "url": "https://noyb.eu/en/helpful-tips"
+      }
+    ],
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "data-opt-out-broker",
+    "name": "Opt out of one data broker",
+    "shortDescription": "The companies profiling you are ones you've never used.",
+    "longDescription": "Data brokers assemble and sell profiles from sources you never interacted with directly. In the EU an erasure or objection request applies to them the same as anyone else; elsewhere most run a voluntary opt-out form. Do one at a time — the list is long and doing one is better than bouncing off the whole thing.",
+    "points": 25,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "global",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-dma-choice-screen",
+    "name": "Use your DMA choice screen to change a default",
+    "shortDescription": "The screen exists because of the DMA. Most people click through it.",
+    "longDescription": "The Digital Markets Act forces gatekeepers to offer real choice screens for browsers and search engines rather than presetting their own. The screen only matters if you use it to pick something — reinstalling the default is the outcome the design is hoping for.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "data-unlink-gatekeeper-accounts",
+    "name": "Unlink your accounts under DMA gatekeeper rules",
+    "shortDescription": "Gatekeepers must ask before combining data across their services.",
+    "longDescription": "Under the DMA, designated gatekeepers cannot combine your personal data across their separate services without specific consent. That consent is usually buried in settings and pre-granted historically — withdrawing it splits the profile back apart.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-turn-off-cross-app-tracking",
+    "name": "Turn off cross-app tracking on your phone",
+    "shortDescription": "One toggle, applied to every app on the device.",
+    "longDescription": "Both mobile platforms have a single system setting that stops apps requesting the advertising identifier used to follow you between them. It's the highest-coverage privacy change available for the least effort.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "data-delete-old-account",
+    "name": "Delete an old account you no longer use",
+    "shortDescription": "Dormant accounts are still breach surface.",
+    "longDescription": "An account you stopped using a decade ago still holds your data and still appears in breach dumps. Your password manager or your mailbox search for \"welcome to\" will find more of them than you expect. Delete rather than abandon.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 1,
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_closed"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-ask-for-subprocessors",
+    "name": "Ask a company to name its sub-processors",
+    "shortDescription": "Who else gets the data they collected from you?",
+    "longDescription": "Controllers have to tell you the recipients or categories of recipient your data is disclosed to, and most maintain a sub-processor list already — often published, sometimes only on request. It's the question that reveals how many companies are actually involved.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "gdpr_requests"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "noyb — Your right of access (Art. 15)",
+        "url": "https://noyb.eu/en/your-right-access-article-15"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "data-support-digital-rights-org",
+    "name": "Support a digital rights organisation",
+    "shortDescription": "Someone has to bring the cases that make the rights real.",
+    "longDescription": "Every enforcement decision worth citing was won by an organisation that litigated for years to get it. A recurring donation to one of them funds the casework that makes the rest of this category enforceable rather than theoretical.",
+    "points": 50,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [],
+    "targets": {
+      "default": [
+        "EDRi",
+        "noyb"
+      ],
+      "at": [
+        "noyb",
+        "epicenter.works"
+      ],
+      "de": [
+        "Chaos Computer Club",
+        "Digitalcourage",
+        "noyb"
+      ],
+      "fr": [
+        "La Quadrature du Net"
+      ],
+      "nl": [
+        "Bits of Freedom"
+      ],
+      "uk": [
+        "Open Rights Group"
+      ],
+      "us": [
+        "EFF"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "EDRi — European Digital Rights",
+        "url": "https://edri.org/"
+      },
+      {
+        "label": "noyb",
+        "url": "https://noyb.eu/"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

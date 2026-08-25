@@ -4,12 +4,15 @@ import { TURNSTILE_SITE_KEY } from "./config.js";
 import { LEVEL_LADDER, computeLevel } from "./state.js";
 
 // ---------------- module state ----------------
-let catalog = { categories: [], actions: [], badges: [] };
+let catalog = { categories: [], actions: [], badges: [], chains: [] };
 let stats = { period: null, peopleVerified: 0, communityGoals: [] };
 let session = { loggedIn: false, email: null };
 let stateByActionId = new Map(); // actionId -> {status, nextCheckinDue, ...} -- empty when signed out
 let earnedBadgeIds = new Set();
 let earnedBadgeDates = new Map(); // badgeId -> earnedAt, for the achievement detail sheet
+let badgeRarity = new Map(); // badgeId -> % of active accounts holding it, computed server-side
+let userChains = []; // per-chain progress from /me: value, currentTier, nextThreshold
+let userCounters = {}; // counter key -> value
 let currentCategoryId = null;
 let currentActionId = null;
 let toastTimer = null;
@@ -34,7 +37,7 @@ async function boot() {
   try {
     catalog = await api.getCatalog();
   } catch {
-    catalog = { categories: [], actions: [], badges: [] };
+    catalog = { categories: [], actions: [], badges: [], chains: [] };
   }
   try {
     stats = await api.getStats();
@@ -56,23 +59,43 @@ async function boot() {
   go("home");
 }
 
+function clearUserState() {
+  stateByActionId = new Map();
+  earnedBadgeIds = new Set();
+  earnedBadgeDates = new Map();
+  badgeRarity = new Map();
+  userChains = [];
+  userCounters = {};
+}
+
 async function refreshUserState() {
-  if (!session.loggedIn) {
-    stateByActionId = new Map();
-    earnedBadgeIds = new Set();
-    earnedBadgeDates = new Map();
-    return;
-  }
+  if (!session.loggedIn) return clearUserState();
+
   try {
     const me = await api.me();
     stateByActionId = new Map(me.states.claimed.map((s) => [s.actionId, s]));
-    for (const actionId of me.states.na) stateByActionId.set(actionId, { status: "na" });
-    earnedBadgeIds = new Set(me.badges.map((b) => b.id));
+    // /me returns full state rows here, not bare ids -- keying these by the row itself used to
+    // silently drop every "not applicable" mark out of the map.
+    for (const s of me.states.na) stateByActionId.set(s.actionId, s);
+
+    // Chain tiers are earned things too, so the shelf and the "unlocked" checks treat them
+    // exactly like standalone badges -- they just render grouped by chain.
+    earnedBadgeIds = new Set(me.badges.filter((b) => b.earnedAt).map((b) => b.id));
     earnedBadgeDates = new Map(me.badges.map((b) => [b.id, b.earnedAt]));
+    badgeRarity = new Map(me.badges.map((b) => [b.id, b.rarityPct ?? 0]));
+
+    for (const chain of me.chains || []) {
+      for (const tier of chain.tiers) {
+        if (tier.earnedAt) earnedBadgeIds.add(tier.id);
+        earnedBadgeDates.set(tier.id, tier.earnedAt);
+        badgeRarity.set(tier.id, tier.rarityPct ?? 0);
+      }
+    }
+
+    userChains = me.chains || [];
+    userCounters = me.counters || {};
   } catch {
-    stateByActionId = new Map();
-    earnedBadgeIds = new Set();
-    earnedBadgeDates = new Map();
+    clearUserState();
   }
 }
 
@@ -89,7 +112,9 @@ function levelProgressPct(totalClaimed, level) {
 function renderTopbar() {
   $("authPill").textContent = session.loggedIn ? t("auth.signedIn") : t("auth.guest");
 
-  const totalClaimed = [...stateByActionId.values()].filter((s) => s.status === "claimed").length;
+  // Counts repeats, matching the server's tally -- otherwise the level shown here drifts below
+  // the one /me reports as soon as anyone logs a repeatable action twice.
+  const totalClaimed = totalLoggings();
   const level = computeLevel(totalClaimed);
   const pct = levelProgressPct(totalClaimed, level);
 
@@ -268,10 +293,27 @@ function esc(s) {
 }
 
 function tagLabel(key) {
-  const map = { Withdraw: "tag.withdraw", Substitute: "tag.substitute", Pressure: "tag.pressure", Build: "tag.build",
+  // `mode` (Withdraw/Substitute/Pressure/Build) is gone: the four buckets never divided the
+  // actions cleanly, and the badges keyed on them broke whenever the action list changed.
+  // Recurrence and region carry the same weight without the ambiguity.
+  const map = {
     Easy: "tag.easy", Moderate: "tag.moderate", Advanced: "tag.advanced",
-    Anywhere: "tag.anywhere", "Outside US": "tag.outsideUs", "US only": "tag.usOnly" };
+    global: "tag.global", eu: "tag.europe", us: "tag.usOnly",
+    once: "tag.once", sustained: "tag.sustained", repeatable: "tag.repeatable",
+  };
   return map[key] ? t(map[key]) : key;
+}
+
+/**
+ * The suggested targets for an action in the user's locale, falling back to `default`.
+ *
+ * The UI locale doubles as the country hint -- there is only one language picker, and a German
+ * speaker is overwhelmingly likely to want the German bank list. Country-only keys ("at", "ch",
+ * "nl") still resolve when the locale matches them exactly.
+ */
+function targetsFor(action) {
+  const targets = action.targets || {};
+  return targets[currentLocale()] || targets[currentLocale().split("-")[0]] || targets.default || [];
 }
 
 function categoryById(id) {
@@ -303,12 +345,12 @@ function matchesFilters(action) {
 
   if (filters.quick.under5 && action.timeEstimate !== "5 Minutes") return false;
   if (filters.quick.easy && action.effort !== "Easy") return false;
-  if (filters.quick.anywhere && action.availability !== "Anywhere") return false;
+  if (filters.quick.anywhere && action.scopeRegion !== "global") return false;
 
   const { time, effort, location, status } = filters.sheet;
   if (time.size && !time.has(timeBucket(action.timeEstimate))) return false;
   if (effort.size && !effort.has(action.effort)) return false;
-  if (location.size && !location.has(action.availability)) return false;
+  if (location.size && !location.has(action.scopeRegion)) return false;
   if (status.size) {
     const st = stateByActionId.get(action.id)?.status === "claimed" ? "done" : "not_done";
     if (!status.has(st)) return false;
@@ -366,6 +408,36 @@ function refreshCurrentScreen(actionId) {
   else if (!$("s-explore").hidden) renderExplore();
 }
 
+/** How many actions someone can have logged and still be shown the starter set. */
+const STARTER_VISIBLE_UNTIL = 5;
+
+/**
+ * The starter set: ten named, sub-five-minute, globally applicable actions with no research
+ * attached, shown to anyone who hasn't got going yet.
+ *
+ * It disappears once they have a handful logged -- it exists to answer "what do I do first",
+ * and once that's answered it is just ten tiles in the way.
+ */
+function renderStarterSet() {
+  const section = $("starterSection");
+  const starters = catalog.actions.filter((a) => a.isStarter);
+  const done = starters.filter((a) => stateByActionId.get(a.id)?.status === "claimed").length;
+
+  if (!starters.length || totalLoggings() >= STARTER_VISIBLE_UNTIL) {
+    section.hidden = true;
+    section.innerHTML = "";
+    return;
+  }
+
+  section.hidden = false;
+  section.innerHTML = `<div class="h2" style="margin-top:22px">${esc(t("explore.startHere"))}</div>
+    <p class="mini" style="margin-bottom:10px">${esc(t("explore.startHereBlurb", { done, total: starters.length }))}</p>
+    <div id="starterList"></div>`;
+
+  const list = $("starterList");
+  for (const action of starters) list.appendChild(buildActionCard(action));
+}
+
 /** Actions tab: shortcut tiles, swapped for live results while there's a search query. */
 function renderExplore() {
   const query = filters.search.trim();
@@ -376,8 +448,10 @@ function renderExplore() {
   results.hidden = !query;
   if (!query) {
     results.innerHTML = "";
+    renderStarterSet();
     return;
   }
+  $("starterSection").hidden = true;
 
   const actions = catalog.actions.filter(matchesFilters).sort((a, b) => a.sortOrder - b.sortOrder);
   results.innerHTML = "";
@@ -462,26 +536,85 @@ function openDetail(actionId) {
   currentActionId = actionId;
   const action = catalog.actions.find((a) => a.id === actionId);
   const state = stateByActionId.get(actionId);
-  const tags = [tagLabel(action.mode), action.timeEstimate, tagLabel(action.effort), tagLabel(action.availability)];
+  const category = categoryById(action.categoryId);
+  const claimed = state?.status === "claimed";
+  const repeatable = action.recurrence === "repeatable";
+
+  const tags = [
+    action.timeEstimate,
+    tagLabel(action.effort),
+    tagLabel(action.scopeRegion),
+    tagLabel(action.recurrence),
+  ];
+
+  const targets = targetsFor(action);
+  const targetsHtml = targets.length
+    ? `<div class="h2" style="margin-top:18px">${esc(t("detail.tryThese"))}</div>
+       <div class="tags" style="margin-top:8px">${targets.map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</div>`
+    : "";
+
+  const disclaimerHtml = category?.disclaimer
+    ? `<p class="mini" style="margin-top:16px;opacity:0.75">${esc(category.disclaimer)}</p>`
+    : "";
+
+  const linksHtml = action.helpfulLinks.length
+    ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
+       <p style="font-size:15px;line-height:1.9">${action.helpfulLinks
+         .map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;font-weight:700">${esc(l.label)} ↗</a>`)
+         .join("<br>")}</p>`
+    : "";
+
+  // Repeatable actions stay loggable after the first time, so they keep the claim button and
+  // show a running count instead of switching to a terminal "logged" row.
+  const countHtml =
+    repeatable && state?.claimCount
+      ? `<p class="mini" style="margin-top:10px">${esc(t("action.loggedTimes", { count: state.claimCount }))}</p>`
+      : "";
+
+  const claimBlock =
+    claimed && !repeatable
+      ? `<div class="doneRow"><span class="doneMark">✓ ${esc(t("action.logged"))}</span>
+           <button class="removeLink" type="button" id="detailRemoveBtn">${esc(t("action.remove"))}</button></div>`
+      : `<label class="backdateRow" style="display:flex;align-items:center;gap:8px;margin-top:18px;font-size:14px">
+           <input type="checkbox" id="detailBackdateChk">
+           <span>${esc(t("action.didThisEarlier"))}</span>
+         </label>
+         <input type="date" id="detailBackdateDate" hidden max="${new Date().toISOString().slice(0, 10)}"
+                style="margin-top:8px;width:100%;padding:10px;font:inherit">
+         <button class="btn" style="margin-top:12px" type="button" id="detailClaimBtn">${esc(
+           repeatable ? t("action.logItAgain") : t("action.iDidThis")
+         )}</button>
+         ${claimed && repeatable ? `<button class="removeLink" type="button" id="detailRemoveBtn" style="margin-top:10px">${esc(t("action.removeLast"))}</button>` : ""}`;
 
   $("detailContent").innerHTML = `
     <div class="card">
       <div class="tags" style="margin-bottom:12px">${tags.map((tg) => `<span class="tag">${esc(tg)}</span>`).join("")}</div>
       <h3 style="font-size:20px;margin-bottom:10px">${esc(action.name)}</h3>
+      <p class="mini" style="margin-bottom:10px">${esc(t("action.pointsWorth", { points: action.points }))}</p>
       <p style="font-size:15px;line-height:1.6;margin-bottom:14px">${esc(action.longDescriptionHtml || action.shortDescription)}</p>
-      ${action.helpfulLinks.length ? `<div class="h2" style="margin-top:18px">${esc(t("detail.helpfulLinks"))}</div>
-      <p style="font-size:15px;line-height:1.9">${action.helpfulLinks.map((l) => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;font-weight:700">${esc(l.label)} ↗</a>`).join("<br>")}</p>` : ""}
-      ${state?.status === "claimed"
-        ? `<div class="doneRow"><span class="doneMark">✓ ${esc(t("action.logged"))}</span>
-             <button class="removeLink" type="button" id="detailRemoveBtn">${esc(t("action.remove"))}</button></div>`
-        : `<button class="btn" style="margin-top:18px" type="button" id="detailClaimBtn">${esc(t("action.iDidThis"))}</button>`}
+      ${targetsHtml}
+      ${linksHtml}
+      ${countHtml}
+      ${claimBlock}
+      ${disclaimerHtml}
     </div>`;
 
-  if (state?.status === "claimed") {
-    $("detailRemoveBtn").addEventListener("click", () => doWithdraw(actionId));
-  } else {
-    $("detailClaimBtn").addEventListener("click", () => doClaim(action));
+  const removeBtn = $("detailRemoveBtn");
+  if (removeBtn) removeBtn.addEventListener("click", () => doWithdraw(actionId));
+
+  const claimBtn = $("detailClaimBtn");
+  if (claimBtn) {
+    const chk = $("detailBackdateChk");
+    const dateInput = $("detailBackdateDate");
+    chk.addEventListener("change", () => {
+      dateInput.hidden = !chk.checked;
+      if (chk.checked) dateInput.focus();
+    });
+    claimBtn.addEventListener("click", () =>
+      doClaim(action, chk.checked && dateInput.value ? dateInput.value : undefined)
+    );
   }
+
   $("detailBackBtn").onclick = reopenCatView;
   go("detail");
 }
@@ -496,9 +629,21 @@ async function requireAuthThen(actionId, run) {
   await run();
 }
 
-async function doClaim(action) {
+async function doClaim(action, claimedAt) {
   await requireAuthThen(action.id, async () => {
-    const result = await api.claim(action.id);
+    // A backdated date arrives as YYYY-MM-DD; send it as midday UTC so a timezone offset
+    // can't push it onto the previous day.
+    const result = await api.claim(action.id, claimedAt ? `${claimedAt}T12:00:00Z` : undefined);
+
+    if (result?.error === "cooldown_active") {
+      showToast(t("action.cooldown", { when: formatCountdown(result.retryAfter) }));
+      return;
+    }
+    if (result?.error) {
+      showToast(t("action.claimFailed"));
+      return;
+    }
+
     await refreshUserState();
     renderTopbar();
     renderAggregate();
@@ -610,7 +755,39 @@ function renderShelf() {
 
   const badgeGrid = $("badgeGrid");
   badgeGrid.innerHTML = "";
-  $("shelfCount").textContent = `${earnedBadgeIds.size} ${t("shelf.of")} ${catalog.badges.length}`;
+
+  // A chain is one entry showing its highest unlocked tier, not four separate ones -- 12 chains
+  // read as 12 things to collect rather than 48 near-identical tiles.
+  const chainsDone = userChains.filter((c) => c.currentTier > 0).length;
+  const badgesDone = catalog.badges.filter((b) => earnedBadgeIds.has(b.id)).length;
+  const total = catalog.badges.length + (catalog.chains?.length || 0);
+  $("shelfCount").textContent = `${badgesDone + chainsDone} ${t("shelf.of")} ${total}`;
+
+  for (const chain of catalog.chains || []) {
+    const progress = userChains.find((c) => c.id === chain.id);
+    const value = progress?.value ?? 0;
+    const currentTier = progress?.currentTier ?? 0;
+    const nextTier = chain.tiers.find((tt) => value < tt.threshold) ?? null;
+
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = `badge ${currentTier > 0 ? "" : "locked"}`;
+
+    const pct = nextTier
+      ? Math.max(0, Math.min(100, Math.round((value / nextTier.threshold) * 100)))
+      : 100;
+    const statusHtml = nextTier
+      ? `<div class="minibar"><i style="width:${pct}%"></i></div><div class="st">${value}/${nextTier.threshold}</div>`
+      : `<div class="st">${esc(t("badge.chainComplete"))}</div>`;
+
+    const name = currentTier > 0 ? progress.currentTierName : chain.name;
+    tile.innerHTML = `<div class="ico">${chain.icon}</div>
+      <div class="nm">${esc(name)}</div>
+      ${currentTier > 0 ? `<div class="st">${esc(t("badge.tier", { tier: tierNumeral(currentTier) }))}</div>` : ""}
+      ${statusHtml}`;
+    tile.addEventListener("click", () => openChainSheet(chain, progress));
+    badgeGrid.appendChild(tile);
+  }
 
   for (const badge of catalog.badges) {
     const unlocked = earnedBadgeIds.has(badge.id);
@@ -619,15 +796,15 @@ function renderShelf() {
     tile.className = `badge ${unlocked ? "" : "locked"}`;
 
     let statusHtml = `<div class="st">${esc(t("badge.locked"))}</div>`;
-    if (!unlocked && badge.kind === "counter") {
-      const count = badgeCounterCount(badge.scope || "");
+    if (unlocked) {
+      statusHtml = rarityHtml(badge.id);
+    } else if (badge.kind === "milestone" && badge.threshold) {
+      const count = totalLoggings();
       const pct = Math.max(0, Math.min(100, Math.round((count / badge.threshold) * 100)));
       statusHtml = `<div class="minibar"><i style="width:${pct}%"></i></div><div class="st">${count}/${badge.threshold}</div>`;
-    } else if (!unlocked && badge.kind === "time_served") {
+    } else if (badge.kind === "time_served") {
       const due = nextCheckinDueDate();
       if (due) statusHtml = `<div class="st">${esc(t("badge.checkinDue", { when: formatCountdown(due) }))}</div>`;
-    } else if (unlocked) {
-      statusHtml = "";
     }
 
     tile.innerHTML = `<div class="ico">${badge.icon}</div><div class="nm">${esc(badge.name)}</div>${statusHtml}`;
@@ -639,32 +816,26 @@ function renderShelf() {
   go("shelf");
 }
 
+/** Tier numerals. Four tiers only, so a lookup beats a general Roman-numeral routine. */
+const TIER_NUMERALS = ["", "I", "II", "III", "IV"];
+const tierNumeral = (tier) => TIER_NUMERALS[tier] ?? String(tier);
+
+/** "Held by 3% of members" -- only shown once there are enough members for it to mean anything. */
+function rarityHtml(badgeId) {
+  const pct = badgeRarity.get(badgeId);
+  if (pct == null || pct <= 0) return "";
+  const label = pct < 1 ? "<1" : String(Math.round(pct));
+  return `<div class="st">${esc(t("badge.rarity", { pct: label }))}</div>`;
+}
+
+/** Total loggings, counting each repeat of a repeatable action -- matches the server's tally. */
+function totalLoggings() {
+  return claimedEntries().reduce((n, [, s]) => n + Math.max(1, s.claimCount || 0), 0);
+}
+
 /** [actionId, state] pairs for the signed-in user's currently claimed actions. */
 function claimedEntries() {
   return [...stateByActionId.entries()].filter(([, s]) => s.status === "claimed");
-}
-
-/** How far a counter badge's progress toward its threshold currently stands. */
-function badgeCounterCount(scope) {
-  const claimed = claimedEntries();
-  if (scope === "total") return claimed.length;
-  // Long Haul x3: actions that have reached the terminal 6-month check-in and are still holding.
-  if (scope === "checkin:6mo") {
-    return claimed.filter(([, s]) => s.lastCheckinResult === "holding" && s.nextCheckinDue === null).length;
-  }
-  if (scope.startsWith("category:") && scope.includes(":mode:")) {
-    const [, categoryId, , mode] = scope.split(":");
-    return claimed.filter(([id]) => actionById(id)?.categoryId === categoryId && actionById(id)?.mode === mode).length;
-  }
-  if (scope.startsWith("category:")) {
-    const categoryId = scope.split(":")[1];
-    return claimed.filter(([id]) => actionById(id)?.categoryId === categoryId).length;
-  }
-  if (scope.startsWith("mode:")) {
-    const mode = scope.split(":")[1];
-    return claimed.filter(([id]) => actionById(id)?.mode === mode).length;
-  }
-  return 0;
 }
 
 /**
@@ -696,22 +867,12 @@ function badgeRequirementText(badge) {
   if (badge.kind === "time_served") {
     return badge.scope === "checkin:6mo" ? t("badge.reqTimeServed6mo") : t("badge.reqTimeServed3mo");
   }
-  const scope = badge.scope || "";
-  const count = badge.threshold;
-  if (scope === "total") return t("badge.reqCounterTotal", { count });
-  if (scope === "checkin:6mo") return t("badge.reqCounterCheckin6mo", { count });
-  if (scope.startsWith("category:") && scope.includes(":mode:")) {
-    const [, categoryId, , mode] = scope.split(":");
-    return t("badge.reqCounterCategoryMode", { count, mode: tagLabel(mode), category: categoryById(categoryId)?.name || "" });
+  if (badge.kind === "milestone") {
+    return t("badge.reqCounterTotal", { count: badge.threshold });
   }
-  if (scope.startsWith("category:")) {
-    const categoryId = scope.split(":")[1];
-    return t("badge.reqCounterCategory", { count, category: categoryById(categoryId)?.name || "" });
-  }
-  if (scope.startsWith("mode:")) {
-    return t("badge.reqCounterMode", { count, mode: tagLabel(scope.split(":")[1]) });
-  }
-  return "";
+  // Meta badges each describe their own rule; the copy lives with the badge rather than being
+  // reconstructed from a scope string here.
+  return badge.description || "";
 }
 
 function openBadgeSheet(badge) {
@@ -730,12 +891,16 @@ function openBadgeSheet(badge) {
     const earnedAt = earnedBadgeDates.get(badge.id);
     statusEl.textContent = earnedAt ? t("badge.unlockedAgo", { time: formatRelativeTime(earnedAt) }) : t("badge.detailUnlocked");
     statusEl.className = "badgeStatus unlocked";
+    const pct = badgeRarity.get(badge.id);
+    if (pct != null && pct > 0) {
+      progress.innerHTML = `<p class="mini">${esc(t("badge.rarityLong", { pct: pct < 1 ? "<1" : String(Math.round(pct)) }))}</p>`;
+    }
   } else {
     statusEl.textContent = t("badge.locked");
     statusEl.className = "badgeStatus";
 
-    if (badge.kind === "counter") {
-      const count = badgeCounterCount(badge.scope || "");
+    if (badge.kind === "milestone" && badge.threshold) {
+      const count = totalLoggings();
       const pct = Math.max(0, Math.min(100, Math.round((count / badge.threshold) * 100)));
       progress.innerHTML = `<div class="segbar" style="margin:10px 0 6px"><i style="width:${pct}%"></i></div>
         <p class="mini">${esc(t("badge.progressLabel", { count, threshold: badge.threshold }))}</p>`;
@@ -763,8 +928,71 @@ function closeBadgeSheet() {
   $("badgeSheet").classList.remove("on");
 }
 
+/**
+ * Chain detail: the full four-tier ladder with the current count against each threshold.
+ *
+ * Showing every tier at once is the point of the chain -- unlike the old category badges, the
+ * next target is visible and doesn't move when the action list changes.
+ */
+function openChainSheet(chain, progress) {
+  const value = progress?.value ?? 0;
+  const currentTier = progress?.currentTier ?? 0;
+
+  $("badgeSheetName").textContent = currentTier > 0 ? progress.currentTierName : chain.name;
+  $("badgeSheetIcon").textContent = chain.icon;
+  $("badgeSheetReq").textContent = chain.description || "";
+  $("badgeSheetActionBtn").hidden = true;
+
+  const statusEl = $("badgeSheetStatus");
+  if (currentTier > 0) {
+    const earnedAt = progress.earnedAt;
+    statusEl.textContent = earnedAt
+      ? t("badge.unlockedAgo", { time: formatRelativeTime(earnedAt) })
+      : t("badge.detailUnlocked");
+    statusEl.className = "badgeStatus unlocked";
+  } else {
+    statusEl.textContent = t("badge.locked");
+    statusEl.className = "badgeStatus";
+  }
+
+  const rows = chain.tiers
+    .map((tier) => {
+      const done = value >= tier.threshold;
+      const pct = Math.max(0, Math.min(100, Math.round((value / tier.threshold) * 100)));
+      const rarity = badgeRarity.get(tier.id);
+      const rarityText =
+        done && rarity != null && rarity > 0
+          ? t("badge.rarity", { pct: rarity < 1 ? "<1" : String(Math.round(rarity)) })
+          : "";
+      return `<div style="margin:12px 0">
+        <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:700">
+          <span>${done ? "✓" : "○"} ${esc(tierNumeral(tier.tier))} · ${esc(tier.name)}</span>
+          <span style="opacity:0.7">${Math.min(value, tier.threshold)}/${tier.threshold}</span>
+        </div>
+        <div class="segbar" style="margin-top:6px"><i style="width:${pct}%"></i></div>
+        ${rarityText ? `<p class="mini" style="margin-top:4px">${esc(rarityText)}</p>` : ""}
+      </div>`;
+    })
+    .join("");
+
+  $("badgeSheetProgress").innerHTML = rows;
+  $("badgeSheet").classList.add("on");
+}
+
+/**
+ * Due check-ins on sustained actions.
+ *
+ * Months are banked, not streaked -- "I stopped" credits the time already served and restarts
+ * the clock rather than zeroing the total, so the copy here has to say that. Telling someone
+ * who held a bank switch for five months that they are back to nothing is both wrong and the
+ * fastest way to make them stop answering.
+ */
 async function renderCheckins() {
-  const due = (await api.dueCheckins()).map((d) => ({ actionId: d.state.actionId, action: d.action }));
+  const due = (await api.dueCheckins()).map((d) => ({
+    actionId: d.state.actionId,
+    action: d.action,
+    monthsBanked: d.state.monthsBanked ?? 0,
+  }));
 
   const section = $("checkinsSection");
   section.innerHTML = "";
@@ -772,7 +1000,7 @@ async function renderCheckins() {
 
   const heading = document.createElement("div");
   heading.className = "h2";
-  heading.textContent = t("shelf.stillHolding");
+  heading.textContent = t("shelf.checkinsHeading");
   section.appendChild(heading);
 
   for (const item of due) {
@@ -782,29 +1010,35 @@ async function renderCheckins() {
     card.style.background = "var(--cream)";
     card.innerHTML = `
       <h3 style="font-weight:900;font-size:16px;margin-bottom:6px">${esc(item.action.name)}</h3>
-      <p style="font-size:14px;font-weight:600;margin-bottom:12px">${esc(t("shelf.stillHolding"))}</p>
+      <p style="font-size:14px;font-weight:600;margin-bottom:4px">${esc(t("shelf.stillHolding"))}</p>
+      ${item.monthsBanked > 0 ? `<p class="mini" style="margin-bottom:12px">${esc(t("shelf.monthsBanked", { count: item.monthsBanked }))}</p>` : `<div style="height:8px"></div>`}
       <div style="display:flex;gap:10px">
         <button class="btn sm" type="button" data-role="still">${esc(t("shelf.stillOffIt"))}</button>
         <button class="btn sm ghost" type="button" data-role="back">${esc(t("shelf.wentBack"))}</button>
       </div>`;
-    card.querySelector('[data-role="still"]').addEventListener("click", async () => {
-      const result = await api.checkin(item.actionId, "holding");
+
+    const answer = async (result) => {
+      const resp = await api.checkin(item.actionId, result);
       await refreshUserState();
+      if (result === "went_back") {
+        const banked = resp?.state?.monthsBanked ?? item.monthsBanked;
+        card.innerHTML = `<p style="font-size:14px;font-weight:700">${esc(t("shelf.wentBackLogged"))}</p>
+          ${banked > 0 ? `<p class="mini" style="margin-top:6px">${esc(t("shelf.wentBackBanked", { count: banked }))}</p>` : ""}`;
+        return;
+      }
       renderShelf();
-      if (result?.newBadges?.length) {
+      if (resp?.newBadges?.length) {
         showBadgePop({
-          badges: result.newBadges,
+          badges: resp.newBadges,
           levelUp: null,
           receipt: { action: item.action.name, time: item.action.timeEstimate },
-          shareCard: { kind: "badge", headline: result.newBadges[0].name, subline: t("badge.unlocked") },
+          shareCard: { kind: "badge", headline: resp.newBadges[0].name, subline: t("badge.unlocked") },
         });
       }
-    });
-    card.querySelector('[data-role="back"]').addEventListener("click", async () => {
-      await api.checkin(item.actionId, "went_back");
-      await refreshUserState();
-      card.innerHTML = `<p style="font-size:14px;font-weight:700">${esc(t("shelf.wentBackLogged"))}</p>`;
-    });
+    };
+
+    card.querySelector('[data-role="still"]').addEventListener("click", () => answer("holding"));
+    card.querySelector('[data-role="back"]').addEventListener("click", () => answer("went_back"));
     section.appendChild(card);
   }
 }
@@ -1034,7 +1268,7 @@ function openFilters() {
   ], "time");
 
   buildFilterChips("filterEffort", [["Easy", "tag.easy"], ["Moderate", "tag.moderate"], ["Advanced", "tag.advanced"]], "effort");
-  buildFilterChips("filterLocation", [["Anywhere", "tag.anywhere"], ["Outside US", "tag.outsideUs"], ["US only", "tag.usOnly"]], "location");
+  buildFilterChips("filterLocation", [["global", "tag.global"], ["eu", "tag.europe"], ["us", "tag.usOnly"]], "location");
   buildFilterChips("filterStatus", [["not_done", "filters.statusNotDone"], ["done", "filters.statusDone"]], "status");
   $("filterSheet").classList.add("on");
 }

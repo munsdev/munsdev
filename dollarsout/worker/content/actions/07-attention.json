@@ -1,0 +1,236 @@
+[
+  {
+    "id": "attn-install-ublock-origin",
+    "name": "Install uBlock Origin",
+    "shortDescription": "The single highest-leverage thing you can install in two minutes.",
+    "longDescription": "Blocking ads and trackers removes you from the auction that funds surveillance advertising — every blocked request is an impression nobody gets paid for. It's free, open source, and the reason Chrome's extension changes made it worth switching browsers.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "uBlock Origin"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "uBlock Origin",
+        "url": "https://ublockorigin.com/"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "attn-delete-x-account",
+    "name": "Delete your X account",
+    "shortDescription": "Not deactivate. Delete.",
+    "longDescription": "Export your archive first if you want it — the download takes a day or so to prepare. Deletion is final after the grace period, which is the point: a deactivated account is still counted as a user.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_closed"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-deactivate-meta",
+    "name": "Deactivate Instagram or Facebook",
+    "shortDescription": "Start with deactivation if deletion feels too final.",
+    "longDescription": "Deactivation stops the feed and the ad impressions while leaving your data recoverable, which makes it an easier first step than deletion. Treat it as sustained rather than done — reactivation is one login away, which is exactly how it's designed.",
+    "points": 50,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-move-group-chat",
+    "name": "Move a group chat off WhatsApp",
+    "shortDescription": "The hardest switch, because it needs other people.",
+    "longDescription": "Messaging is a network effect, so moving one group is worth more than moving yourself. Pick a group with a reason to care, propose one alternative rather than three, and move the group rather than asking people to install something speculatively.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Signal",
+        "Element/Matrix",
+        "Wire"
+      ],
+      "ch": [
+        "Threema",
+        "Signal"
+      ],
+      "de": [
+        "Signal",
+        "Threema",
+        "Element/Matrix"
+      ]
+    },
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-switch-search-engine",
+    "name": "Switch your default search engine",
+    "shortDescription": "One settings change, applied to every search after it.",
+    "longDescription": "Search is the highest-frequency interaction most people have with a US platform. Changing the browser default redirects all of it at once, and the European options run their own indexes or pay into non-US ones.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Ecosia",
+        "Qwant",
+        "Startpage",
+        "Mojeek"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "attn-switch-browser",
+    "name": "Switch your browser off Chrome",
+    "shortDescription": "The browser decides what the ad blocker is allowed to do.",
+    "longDescription": "Chrome's extension platform restricts what content blockers can do, and Chrome reports to the company that sells the ads. Firefox and its derivatives keep full blocking capability. Bookmarks, passwords and history all import in one step.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Firefox",
+        "Vivaldi",
+        "LibreWolf"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-switch-maps",
+    "name": "Switch your maps app",
+    "shortDescription": "Location history is the most sensitive log you generate.",
+    "longDescription": "Maps apps record everywhere you go by default. The open alternatives work offline from downloaded OpenStreetMap data, which is both more private and more useful with no signal.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Organic Maps",
+        "OsmAnd",
+        "Magic Earth",
+        "HERE WeGo"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "attn-join-mastodon",
+    "name": "Join Mastodon or a European platform",
+    "shortDescription": "Leaving is easier when there's somewhere to go.",
+    "longDescription": "Withdrawal alone tends not to stick — most people who delete an account come back because nothing replaced it. Joining a federated or European platform first makes the deletion durable.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "services_swapped_eu"
+    ],
+    "targets": {
+      "default": [
+        "Mastodon",
+        "PeerTube",
+        "Pixelfed"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-chronological-feed",
+    "name": "Switch to a chronological feed",
+    "shortDescription": "Turns off the ranking that optimises for time spent.",
+    "longDescription": "Most platforms still offer a chronological option, buried, because regulators required it. It ends the recommendation loop while you're still using the service — a useful step if you're not ready to leave.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "attn-turn-off-ad-personalisation",
+    "name": "Turn off ad personalisation on one platform",
+    "shortDescription": "Devalues your profile without deleting the account.",
+    "longDescription": "Ad personalisation settings exist on every major platform and are switched on by default. Turning them off lowers what your attention sells for, and in the EU you can require it under the GDPR rather than merely request it.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes",
+    "isStarter": true
+  },
+  {
+    "id": "attn-subscribe-local-newspaper",
+    "name": "Subscribe directly to a local newspaper",
+    "shortDescription": "Replaces an algorithmic feed with something someone edited.",
+    "longDescription": "Local reporting is what collapsed when advertising moved to the platforms, and a direct subscription is the only funding model that reaches the newsroom intact. It's the constructive half of leaving a feed behind.",
+    "points": 25,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "local_purchases"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "attn-consent-o-matic",
+    "name": "Install Consent-O-Matic and reject by default",
+    "shortDescription": "Answers every cookie banner the way you would, automatically.",
+    "longDescription": "Built by researchers at Aarhus University, it fills in consent dialogs according to settings you choose once — rejecting non-essential processing on every site without the dark-pattern click maze. Refusing consent is a GDPR right; this just stops you being worn down into not exercising it.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [],
+    "targets": {
+      "default": [
+        "Consent-O-Matic"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "Consent-O-Matic (Aarhus University)",
+        "url": "https://consentomatic.au.dk/"
+      }
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  }
+]
