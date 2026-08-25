@@ -354,6 +354,7 @@
   .train, .car{
     position:absolute;top:0;left:0;
     transform-origin:center;
+    offset-anchor:50% 50%;
     will-change:offset-distance;
   }
   .train{width:clamp(64px,15vmin,108px);aspect-ratio:2.15/1}
@@ -400,58 +401,61 @@
   #trackSvg .railDash{will-change:stroke-dashoffset}
   .controlCard{
     position:relative;z-index:4;
-    width:min(80vw,320px);max-width:100%;
+    width:min(80vw,300px);max-width:100%;
     background:rgba(255,255,255,.85);
     border:6px solid var(--ink);border-radius:28px;
     box-shadow:0 10px 0 var(--ink);
-    padding:clamp(10px,2.4vw,18px);
-    display:flex;flex-direction:column;gap:clamp(8px,1.8vw,14px);
+    padding:clamp(10px,2.4vw,16px);
+    display:flex;flex-direction:column;gap:clamp(7px,1.6vw,11px);
     box-sizing:border-box;
+    overflow-y:auto;
   }
-  .ctrlRow{display:flex;gap:clamp(6px,1.6vw,12px)}
+  .ctrlRow{display:flex;flex-direction:column;gap:clamp(6px,1.6vw,10px)}
   .ctrlBtn{
-    flex:1 1 0;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1em;
+    display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.35em;
     font-family:var(--round);font-weight:800;
-    font-size:clamp(10px,2vw,14px);
+    font-size:clamp(14px,3.6vw,19px);
     color:#fff;
     border:5px solid var(--ink);border-radius:18px;
     box-shadow:0 6px 0 var(--ink);
-    padding:.5em .2em;
+    padding:.5em .4em;
     cursor:pointer;transition:transform .08s;
   }
-  .ctrlBtn .glyph{font-size:clamp(20px,4.6vw,32px);line-height:1}
+  .ctrlBtn .glyph{font-size:clamp(22px,6vw,32px);line-height:1}
   .ctrlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
   .ctrlBtn.fwd{background:var(--slime)}
   .ctrlBtn.stop{background:#EF3E36}
   .ctrlBtn.back{background:var(--cyan)}
   .whistleBtn{
+    display:flex;align-items:center;justify-content:center;gap:.3em;
     font-family:var(--display);
-    font-size:clamp(15px,3vw,22px);
+    font-size:clamp(15px,3.6vw,21px);
     color:var(--ink);background:var(--sun);
     border:5px solid var(--ink);border-radius:18px;
-    padding:.4em .6em;
+    padding:.5em .6em;
     box-shadow:0 6px 0 var(--ink);
     cursor:pointer;transition:transform .08s;
   }
   .whistleBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
-  .speedRow{display:flex;align-items:center;gap:clamp(6px,1.6vw,10px)}
-  .speedRow .emo{font-size:clamp(16px,3.4vw,24px)}
+  .speedRow{display:flex;align-items:center;gap:clamp(8px,2vw,12px)}
+  .speedRow .emo{font-size:clamp(22px,5.5vw,32px)}
   .speedRow input[type="range"]{
-    flex:1 1 auto;-webkit-appearance:none;appearance:none;
-    height:10px;border-radius:6px;
-    background:var(--purple);border:3px solid var(--ink);
+    flex:1 1 auto;min-width:0;-webkit-appearance:none;appearance:none;
+    height:24px;border-radius:12px;
+    background:var(--purple);border:4px solid var(--ink);
   }
   .speedRow input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;appearance:none;
-    width:clamp(24px,5vw,36px);height:clamp(24px,5vw,36px);
+    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
     border-radius:50%;background:var(--sun);
-    border:4px solid var(--ink);cursor:pointer;
+    border:5px solid var(--ink);cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.3);
   }
   .speedRow input[type="range"]::-moz-range-thumb{
-    width:clamp(24px,5vw,36px);height:clamp(24px,5vw,36px);
+    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
     border-radius:50%;background:var(--sun);
-    border:4px solid var(--ink);cursor:pointer;
+    border:5px solid var(--ink);cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.3);
   }
 
   /* ---------- particles ---------- */
@@ -657,11 +661,44 @@
   const t = () => STR[lang];
 
   /* ---------------- audio ---------------- */
-  let ctx = null;
+  let ctx = null, masterBus = null, reverbSend = null;
   function ac(){
-    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } }
+    if(!ctx){
+      try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+      buildMasterBus();
+    }
     if(ctx.state === "suspended") ctx.resume();
     return ctx;
+  }
+  /* A light compressor (glues overlapping sounds together, stops clipping
+     when e.g. ten counting-blips fire at once) plus a small synthetic-room
+     reverb send, shared by every tone()/noise() call -- one change that
+     makes the whole app's sound design read as more "produced" instead of
+     a bunch of dry beeps. */
+  function buildMasterBus(){
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.knee.value = 22;
+    comp.ratio.value = 3.2;
+    comp.attack.value = 0.006;
+    comp.release.value = 0.18;
+    comp.connect(ctx.destination);
+    masterBus = comp;
+
+    const dur = 1.3, decay = 2.8;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const impulse = ctx.createBuffer(2, len, ctx.sampleRate);
+    for(let ch=0; ch<2; ch++){
+      const data = impulse.getChannelData(ch);
+      for(let i=0;i<len;i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+    }
+    const convolver = ctx.createConvolver();
+    convolver.buffer = impulse;
+    const wet = ctx.createGain();
+    wet.gain.value = 0.15;
+    convolver.connect(wet);
+    wet.connect(masterBus);
+    reverbSend = convolver;
   }
   function tone(opts){
     const a = ac(); if(!a) return;
@@ -673,7 +710,9 @@
     g.gain.setValueAtTime(0.0001, tm + (opts.at||0));
     g.gain.exponentialRampToValueAtTime(opts.vol||0.28, tm + (opts.at||0) + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, tm + (opts.at||0) + (opts.dur||.3));
-    o.connect(g); g.connect(a.destination);
+    o.connect(g);
+    g.connect(masterBus || a.destination);
+    if(reverbSend) g.connect(reverbSend);
     o.start(tm + (opts.at||0)); o.stop(tm + (opts.at||0) + (opts.dur||.3) + .05);
   }
   function noise(dur, at, filterFreq, vol){
@@ -686,8 +725,27 @@
     const src = a.createBufferSource(); src.buffer = buf;
     const f = a.createBiquadFilter(); f.type="lowpass"; f.frequency.value = filterFreq||1400;
     const g = a.createGain(); g.gain.value = vol != null ? vol : 0.4;
-    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.connect(f); f.connect(g);
+    g.connect(masterBus || a.destination);
+    if(reverbSend) g.connect(reverbSend);
     src.start(tm);
+  }
+
+  /* ---------------- speech ---------------- */
+  let voiceList = [];
+  function refreshVoices(){ voiceList = speechSynthesis.getVoices() || []; }
+  if("speechSynthesis" in window){
+    refreshVoices();
+    speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+  }
+  function pickVoice(langPrefix){
+    const matches = voiceList.filter(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix));
+    const pool = matches.length ? matches : voiceList;
+    if(!pool.length) return null;
+    // Every platform ships at least one low-effort robotic "compact" voice
+    // alongside better ones; prefer names that flag a higher-quality engine.
+    const qualityRe = /(natural|neural|enhanced|premium|google)/i;
+    return pool.find(v => qualityRe.test(v.name)) || pool[0];
   }
   function say(text){
     if(!("speechSynthesis" in window)) return;
@@ -695,7 +753,9 @@
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = t().speechLang;
-      u.rate = .85; u.pitch = 1.5; u.volume = 1;
+      const v = pickVoice(lang === "de" ? "de" : "en");
+      if(v) u.voice = v;
+      u.rate = .92; u.pitch = 1.05; u.volume = 1;
       speechSynthesis.speak(u);
     }catch(e){}
   }
@@ -1125,12 +1185,15 @@
     controlCard.style.maxHeight = innerH + "px";
   }
   function updateTrainPosition(){
+    // offset-path already anchors the box at its own center (offset-anchor
+    // defaults to the transform-origin, which is "center" below) -- an
+    // extra translate(-50%,-50%) here double-offsets it away from the
+    // rail by half the sprite's own size, which was the "not centered on
+    // the track" bug. No transform needed; offset-path positions it exactly.
     trainSprite.style.offsetDistance = trainDistance + "%";
-    trainSprite.style.transform = "translate(-50%,-50%)";
     cars.forEach(function(car, i){
       const dist = (trainDistance - CAR_GAP * (i + 1) + 300) % 100;
       car.style.offsetDistance = dist + "%";
-      car.style.transform = "translate(-50%,-50%)";
     });
   }
   function setWheelSpeed(){
