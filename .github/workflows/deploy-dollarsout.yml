@@ -9,9 +9,14 @@ name: Deploy DollarsOut
 # the default branch that touches dollarsout/.
 
 on:
+  # Manual runs pick any branch. For this button to appear at all, this file has to exist on
+  # the repository's default branch -- that is GitHub's rule for workflow_dispatch, not a
+  # setting. A workflow that lives only on a feature branch is invisible in the Actions tab.
   workflow_dispatch:
   push:
-    branches: [main, master]
+    # The repo's default branch. There is no main/master here; naming one that doesn't exist
+    # produces a trigger that silently never fires.
+    branches: [claude/reflection-pool-status-tool-g5z2jk]
     paths:
       - "dollarsout/worker/**"
       - "dollarsout/web/**"
