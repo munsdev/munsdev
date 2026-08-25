@@ -1,0 +1,86 @@
+name: Deploy DollarsOut
+
+# Deploys the Worker (API + the static web/ assets it serves) to Cloudflare.
+#
+# Credentials live in GitHub's secrets store, never in a Claude cloud environment --
+# those have no secrets store and are readable by anyone using the environment.
+#
+# Run it by hand from the Actions tab (pick any branch), or let it fire on a push to
+# the default branch that touches dollarsout/.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "dollarsout/worker/**"
+      - "dollarsout/web/**"
+      - ".github/workflows/deploy-dollarsout.yml"
+
+# One deploy at a time. A second push mid-deploy waits rather than racing the first.
+concurrency:
+  group: deploy-dollarsout
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Fails fast with a readable message rather than letting wrangler prompt and hang.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dollarsout/worker/package-lock.json
+
+      - name: Check secrets are set
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          missing=""
+          [ -z "$CF_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$CF_ACCOUNT" ] && missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing"
+            echo "Add them at Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Install
+        working-directory: dollarsout/worker
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: dollarsout/worker
+        run: npm run typecheck
+
+      # Validates the content JSON and regenerates seed_content.sql. Fails on an off-band
+      # points value, a counter key with no chain, a chain no action feeds, or a one-shot
+      # badge pointing at an action id that doesn't exist.
+      - name: Validate content
+        working-directory: dollarsout/worker
+        run: npm run build:content
+
+      # Fails the build if the generated seed is out of date with the JSON, so D1 and the
+      # repo can't silently drift.
+      - name: Check generated seed is current
+        working-directory: dollarsout/worker
+        run: |
+          if ! git diff --quiet -- content/seed_content.sql; then
+            echo "::error::content/seed_content.sql is stale. Run 'npm run build:content' and commit it."
+            git diff --stat -- content/seed_content.sql
+            exit 1
+          fi
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: dollarsout/worker
+
+      - name: Summary
+        run: echo "Deployed to https://dollarsout.1stand.org" >> "$GITHUB_STEP_SUMMARY"
