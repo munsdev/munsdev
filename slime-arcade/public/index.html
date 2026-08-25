@@ -77,6 +77,66 @@
   .langSwitch button.active{background:var(--slime);color:#fff;box-shadow:0 3px 0 var(--ink)}
   .langSwitch button:active{transform:translateY(2px)}
 
+  /* ---------- parent mode ---------- */
+  .parentLock{
+    position:fixed;bottom:max(10px,env(safe-area-inset-bottom));right:10px;z-index:60;
+    width:34px;height:34px;border-radius:50%;
+    background:rgba(36,26,46,.55);border:none;color:#fff;font-size:16px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .parentPie{
+    position:fixed;top:max(8px,env(safe-area-inset-top));left:8px;z-index:60;
+    width:26px;height:26px;border-radius:50%;
+    border:3px solid var(--ink);
+    background:conic-gradient(var(--slime) 0% 100%, var(--slime) 100%);
+    display:none;
+  }
+  .parentPie.show{display:block}
+  .parentFade{
+    position:fixed;inset:0;z-index:70;background:#000;opacity:0;pointer-events:none;
+  }
+  .parentModal{
+    position:fixed;inset:0;z-index:80;
+    background:rgba(20,14,26,.72);
+    display:none;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .parentModal.on{display:flex}
+  .parentCard{
+    position:relative;
+    background:var(--cream);border:6px solid var(--ink);border-radius:26px;
+    box-shadow:0 12px 0 var(--ink);
+    padding:26px 22px 22px;
+    width:min(90vw,340px);
+    display:flex;flex-direction:column;gap:14px;
+    align-items:stretch;
+  }
+  .parentCard h2{
+    font-family:var(--display);font-size:clamp(18px,5vw,26px);text-align:center;color:var(--ink);
+  }
+  .parentClose{
+    position:absolute;top:-14px;right:-14px;width:34px;height:34px;border-radius:50%;
+    background:#EF3E36;color:#fff;border:4px solid var(--ink);font-size:14px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .chipRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chip{
+    font-family:var(--round);font-weight:800;font-size:clamp(14px,3.6vw,18px);
+    background:var(--cyan);color:#fff;border:4px solid var(--ink);border-radius:20px;
+    padding:.4em .9em;cursor:pointer;
+  }
+  .chip.selected{background:var(--sun);color:var(--ink);box-shadow:0 0 0 3px var(--ink) inset}
+  .parentStart, .parentStop{
+    font-family:var(--display);font-size:clamp(15px,4vw,20px);
+    border:5px solid var(--ink);border-radius:18px;
+    padding:.5em .6em;box-shadow:0 6px 0 var(--ink);cursor:pointer;color:#fff;
+    transition:transform .08s;
+  }
+  .parentStart{background:var(--slime)}
+  .parentStop{background:#EF3E36;display:none}
+  .parentStop.show{display:block}
+  .parentStart:active, .parentStop:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+
   /* ---------- header ---------- */
   header{display:flex;align-items:center;gap:12px;position:relative;z-index:3;flex:0 0 auto}
   .back{
@@ -322,18 +382,21 @@
   }
   .eraserBtn.selected{transform:scale(1.18);box-shadow:0 0 0 4px #fff, 0 0 0 8px var(--ink)}
   .eraserBtn:active{transform:scale(.92)}
-  .clearBtn{
-    flex:0 0 auto;
+  .toolRow{flex:0 0 auto;display:flex;gap:clamp(6px,1.6vmin,14px)}
+  .clearBtn, .saveBtn{
+    flex:1 1 0;
     font-family:var(--display);
-    font-size:clamp(12px,2.2vmin,18px);
-    color:#fff;background:var(--pink);
+    font-size:clamp(13px,2.6vmin,19px);
+    color:#fff;
     border:5px solid var(--ink);border-radius:18px;
-    padding:.35em .55em;
+    padding:.4em .55em;
     box-shadow:0 6px 0 var(--ink);
     cursor:pointer;white-space:nowrap;
     transition:transform .08s;
   }
-  .clearBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+  .clearBtn{background:var(--pink)}
+  .saveBtn{background:var(--sun);color:var(--ink)}
+  .clearBtn:active, .saveBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
   #drawCanvas{
     flex:1 1 auto;width:100%;min-height:0;
     background:#fff;
@@ -346,82 +409,144 @@
     flex:1 1 auto;position:relative;z-index:3;min-height:0;
     border-radius:34px;overflow:hidden;
     display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.06);
   }
   .trainStage svg.track{position:absolute;inset:0;width:100%;height:100%}
-  /* Top-down silhouette (not a side elevation) so offset-rotate:auto can
-     spin it a full 360 degrees around the loop without ever reading as
-     "upside-down" -- a bird's-eye shape has no fixed up/down to violate. */
-  .train, .car{
-    position:absolute;top:0;left:0;
-    transform-origin:center;
-    offset-anchor:50% 50%;
-    will-change:offset-distance;
-  }
-  .train{width:clamp(64px,15vmin,108px);aspect-ratio:2.15/1}
-  .car{width:clamp(46px,10.5vmin,80px);aspect-ratio:1.7/1}
-  .train.running, .car.running{animation:trainBob .5s ease-in-out infinite}
-  @keyframes trainBob{0%,100%{translate:0 0}50%{translate:0 -3%}}
-  .loco-cab{
-    position:absolute;inset:2% 62% 2% 0;
-    background:#EF3E36;border:4px solid var(--ink);border-radius:22%;
-  }
-  .loco-window{
-    position:absolute;inset:26% 72% 26% 14%;
-    background:#FFD23F;border:3px solid var(--ink);border-radius:35%;
-  }
-  .loco-boiler{
-    position:absolute;inset:10% 0 10% 34%;
-    background:#3A3A44;border:4px solid var(--ink);
-    border-radius:14% 46% 14% 46%/40% 40% 40% 40%;
-  }
-  .loco-stack{
-    position:absolute;left:44%;top:50%;width:15%;aspect-ratio:1;
-    transform:translateY(-50%);
-    background:var(--ink);border:3px solid var(--ink);border-radius:50%;
-  }
-  .car-body{
-    position:absolute;inset:14% 4%;
-    border:4px solid var(--ink);border-radius:24%;
-    background:var(--car-color,#22CFE0);
-  }
-  .wheel{
-    position:absolute;width:15%;aspect-ratio:1;
-    background:var(--ink);border:3px solid var(--ink);border-radius:50%;
-    animation:wheelSpin .6s linear infinite;animation-play-state:paused;
-  }
-  .wheel::after{content:"";position:absolute;inset:26%;background:#FFD23F;border-radius:50%}
-  .wheel.wa{left:18%;top:-10%}
-  .wheel.wb{left:18%;bottom:-10%}
-  .wheel.wc{left:58%;top:-10%}
-  .wheel.wd{left:58%;bottom:-10%}
-  .car .wheel.wc{left:64%}
-  .car .wheel.wd{left:64%}
+  /* Every vehicle is one flat side-view "paper cutout" drawing that stays
+     tangent to the rail and simply turns a full 360 degrees around the
+     loop -- no swapped poses, no flip. Placement (translate/rotate/scale)
+     is computed by hand in JS from two axle points rather than handed to
+     CSS offset-path, because a rigid drawing has to chord across a curve
+     like a real wagon (pivoting on a single point lifts its end wheels off
+     the rail), and because scaling has to happen around the same point the
+     path anchors or the wheels drift off-line. */
+  .vehicle{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+  .vehicle .art{position:relative;filter:drop-shadow(0 4px 0 rgba(0,0,0,.15)) drop-shadow(0 7px 9px rgba(0,0,0,.22))}
+  .vpart{position:absolute}
+
+  .w{border-radius:50%;background:#191920;border:3px solid var(--brass,#C9A24A);overflow:hidden;position:absolute}
+  .w::after{content:"";position:absolute;left:50%;top:50%;width:26%;height:26%;
+    transform:translate(-50%,-50%);background:var(--brass,#C9A24A);border-radius:50%;z-index:2}
+  .wspin{position:absolute;inset:0;animation:wheelSpin .9s linear infinite;animation-play-state:paused}
+  .wspin i{position:absolute;left:50%;top:8%;width:2px;height:84%;background:#4A4A56;transform:translateX(-50%)}
+  .wspin i.b{transform:translateX(-50%) rotate(60deg)}
+  .wspin i.c{transform:translateX(-50%) rotate(120deg)}
   @keyframes wheelSpin{to{transform:rotate(360deg)}}
-  .train.running .wheel, .car.running .wheel{animation-play-state:running}
-  #trackSvg .railDash{will-change:stroke-dashoffset}
+  .running .wspin{animation-play-state:running}
+
+  /* locomotive (240x150 art units, wheel baseline at y=126) */
+  .l-frame{left:26px;top:96px;width:190px;height:11px;background:#2A2A31;border-radius:2px}
+  .l-frame2{left:30px;top:105px;width:180px;height:5px;background:#17171B}
+  .l-cab{left:30px;top:38px;width:62px;height:58px;background:#8E2420;border-radius:5px 3px 0 0}
+  .l-cab-roof{left:22px;top:28px;width:80px;height:12px;background:#6E1B18;border-radius:4px}
+  .l-cab-roof2{left:22px;top:26px;width:80px;height:5px;background:#A63A32;border-radius:4px 4px 0 0}
+  .l-cab-win{left:44px;top:50px;width:30px;height:26px;background:#BFE9FF;border:3px solid #17171B;border-radius:3px}
+  .l-boiler{left:88px;top:56px;width:112px;height:44px;background:#22222A;border-radius:4px 20px 20px 4px/4px 22px 22px 4px}
+  .l-boiler-hi{left:92px;top:60px;width:104px;height:7px;background:#3C3C46;border-radius:4px}
+  .l-band1{left:118px;top:56px;width:7px;height:44px;background:#C9A24A}
+  .l-band2{left:152px;top:56px;width:7px;height:44px;background:#C9A24A}
+  .l-smokebox{left:186px;top:54px;width:20px;height:48px;background:#2E2E38;border-radius:6px 12px 12px 6px}
+  .l-smokebox-ring{left:196px;top:60px;width:9px;height:36px;background:#4A4A56;border-radius:0 8px 8px 0}
+  .l-dome{left:124px;top:40px;width:22px;height:18px;background:#22222A;border-radius:11px 11px 2px 2px}
+  .l-dome-cap{left:122px;top:37px;width:26px;height:7px;background:#C9A24A;border-radius:4px}
+  .l-sand{left:156px;top:44px;width:17px;height:14px;background:#22222A;border-radius:9px 9px 2px 2px}
+  .l-stack{left:176px;top:22px;width:18px;height:36px;background:#22222A}
+  .l-stack-flare{left:170px;top:14px;width:30px;height:13px;background:#2E2E38;border-radius:5px}
+  .l-stack-lip{left:170px;top:12px;width:30px;height:5px;background:#4A4A56;border-radius:4px}
+  .l-lamp-bracket{left:198px;top:50px;width:8px;height:10px;background:#2A2A31}
+  .l-lamp{left:192px;top:34px;width:20px;height:18px;background:#F0C03A;border:3px solid #17171B;border-radius:3px}
+  .l-beam{left:204px;top:88px;width:12px;height:22px;background:#8E2420;border-radius:2px}
+  .l-catcher{left:206px;top:96px;width:32px;height:30px;background:#2A2A31;clip-path:polygon(0 0, 100% 62%, 100% 100%, 0 100%)}
+  .l-rod{left:70px;top:112px;width:98px;height:5px;background:#C9A24A;border-radius:3px}
+  .l-d1{left:56px;top:90px;width:36px;height:36px}
+  .l-d2{left:100px;top:90px;width:36px;height:36px}
+  .l-d3{left:144px;top:90px;width:36px;height:36px}
+  .l-lead{left:190px;top:104px;width:22px;height:22px}
+
+  /* tender (128x150) */
+  .t-frame{left:10px;top:96px;width:108px;height:11px;background:#2A2A31;border-radius:2px}
+  .t-body{left:16px;top:56px;width:96px;height:42px;background:#8E2420;border-radius:3px}
+  .t-body-hi{left:16px;top:56px;width:96px;height:6px;background:#A63A32}
+  .t-lip{left:12px;top:50px;width:104px;height:8px;background:#6E1B18;border-radius:3px}
+  .t-coal{left:24px;top:38px;width:80px;height:16px;background:#141418;border-radius:40% 30% 0 0/70% 60% 0 0}
+  .t-coal2{left:38px;top:33px;width:34px;height:12px;background:#232329;border-radius:50% 50% 0 0}
+  .t-w1{left:26px;top:104px;width:22px;height:22px}
+  .t-w2{left:80px;top:104px;width:22px;height:22px}
+
+  /* coach (150x150) */
+  .c-frame{left:8px;top:96px;width:134px;height:11px;background:#2A2A31;border-radius:2px}
+  .c-body{left:12px;top:46px;width:126px;height:52px;background:var(--car,#2E7DB8);border-radius:4px}
+  .c-stripe{left:12px;top:76px;width:126px;height:6px;background:rgba(0,0,0,.22)}
+  .c-roof{left:6px;top:36px;width:138px;height:13px;background:#E8E4D8;border-radius:6px 6px 2px 2px}
+  .c-roof-hi{left:6px;top:34px;width:138px;height:5px;background:#FFFDF5;border-radius:5px 5px 0 0}
+  .c-win{top:54px;width:22px;height:18px;background:#BFE9FF;border:2px solid #17171B;border-radius:2px}
+  .cw1{left:24px}.cw2{left:54px}.cw3{left:84px}.cw4{left:114px}
+  .c-door{left:70px;top:54px;width:12px;height:42px;background:rgba(0,0,0,.18);border-radius:2px}
+  .c-wh1{left:28px;top:104px;width:22px;height:22px}
+  .c-wh2{left:100px;top:104px;width:22px;height:22px}
+
+  .puff{position:absolute;border-radius:50%;background:#EFE9DC;pointer-events:none;z-index:6}
+
   .controlCard{
     position:relative;z-index:4;
-    width:min(80vw,300px);max-width:100%;
+    width:min(84vw,320px);max-width:100%;
     background:rgba(255,255,255,.85);
     border:6px solid var(--ink);border-radius:28px;
     box-shadow:0 10px 0 var(--ink);
     padding:clamp(10px,2.4vw,16px);
-    display:flex;flex-direction:column;gap:clamp(7px,1.6vw,11px);
+    display:flex;gap:clamp(8px,1.8vw,14px);
     box-sizing:border-box;
-    overflow-y:auto;
+    overflow:hidden;
   }
-  .ctrlRow{display:flex;flex-direction:column;gap:clamp(6px,1.6vw,10px)}
+  /* Vertical throttle: a real horizontal <input type=range> rotated 90deg
+     inside a swapped-dimension wrapper. This reads instantly as "push up
+     for faster" and gives the slider far more usable travel than a thin
+     strip ever could, using the same touch target every browser already
+     knows how to render. */
+  .throttleWrap{
+    flex:0 0 auto;position:relative;
+    width:clamp(48px,13vw,64px);height:100%;min-height:150px;
+  }
+  .throttleWrap input[type="range"]{
+    position:absolute;left:50%;top:50%;
+    width:var(--tlen,170px);height:clamp(30px,8vw,42px);
+    transform:translate(-50%,-50%) rotate(-90deg);
+    -webkit-appearance:none;appearance:none;
+    margin:0;border-radius:14px;
+    background:var(--purple);border:4px solid var(--ink);
+  }
+  .throttleWrap input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
+    border-radius:50%;background:var(--sun);
+    border:5px solid var(--ink);cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.3);
+  }
+  .throttleWrap input[type="range"]::-moz-range-thumb{
+    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
+    border-radius:50%;background:var(--sun);
+    border:5px solid var(--ink);cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.3);
+  }
+  .throttleWrap .temo{
+    position:absolute;left:50%;transform:translateX(-50%);
+    font-size:clamp(18px,5vw,26px);pointer-events:none;
+  }
+  .throttleWrap .temo.hi{top:2px}
+  .throttleWrap .temo.lo{bottom:2px}
+  .ctrlCol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:clamp(6px,1.6vw,10px)}
   .ctrlBtn{
     display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.35em;
     font-family:var(--round);font-weight:800;
-    font-size:clamp(14px,3.6vw,19px);
+    font-size:clamp(13px,3.4vw,18px);
     color:#fff;
     border:5px solid var(--ink);border-radius:18px;
     box-shadow:0 6px 0 var(--ink);
-    padding:.5em .4em;
+    padding:.5em .3em;
     cursor:pointer;transition:transform .08s;
+    flex:1 1 0;
   }
-  .ctrlBtn .glyph{font-size:clamp(22px,6vw,32px);line-height:1}
+  .ctrlBtn .glyph{font-size:clamp(20px,5.6vw,30px);line-height:1}
   .ctrlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
   .ctrlBtn.fwd{background:var(--slime)}
   .ctrlBtn.stop{background:#EF3E36}
@@ -429,34 +554,15 @@
   .whistleBtn{
     display:flex;align-items:center;justify-content:center;gap:.3em;
     font-family:var(--display);
-    font-size:clamp(15px,3.6vw,21px);
+    font-size:clamp(13px,3.4vw,18px);
     color:var(--ink);background:var(--sun);
     border:5px solid var(--ink);border-radius:18px;
-    padding:.5em .6em;
+    padding:.5em .4em;
     box-shadow:0 6px 0 var(--ink);
     cursor:pointer;transition:transform .08s;
+    flex:1 1 0;
   }
   .whistleBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
-  .speedRow{display:flex;align-items:center;gap:clamp(8px,2vw,12px)}
-  .speedRow .emo{font-size:clamp(22px,5.5vw,32px)}
-  .speedRow input[type="range"]{
-    flex:1 1 auto;min-width:0;-webkit-appearance:none;appearance:none;
-    height:24px;border-radius:12px;
-    background:var(--purple);border:4px solid var(--ink);
-  }
-  .speedRow input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;
-    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
-    border-radius:50%;background:var(--sun);
-    border:5px solid var(--ink);cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,.3);
-  }
-  .speedRow input[type="range"]::-moz-range-thumb{
-    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
-    border-radius:50%;background:var(--sun);
-    border:5px solid var(--ink);cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,.3);
-  }
 
   /* ---------- particles ---------- */
   .bit{position:fixed;pointer-events:none;z-index:99;border-radius:50% 45% 55% 42%/50% 55% 45% 50%;border:3px solid var(--ink)}
@@ -476,6 +582,25 @@
 <div class="langSwitch" id="langSwitch">
   <button type="button" data-lang="en">EN</button>
   <button type="button" data-lang="de">DE</button>
+</div>
+
+<button type="button" class="parentLock" id="parentLock" aria-label="Parent settings">&#128274;</button>
+<div class="parentPie" id="parentPie"></div>
+<div class="parentFade" id="parentFade"></div>
+<div class="parentModal" id="parentModal">
+  <div class="parentCard">
+    <h2 data-parent="title"></h2>
+    <div class="chipRow" id="chipRow">
+      <button class="chip" data-min="5">5m</button>
+      <button class="chip" data-min="10">10m</button>
+      <button class="chip" data-min="15">15m</button>
+      <button class="chip" data-min="20">20m</button>
+      <button class="chip" data-min="30">30m</button>
+    </div>
+    <button class="parentStart" id="parentStart" data-parent="start"></button>
+    <button class="parentStop" id="parentStop" data-parent="stop"></button>
+    <button class="parentClose" id="parentClose" aria-label="Close">&#10005;</button>
+  </div>
 </div>
 
 <div id="app">
@@ -571,11 +696,14 @@
     <header>
       <button class="back" data-go="home">&#9664; <span data-home></span></button>
       <span class="title" data-title="draw"></span>
-      <button class="clearBtn" id="clearDraw">&#129529; <span data-clear></span></button>
     </header>
     <div class="stage">
       <div class="swatchRow" id="swatchRow"></div>
       <canvas id="drawCanvas"></canvas>
+      <div class="toolRow">
+        <button class="clearBtn" id="clearDraw">&#129529; <span data-clear></span></button>
+        <button class="saveBtn" id="saveDraw">&#128247; <span data-save></span></button>
+      </div>
     </div>
   </section>
 
@@ -588,26 +716,17 @@
     </header>
     <div class="trainStage" id="trainStage">
       <svg class="track" id="trackSvg"></svg>
-      <div class="train" id="trainSprite">
-        <div class="loco-cab"><div class="loco-window"></div></div>
-        <div class="loco-boiler"></div>
-        <div class="loco-stack"></div>
-        <div class="wheel wa"></div>
-        <div class="wheel wb"></div>
-        <div class="wheel wc"></div>
-        <div class="wheel wd"></div>
-      </div>
       <div class="controlCard" id="controlCard">
-        <div class="ctrlRow">
-          <button class="ctrlBtn back" id="btnBack"><span class="glyph">&#9194;</span><span data-ctrl="back"></span></button>
-          <button class="ctrlBtn stop" id="btnStop"><span class="glyph">&#9209;</span><span data-ctrl="stop"></span></button>
-          <button class="ctrlBtn fwd" id="btnFwd"><span class="glyph">&#9193;</span><span data-ctrl="fwd"></span></button>
-        </div>
-        <button class="whistleBtn" id="btnWhistle">&#128168; <span data-ctrl="whistle"></span></button>
-        <div class="speedRow">
-          <span class="emo">&#128034;</span>
+        <div class="throttleWrap">
+          <span class="temo hi">&#128007;</span>
           <input type="range" id="speedSlider" min="0" max="100" value="35">
-          <span class="emo">&#128007;</span>
+          <span class="temo lo">&#128034;</span>
+        </div>
+        <div class="ctrlCol">
+          <button class="ctrlBtn fwd" id="btnFwd"><span class="glyph">&#9193;</span><span data-ctrl="fwd"></span></button>
+          <button class="ctrlBtn stop" id="btnStop"><span class="glyph">&#9209;</span><span data-ctrl="stop"></span></button>
+          <button class="ctrlBtn back" id="btnBack"><span class="glyph">&#9194;</span><span data-ctrl="back"></span></button>
+          <button class="whistleBtn" id="btnWhistle">&#128168; <span data-ctrl="whistle"></span></button>
         </div>
       </div>
     </div>
@@ -636,7 +755,10 @@
       numWords: ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN"],
       soundNames: { honk:"HONK", drum:"DRUM", zap:"ZAP", cheer:"CHEER" },
       clearLabel: "CLEAR",
-      ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" }
+      saveLabel: "SAVE",
+      savedMsg: "SAVED!",
+      ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" },
+      parent: { title:"PLAY TIME", start:"START", stop:"STOP TIMER", noLimit:"NO LIMIT" }
     },
     de: {
       docTitle: "Henrys Arcade",
@@ -651,7 +773,10 @@
       numWords: ["EINS","ZWEI","DREI","VIER","FÜNF","SECHS","SIEBEN","ACHT","NEUN","ZEHN"],
       soundNames: { honk:"TUT", drum:"TROMMEL", zap:"ZISCH", cheer:"JUBEL" },
       clearLabel: "LÖSCHEN",
-      ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" }
+      saveLabel: "SICHERN",
+      savedMsg: "GESICHERT!",
+      ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" },
+      parent: { title:"SPIELZEIT", start:"START", stop:"TIMER STOPPEN", noLimit:"KEIN LIMIT" }
     }
   };
   let lang = localStorage.getItem("slimeLang");
@@ -1017,8 +1142,22 @@
   /* ---------------- DRAW ---------------- */
   const drawCanvas = $("#drawCanvas"), swatchRow = $("#swatchRow");
   const dctx = drawCanvas.getContext("2d");
-  const DRAW_COLORS = ["#241A2E","#EF3E36","#F57D0D","#FFD23F","#8DC63F","#22CFE0","#2D7DD2","#7A3FBF","#FF4FA3"];
-  let drawColor = DRAW_COLORS[0];
+  /* Each color gets a "home note" chosen the way people already talk about
+     color and sound -- warm hues sit lower, cool/bright hues sit higher --
+     so picking a crayon changes the instrument, not just the ink. */
+  const DRAW_COLORS = [
+    {hex:"#241A2E", base:98},   // black: low, woody root
+    {hex:"#EF3E36", base:165},  // red: bold, brassy
+    {hex:"#F57D0D", base:220},  // orange: warm, round
+    {hex:"#FFD23F", base:440},  // yellow: bright, bell-like -- the sunniest note
+    {hex:"#8DC63F", base:294},  // green: fresh, springy
+    {hex:"#22CFE0", base:392},  // cyan: cool, airy
+    {hex:"#2D7DD2", base:175},  // blue: mellow, deep
+    {hex:"#7A3FBF", base:247},  // purple: rich, velvety
+    {hex:"#FF4FA3", base:523}   // pink: playful, plucky -- highest note
+  ];
+  let drawColor = DRAW_COLORS[0].hex;
+  let drawBase = DRAW_COLORS[0].base;
   let isErasing = false;
   const eraserBtn = document.createElement("button");
   function deselectSwatches(){
@@ -1027,13 +1166,14 @@
   DRAW_COLORS.forEach(function(col, i){
     const b = document.createElement("button");
     b.className = "swatchBtn" + (i === 0 ? " selected" : "");
-    b.style.background = col;
+    b.style.background = col.hex;
     onTap(b, function(){
-      drawColor = col;
+      drawColor = col.hex;
+      drawBase = col.base;
       isErasing = false;
       deselectSwatches();
       b.classList.add("selected");
-      tone({f:520, dur:.1, type:"sine", vol:.15});
+      tone({f:col.base, to:col.base*1.5, dur:.16, type:"sine", vol:.18});
     });
     swatchRow.appendChild(b);
   });
@@ -1069,26 +1209,43 @@
     const r = drawCanvas.getBoundingClientRect();
     return {x: e.clientX - r.left, y: e.clientY - r.top};
   }
-  function yToFreq(y){
+  /* Two axes, two jobs: vertical bends pitch around the selected color's
+     home note (up = higher, down = lower); horizontal bends brightness via
+     a lowpass filter (left = warm/muffled, right = bright/open) -- so
+     dragging a finger around draws a little melody that moves in two
+     dimensions instead of one. */
+  function yToMul(y){
     const h = drawCanvas.clientHeight || 300;
     const frac = Math.max(0, Math.min(1, y / h));
-    return 850 - frac * 550;
+    return 1.8 - frac * 1.2; // top = 1.8x (higher), bottom = 0.6x (lower)
   }
-  let drawOsc = null, drawGain = null;
-  function startDrawTone(y){
+  function xToCutoff(x){
+    const w = drawCanvas.clientWidth || 300;
+    const frac = Math.max(0, Math.min(1, x / w));
+    return 350 + frac * 4200;
+  }
+  let drawOsc = null, drawFilter = null, drawGain = null;
+  function startDrawTone(x, y){
     const a = ac(); if(!a || drawOsc) return;
     drawOsc = a.createOscillator();
+    drawFilter = a.createBiquadFilter();
     drawGain = a.createGain();
     drawOsc.type = "sine";
+    drawFilter.type = "lowpass";
+    drawFilter.Q.value = 0.7;
+    drawFilter.frequency.value = xToCutoff(x);
     drawGain.gain.value = 0.0001;
-    drawOsc.connect(drawGain); drawGain.connect(a.destination);
-    drawOsc.frequency.value = yToFreq(y);
+    drawOsc.connect(drawFilter); drawFilter.connect(drawGain);
+    drawGain.connect(masterBus || a.destination);
+    drawOsc.frequency.value = drawBase * yToMul(y);
     drawOsc.start();
-    drawGain.gain.linearRampToValueAtTime(0.12, a.currentTime + 0.05);
+    drawGain.gain.linearRampToValueAtTime(0.14, a.currentTime + 0.05);
   }
-  function updateDrawTone(y){
+  function updateDrawTone(x, y){
     if(!drawOsc) return;
-    drawOsc.frequency.linearRampToValueAtTime(yToFreq(y), ac().currentTime + 0.05);
+    const tNow = ac().currentTime;
+    drawOsc.frequency.linearRampToValueAtTime(drawBase * yToMul(y), tNow + 0.05);
+    drawFilter.frequency.linearRampToValueAtTime(xToCutoff(x), tNow + 0.05);
   }
   function stopDrawTone(){
     if(!drawOsc) return;
@@ -1097,7 +1254,7 @@
       drawGain.gain.linearRampToValueAtTime(0.0001, a.currentTime + 0.08);
       drawOsc.stop(a.currentTime + 0.1);
     }catch(e){}
-    drawOsc = null; drawGain = null;
+    drawOsc = null; drawFilter = null; drawGain = null;
   }
   const drawPointers = new Map();
   drawCanvas.addEventListener("pointerdown", function(e){
@@ -1110,7 +1267,7 @@
     dctx.moveTo(p.x, p.y);
     dctx.lineTo(p.x + 0.1, p.y + 0.1);
     dctx.stroke();
-    startDrawTone(p.y);
+    startDrawTone(p.x, p.y);
   }, {passive:false});
   drawCanvas.addEventListener("pointermove", function(e){
     if(!drawPointers.has(e.pointerId)) return;
@@ -1123,7 +1280,7 @@
     dctx.lineTo(p.x, p.y);
     dctx.stroke();
     drawPointers.set(e.pointerId, p);
-    updateDrawTone(p.y);
+    updateDrawTone(p.x, p.y);
   }, {passive:false});
   function endDrawStroke(e){
     drawPointers.delete(e.pointerId);
@@ -1138,94 +1295,184 @@
     const r = drawCanvas.getBoundingClientRect();
     burst(r.left + r.width/2, r.top + r.height/2, PALETTE, 22);
   });
+  onTap($("#saveDraw"), function(){
+    // The canvas is transparent where nothing's drawn (the white you see is
+    // the CSS background behind it), so flatten onto an opaque white canvas
+    // first -- otherwise a shared/downloaded PNG could show through onto
+    // whatever background the recipient's app or wallpaper has.
+    const out = document.createElement("canvas");
+    out.width = drawCanvas.width;
+    out.height = drawCanvas.height;
+    const octx = out.getContext("2d");
+    octx.fillStyle = "#ffffff";
+    octx.fillRect(0, 0, out.width, out.height);
+    octx.drawImage(drawCanvas, 0, 0);
+    out.toBlob(function(blob){
+      if(!blob) return;
+      const fileName = "henrys-arcade-drawing-" + Date.now() + ".png";
+      const file = (typeof File !== "undefined") ? new File([blob], fileName, {type:"image/png"}) : null;
+      if(file && navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file]}).catch(function(){});
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      }
+      tone({f:600, to:1000, dur:.28, type:"sine", vol:.22});
+      const r = drawCanvas.getBoundingClientRect();
+      burst(r.left + r.width/2, r.top + r.height/2, ["#FFD23F","#fff","#8DC63F"], 20);
+    }, "image/png");
+  });
 
   /* ---------------- TRAIN ---------------- */
-  const trainStage = $("#trainStage"), trackSvg = $("#trackSvg"), trainSprite = $("#trainSprite");
-  const controlCard = $("#controlCard");
-  const CAR_COLORS = ["#22CFE0", "#7A3FBF", "#FF4FA3"];
-  const CAR_GAP = 6.5; // percent of track length between each car/engine
-  const cars = CAR_COLORS.map(function(col){
+  const trainStage = $("#trainStage"), trackSvg = $("#trackSvg"), controlCard = $("#controlCard");
+  const ART_H = 150, RAIL_Y = 126, ART_TOP = 12;
+  const PERP_ABOVE = RAIL_Y - ART_TOP; // how much of the body stands off the rail
+
+  const VEHICLES = [
+    { cls:"loco",   w:240, axleA:74, axleB:162 },
+    { cls:"tender", w:128, axleA:37, axleB:91  },
+    { cls:"coach",  w:150, axleA:39, axleB:111, car:"#2E7DB8" },
+    { cls:"coach",  w:150, axleA:39, axleB:111, car:"#3F8F4E" }
+  ];
+  const COUPLING = 7; // art-px between vehicles
+
+  function wheelHtml(cls, spokes){
+    return '<div class="vpart w ' + cls + '">' + (spokes ?
+      '<div class="wspin"><i></i><i class="b"></i><i class="c"></i></div>' : "") + "</div>";
+  }
+  function artFor(v){
+    if(v.cls === "loco"){
+      return '<div class="vpart l-frame"></div><div class="vpart l-frame2"></div>' +
+        '<div class="vpart l-cab"></div><div class="vpart l-cab-roof"></div><div class="vpart l-cab-roof2"></div>' +
+        '<div class="vpart l-boiler"></div><div class="vpart l-boiler-hi"></div>' +
+        '<div class="vpart l-band1"></div><div class="vpart l-band2"></div>' +
+        '<div class="vpart l-smokebox"></div><div class="vpart l-smokebox-ring"></div>' +
+        '<div class="vpart l-dome"></div><div class="vpart l-dome-cap"></div><div class="vpart l-sand"></div>' +
+        '<div class="vpart l-stack"></div><div class="vpart l-stack-flare"></div><div class="vpart l-stack-lip"></div>' +
+        '<div class="vpart l-lamp-bracket"></div><div class="vpart l-lamp"></div>' +
+        '<div class="vpart l-beam"></div><div class="vpart l-catcher"></div>' +
+        '<div class="vpart l-rod"></div>' +
+        wheelHtml("l-d1",1) + wheelHtml("l-d2",1) + wheelHtml("l-d3",1) + wheelHtml("l-lead",1) +
+        '<div class="vpart l-cab-win"></div>';
+    }
+    if(v.cls === "tender"){
+      return '<div class="vpart t-frame"></div><div class="vpart t-coal"></div><div class="vpart t-coal2"></div>' +
+        '<div class="vpart t-body"></div><div class="vpart t-body-hi"></div><div class="vpart t-lip"></div>' +
+        wheelHtml("t-w1",1) + wheelHtml("t-w2",1);
+    }
+    return '<div class="vpart c-frame"></div><div class="vpart c-body"></div><div class="vpart c-stripe"></div>' +
+      '<div class="vpart c-win cw1"></div><div class="vpart c-win cw2"></div>' +
+      '<div class="vpart c-win cw3"></div><div class="vpart c-win cw4"></div>' +
+      '<div class="vpart c-door"></div><div class="vpart c-roof"></div><div class="vpart c-roof-hi"></div>' +
+      wheelHtml("c-wh1",1) + wheelHtml("c-wh2",1);
+  }
+
+  const vehicles = VEHICLES.map(function(v){
     const el = document.createElement("div");
-    el.className = "car";
-    el.style.setProperty("--car-color", col);
-    el.innerHTML = '<div class="car-body"></div><div class="wheel wa"></div><div class="wheel wb"></div><div class="wheel wc"></div><div class="wheel wd"></div>';
+    el.className = "vehicle";
+    if(v.car) el.style.setProperty("--car", v.car);
+    el.innerHTML = '<div class="art ' + v.cls + '" style="width:' + v.w + 'px;height:' + ART_H + 'px">' + artFor(v) + "</div>";
     trainStage.insertBefore(el, controlCard);
-    return el;
+    return { el:el, v:v, offsetPx:0 };
   });
-  let trainDistance = 0, trainDirection = 0, trainSpeed = 35;
+  // Coupling gap measured in real pixels (rear of the vehicle ahead to the
+  // front of this one), so cars ride tight instead of drifting apart.
+  (function(){
+    let acc = 0;
+    for(let i = 1; i < vehicles.length; i++){
+      acc += (vehicles[i-1].v.axleB - vehicles[i-1].v.axleA)/2 + COUPLING + (vehicles[i].v.axleB - vehicles[i].v.axleA)/2 + 30;
+      vehicles[i].offsetPx = acc;
+    }
+  })();
+
+  let trainDirection = 0, trainSpeed = 35;
   let trainRafId = null, trainLastTs = null, chuffAccum = 0;
-  let railDashPath = null, railDashOffset = 0, trackLength = 0;
+  let pathEl = null, pathLen = 0, scale = 1, headLen = 0;
+  const SPEED_PX = 60; // px along the rail per second at full throttle
+
   function layoutTrack(){
     const w = trainStage.clientWidth, h = trainStage.clientHeight;
-    if(w < 10 || h < 10) return;
-    const inset = Math.max(50, Math.min(w, h) * 0.16);
+    if(w < 20 || h < 20) return;
+    scale = Math.max(0.34, Math.min(0.56, Math.min(w, h) / 560));
+    // Generous corners: a rigid wagon chords across a curve, so a tight
+    // radius is what lifts wheels off the rail. Inset must also clear the
+    // body standing off the rail, or the train would hang off the screen.
+    const inset = Math.max(PERP_ABOVE * scale + 22, Math.min(w, h) * 0.19);
     const x0 = inset, y0 = inset, x1 = w - inset, y1 = h - inset;
-    const r = Math.min(60, (x1 - x0) / 2, (y1 - y0) / 2);
+    const r = Math.min(90, (x1 - x0) / 2, (y1 - y0) / 2);
     const d = "M " + (x0+r) + " " + y0 + " L " + (x1-r) + " " + y0 + " Q " + x1 + " " + y0 + " " + x1 + " " + (y0+r) +
       " L " + x1 + " " + (y1-r) + " Q " + x1 + " " + y1 + " " + (x1-r) + " " + y1 +
       " L " + (x0+r) + " " + y1 + " Q " + x0 + " " + y1 + " " + x0 + " " + (y1-r) +
       " L " + x0 + " " + (y0+r) + " Q " + x0 + " " + y0 + " " + (x0+r) + " " + y0 + " Z";
     trackSvg.setAttribute("viewBox", "0 0 " + w + " " + h);
     trackSvg.innerHTML =
-      '<path d="' + d + '" fill="none" stroke="#241A2E" stroke-width="16" stroke-linecap="round"/>' +
-      '<path class="railDash" d="' + d + '" fill="none" stroke="#FFF3D6" stroke-width="4" stroke-dasharray="14 14"/>';
-    railDashPath = trackSvg.querySelector(".railDash");
-    trackLength = railDashPath.getTotalLength();
-    trainSprite.style.offsetPath = "path('" + d + "')";
-    trainSprite.style.offsetRotate = "auto";
-    cars.forEach(function(car){
-      car.style.offsetPath = "path('" + d + "')";
-      car.style.offsetRotate = "auto";
-    });
-    updateTrainPosition();
-    // fit the control card inside the loop so it never overlaps the rails
-    const innerW = Math.max(150, (x1 - x0) - 44);
-    const innerH = Math.max(120, (y1 - y0) - 44);
-    controlCard.style.width = Math.min(innerW, 320) + "px";
-    controlCard.style.maxHeight = innerH + "px";
+      '<path d="' + d + '" fill="none" stroke="#241A2E" stroke-width="' + (15*scale/0.42) + '" stroke-linecap="round"/>' +
+      '<path id="rail" d="' + d + '" fill="none" stroke="#FFF3D6" stroke-width="3.5" stroke-dasharray="11 11"/>';
+    pathEl = trackSvg.querySelector("#rail");
+    pathLen = pathEl.getTotalLength();
+    place();
   }
-  function updateTrainPosition(){
-    // offset-path already anchors the box at its own center (offset-anchor
-    // defaults to the transform-origin, which is "center" below) -- an
-    // extra translate(-50%,-50%) here double-offsets it away from the
-    // rail by half the sprite's own size, which was the "not centered on
-    // the track" bug. No transform needed; offset-path positions it exactly.
-    trainSprite.style.offsetDistance = trainDistance + "%";
-    cars.forEach(function(car, i){
-      const dist = (trainDistance - CAR_GAP * (i + 1) + 300) % 100;
-      car.style.offsetDistance = dist + "%";
+
+  function at(len){ return pathEl.getPointAtLength(((len % pathLen) + pathLen) % pathLen); }
+
+  function placeOne(veh, lenAt){
+    const v = veh.v;
+    const pA = at(lenAt + (v.axleA - v.w/2) * scale);
+    const pB = at(lenAt + (v.axleB - v.w/2) * scale);
+    const deg = Math.atan2(pB.y - pA.y, pB.x - pA.x) * 180 / Math.PI;
+    const mx = (v.axleA + v.axleB) / 2;
+    veh.el.style.transform =
+      "translate(" + ((pA.x+pB.x)/2) + "px," + ((pA.y+pB.y)/2) + "px) " +
+      "rotate(" + deg + "deg) scale(" + scale + ") " +
+      "translate(" + (-mx) + "px," + (-RAIL_Y) + "px)";
+  }
+
+  function place(){
+    if(!pathEl) return;
+    vehicles.forEach(function(veh){
+      placeOne(veh, (headLen - veh.offsetPx * scale + pathLen * 4) % pathLen);
     });
   }
+
   function setWheelSpeed(){
-    const dur = trainDirection === 0 ? "0.6s" : (0.75 - (trainSpeed / 100) * 0.55) + "s";
+    const dur = trainDirection === 0 ? "0.9s" : (1.1 - (trainSpeed / 100) * 0.75) + "s";
     const dir = trainDirection < 0 ? "reverse" : "normal";
-    document.querySelectorAll("#trainStage .wheel").forEach(function(w){
+    document.querySelectorAll("#trainStage .wspin").forEach(function(w){
       w.style.animationDuration = dur;
       w.style.animationDirection = dir;
     });
   }
+
   function trainStep(ts){
+    if(!pathEl){ trainRafId = requestAnimationFrame(trainStep); return; }
     if(trainLastTs == null) trainLastTs = ts;
-    const dt = (ts - trainLastTs) / 1000;
+    const dt = Math.min(0.05, (ts - trainLastTs) / 1000);
     trainLastTs = ts;
     if(trainDirection !== 0){
-      const rate = 2 + (trainSpeed / 100) * 16;
-      trainDistance = (trainDistance + trainDirection * rate * dt + 100) % 100;
-      updateTrainPosition();
-      if(railDashPath && trackLength){
-        railDashOffset -= trainDirection * (rate / 100) * trackLength * dt;
-        railDashPath.style.strokeDashoffset = railDashOffset;
-      }
+      headLen = (headLen + trainDirection * SPEED_PX * (trainSpeed/100) * dt + pathLen * 4) % pathLen;
+      place();
       chuffAccum += dt;
       const chuffEvery = 0.55 - (trainSpeed / 100) * 0.4;
       if(chuffAccum >= chuffEvery){
         chuffAccum = 0;
         noise(.08, 0, 500);
         tone({f:90, dur:.08, type:"sine", vol:.15});
-        const stack = trainSprite.querySelector(".loco-stack");
-        if(stack){
+        const stack = vehicles[0].el.querySelector(".l-stack-flare");
+        if(stack && !reduced){
           const r = stack.getBoundingClientRect();
-          burst(r.left + r.width/2, r.top + r.height/2, ["#fff","#e6e6e6","#cfcfcf","#b8b8b8"], 4);
+          const size = (9 + Math.random()*7) * scale * 2;
+          const puffEl = document.createElement("div");
+          puffEl.className = "puff";
+          const sr = trainStage.getBoundingClientRect();
+          puffEl.style.cssText = "width:"+size+"px;height:"+size+"px;left:"+(r.left+r.width/2-sr.left-size/2)+"px;top:"+(r.top+r.height/2-sr.top-size/2)+"px;opacity:.75";
+          trainStage.appendChild(puffEl);
+          puffEl.animate([
+            {transform:"translate(0,0) scale(.6)", opacity:.7},
+            {transform:"translate("+(Math.random()*16-8)+"px,"+(-26-Math.random()*18)+"px) scale(1.7)", opacity:0}
+          ], {duration:1200+Math.random()*500, easing:"ease-out"}).onfinish = function(){ puffEl.remove(); };
         }
       }
     }
@@ -1242,10 +1489,8 @@
   function setTrainDirection(dir){
     trainDirection = dir;
     const running = dir !== 0;
-    trainSprite.classList.toggle("running", running);
-    cars.forEach(function(car){ car.classList.toggle("running", running); });
+    trainStage.classList.toggle("running", running);
     setWheelSpeed();
-    updateTrainPosition();
     if(dir !== 0) tone({f:340, to:520, dur:.18, type:"triangle", vol:.18});
   }
   onTap($("#btnFwd"), function(){ setTrainDirection(1); });
@@ -1256,8 +1501,8 @@
     tone({f:415, dur:.6, type:"sawtooth", vol:.18});
     tone({f:349, at:.65, dur:.5, type:"sawtooth", vol:.22});
     tone({f:415, at:.65, dur:.5, type:"sawtooth", vol:.18});
-    const stack = trainSprite.querySelector(".loco-stack");
-    const r = (stack || trainSprite).getBoundingClientRect();
+    const stack = vehicles[0].el.querySelector(".l-stack-flare") || vehicles[0].el;
+    const r = stack.getBoundingClientRect();
     burst(r.left + r.width/2, r.top, ["#fff","#e8e8e8","#cfcfcf"], 22);
   });
   const speedSlider = $("#speedSlider");
@@ -1269,6 +1514,88 @@
   window.addEventListener("resize", function(){
     if($("#train").classList.contains("on")) layoutTrack();
     if($("#draw").classList.contains("on")) fitCanvas();
+  });
+
+  /* ---------------- PARENT MODE ---------------- */
+  const parentLock = $("#parentLock"), parentModal = $("#parentModal");
+  const parentPie = $("#parentPie"), parentFade = $("#parentFade");
+  const chipRow = $("#chipRow"), parentStart = $("#parentStart"), parentStop = $("#parentStop");
+  const FADE_MS = 10000; // last 10 seconds fade to black
+  let selectedMin = null, sessionEndAt = null, sessionTotalMs = 0, parentTickId = null;
+
+  function openParentModal(){
+    parentModal.classList.add("on");
+    parentStop.classList.toggle("show", sessionEndAt != null);
+    tone({f:520, to:700, dur:.18, type:"sine", vol:.18});
+  }
+  function closeParentModal(){ parentModal.classList.remove("on"); }
+  onTap($("#parentClose"), closeParentModal);
+  document.addEventListener("pointerdown", function(e){
+    if(e.target === parentModal) closeParentModal();
+  });
+
+  chipRow.querySelectorAll(".chip").forEach(function(chip){
+    onTap(chip, function(){
+      selectedMin = parseInt(chip.dataset.min, 10);
+      chipRow.querySelectorAll(".chip").forEach(c => c.classList.toggle("selected", c === chip));
+      tone({f:440, dur:.1, type:"sine", vol:.15});
+    });
+  });
+
+  function endParentSession(){
+    if(parentTickId != null){ clearInterval(parentTickId); parentTickId = null; }
+    sessionEndAt = null;
+    parentPie.classList.remove("show");
+    parentFade.style.opacity = "0";
+  }
+  function tickParentSession(){
+    if(sessionEndAt == null) return;
+    const remaining = sessionEndAt - Date.now();
+    if(remaining <= 0){
+      parentFade.style.opacity = "1";
+      // Time's up: quiet everything down, but stay locked -- a parent has
+      // to hold the lock icon again to open the modal and resume play.
+      if(typeof stopDrawTone === "function") stopDrawTone();
+      if(typeof stopTrainLoop === "function") stopTrainLoop();
+      if("speechSynthesis" in window) speechSynthesis.cancel();
+      if(parentTickId != null){ clearInterval(parentTickId); parentTickId = null; }
+      sessionEndAt = null;
+      parentPie.classList.remove("show");
+      return;
+    }
+    const frac = Math.max(0, Math.min(1, remaining / sessionTotalMs));
+    parentPie.style.background =
+      "conic-gradient(var(--slime) 0% " + (frac*100) + "%, rgba(255,255,255,.4) " + (frac*100) + "% 100%)";
+    parentFade.style.opacity = String(Math.max(0, Math.min(1, (FADE_MS - remaining) / FADE_MS)));
+  }
+  onTap(parentStart, function(){
+    const minutes = selectedMin || 10;
+    sessionTotalMs = minutes * 60000;
+    sessionEndAt = Date.now() + sessionTotalMs;
+    parentFade.style.opacity = "0";
+    parentPie.classList.add("show");
+    if(parentTickId != null) clearInterval(parentTickId);
+    parentTickId = setInterval(tickParentSession, 250);
+    tickParentSession();
+    closeParentModal();
+    tone({f:660, to:990, dur:.25, type:"triangle", vol:.2});
+  });
+  onTap(parentStop, function(){
+    endParentSession();
+    closeParentModal();
+    tone({f:520, to:260, dur:.2, type:"square", vol:.18});
+  });
+
+  // Press-and-hold, not a plain tap, so a curious toddler mashing buttons
+  // can't stumble into the parent controls by accident.
+  let lockPressTimer = null;
+  parentLock.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    clearTimeout(lockPressTimer);
+    lockPressTimer = setTimeout(openParentModal, 900);
+  }, {passive:false});
+  ["pointerup","pointercancel","pointerleave"].forEach(function(evt){
+    parentLock.addEventListener(evt, function(){ clearTimeout(lockPressTimer); });
   });
 
   /* ---------------- language ---------------- */
@@ -1286,6 +1613,8 @@
     soundWord.textContent = d.hints.sound;
     letterWord.textContent = d.hints.letter;
     document.querySelectorAll("[data-clear]").forEach(el => el.textContent = d.clearLabel);
+    document.querySelectorAll("[data-save]").forEach(el => el.textContent = d.saveLabel);
+    document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
     colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
