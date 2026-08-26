@@ -1021,7 +1021,20 @@
     if(!ctx){
       try{
         const AC = window.AudioContext || window.webkitAudioContext;
-        ctx = new AC({ latencyHint: "balanced" });
+        // "playback": the biggest buffer the platform will hand us. A
+        // toddler mashing pads doesn't need low latency, and every earlier
+        // round of this fix assumed the live synthesis graph itself was
+        // clean and the CPU load around it was the problem. Both were true
+        // and neither was the whole story: any live oscillator/filter graph
+        // still does its envelope math on the realtime audio thread, once
+        // per callback, for as long as it's running. On a phone under any
+        // load at all, missing that thread's deadline is what "crunchy"
+        // actually is -- a buffer underrun, not distortion -- and it will
+        // not show up in an OfflineAudioContext measurement, because that
+        // renders as fast as it can with no realtime deadline to miss.
+        // See tone()/noise() below for the actual fix: every one-shot
+        // sound is now pre-rendered once and replayed as a plain buffer.
+        ctx = new AC({ latencyHint: "playback" });
       }catch(e){
         try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e2){ return null; }
       }
@@ -1069,48 +1082,102 @@
       outGain.gain.linearRampToValueAtTime(level, a.currentTime + 0.08);
     }catch(e){}
   }
+  /* Every one-shot sound effect (blips, chimes, whistles, splats) is
+     rendered exactly once per distinct set of parameters -- oscillator
+     type/pitch/glide/duration/volume, or noise duration/filter/volume --
+     through an OfflineAudioContext, and the finished PCM buffer is cached
+     forever under a key built from those parameters. Playing a cached
+     sound is then just one AudioBufferSourceNode wired straight to the
+     bus: no live oscillator, no per-play gain/filter automation, nothing
+     for the realtime audio thread to compute beyond copying samples. The
+     first time a given pitch/sound is ever used there's a render to wait
+     on (a handful of milliseconds, off the realtime thread entirely,
+     because OfflineAudioContext isn't bound to a playback deadline); every
+     repeat after that -- which is nearly every tap, since a toddler mashes
+     the same few pads over and over -- is instant and cheap. A live
+     sustained tone (the draw pad's drag sound) still uses a real
+     oscillator below; it's one voice at a time, not a mashing hazard. */
+  const soundCache = new Map();
+  let activeVoices = 0;
+  const MAX_VOICES = 16; // a hard ceiling on simultaneous buffer sources,
+                          // so no amount of button-mashing can pile up more
+                          // real-time voices than the graph can cleanly mix
+  function voiceGate(){
+    if(activeVoices >= MAX_VOICES) return false;
+    activeVoices++;
+    return true;
+  }
+  function voiceDone(){ activeVoices = activeVoices > 0 ? activeVoices - 1 : 0; }
+  function playCached(promise, startAt){
+    promise.then(function(buf){
+      if(!buf || !ctx || !masterBus){ voiceDone(); return; }
+      try{
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(masterBus);
+        src.start(Math.max(startAt, ctx.currentTime));
+        src.onended = function(){ try{ src.disconnect(); }catch(e){} voiceDone(); };
+      }catch(e){ voiceDone(); }
+    });
+  }
+  function renderTone(sr, type, f, to, dur, vol){
+    try{
+      const oac = new OfflineAudioContext(1, Math.max(1, Math.ceil(sr * (dur + .05))), sr);
+      const o = oac.createOscillator(), g = oac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f, 0);
+      if(to) o.frequency.exponentialRampToValueAtTime(to, dur);
+      g.gain.setValueAtTime(0.0001, 0);
+      g.gain.exponentialRampToValueAtTime(vol, 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, dur);
+      o.connect(g); g.connect(oac.destination);
+      o.start(0); o.stop(dur + .05);
+      return oac.startRendering().catch(function(){ return null; });
+    }catch(e){ return Promise.resolve(null); }
+  }
   function tone(opts){
     const a = ac(); if(!a) return;
-    const tm = a.currentTime;
-    const o = a.createOscillator(), g = a.createGain();
-    o.type = opts.type || "sine";
-    o.frequency.setValueAtTime(opts.f, tm + (opts.at||0));
-    if(opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, tm + (opts.at||0) + (opts.dur||.3));
-    g.gain.setValueAtTime(0.0001, tm + (opts.at||0));
-    g.gain.exponentialRampToValueAtTime(opts.vol||0.28, tm + (opts.at||0) + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, tm + (opts.at||0) + (opts.dur||.3));
-    o.connect(g);
-    g.connect(masterBus || a.destination);
-    o.start(tm + (opts.at||0)); o.stop(tm + (opts.at||0) + (opts.dur||.3) + .05);
-    // Every sound used to leave its gain node wired into the bus forever.
-    // Measured: rendering a second of audio costs 5.6ms with a clean graph
-    // and 45.8ms once ~2000 of these pile up -- which is roughly ten minutes
-    // of tapping. That is the crackle, and it got worse the longer you played.
-    o.onended = function(){ try{ o.disconnect(); g.disconnect(); }catch(e){} };
+    if(!voiceGate()) return;
+    const type = opts.type || "sine";
+    const dur = opts.dur || .3;
+    const vol = opts.vol != null ? opts.vol : 0.28;
+    const startAt = a.currentTime + (opts.at || 0);
+    const key = "t|" + type + "|" + Math.round(opts.f) + "|" + (opts.to ? Math.round(opts.to) : 0) +
+      "|" + Math.round(dur * 1000) + "|" + Math.round(vol * 1000);
+    let p = soundCache.get(key);
+    if(!p){
+      p = renderTone(a.sampleRate, type, opts.f, opts.to, dur, vol);
+      soundCache.set(key, p);
+    }
+    playCached(p, startAt);
   }
-  const noiseCache = new Map();
-  function noiseBuffer(a, dur){
-    const key = Math.round(dur * 1000);
-    let buf = noiseCache.get(key);
-    if(!buf){
-      const len = Math.floor(a.sampleRate * dur);
-      buf = a.createBuffer(1, len, a.sampleRate);
+  function renderNoise(sr, dur, filterFreq, vol){
+    try{
+      const oac = new OfflineAudioContext(1, Math.max(1, Math.ceil(sr * dur)), sr);
+      const len = Math.floor(sr * dur);
+      const buf = oac.createBuffer(1, len, sr);
       const d = buf.getChannelData(0);
       for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1 - i/len);
-      noiseCache.set(key, buf);
-    }
-    return buf;
+      const src = oac.createBufferSource(); src.buffer = buf;
+      const f = oac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = filterFreq;
+      const g = oac.createGain(); g.gain.value = vol;
+      src.connect(f); f.connect(g); g.connect(oac.destination);
+      src.start(0);
+      return oac.startRendering().catch(function(){ return null; });
+    }catch(e){ return Promise.resolve(null); }
   }
   function noise(dur, at, filterFreq, vol){
     const a = ac(); if(!a) return;
-    const tm = a.currentTime + (at||0);
-    const src = a.createBufferSource(); src.buffer = noiseBuffer(a, dur);
-    const f = a.createBiquadFilter(); f.type="lowpass"; f.frequency.value = filterFreq||1400;
-    const g = a.createGain(); g.gain.value = vol != null ? vol : 0.4;
-    src.connect(f); f.connect(g);
-    g.connect(masterBus || a.destination);
-    src.start(tm);
-    src.onended = function(){ try{ src.disconnect(); f.disconnect(); g.disconnect(); }catch(e){} };
+    if(!voiceGate()) return;
+    dur = dur || .3; filterFreq = filterFreq || 1400; vol = vol != null ? vol : 0.4;
+    const startAt = a.currentTime + (at || 0);
+    const key = "n|" + Math.round(dur * 1000) + "|" + Math.round(filterFreq) + "|" + Math.round(vol * 1000);
+    let p = soundCache.get(key);
+    if(!p){
+      p = renderNoise(a.sampleRate, dur, filterFreq, vol);
+      soundCache.set(key, p);
+    }
+    playCached(p, startAt);
   }
 
   /* ---------------- speech ---------------- */
@@ -1165,10 +1232,21 @@
   }
 
   /* ---------------- particles ---------------- */
+  // A hard ceiling on live confetti bits across the whole page. Rapid
+  // mashing fires a burst on every single pointerdown plus another on
+  // every pad, and while each one animates off the compositor thread, the
+  // DOM churn of creating and tearing them down still competes with
+  // everything else on the main thread -- including whatever keeps the
+  // realtime audio thread fed on a weaker phone. Dropping bits past a cap
+  // is invisible to a toddler; a starved audio callback is not.
+  let liveBits = 0;
+  const MAX_BITS = 70;
   function burst(x, y, colors, count){
     if(reduced) return;
     const n = count || 12;
     for(let i=0;i<n;i++){
+      if(liveBits >= MAX_BITS) break;
+      liveBits++;
       const b = document.createElement("div");
       b.className = "bit";
       const size = 10 + Math.random()*26;
@@ -1179,7 +1257,7 @@
       b.animate([
         {transform:"translate(0,0) scale(.4) rotate(0deg)", opacity:1},
         {transform:"translate("+Math.cos(ang)*dist+"px,"+(Math.sin(ang)*dist+90)+"px) scale(1.1) rotate("+(Math.random()*540-270)+"deg)", opacity:0}
-      ], {duration: 750 + Math.random()*450, easing:"cubic-bezier(.2,.7,.4,1)"}).onfinish = () => b.remove();
+      ], {duration: 750 + Math.random()*450, easing:"cubic-bezier(.2,.7,.4,1)"}).onfinish = () => { b.remove(); liveBits--; };
     }
   }
   function centerOf(el){
@@ -1913,17 +1991,30 @@
       });
       return svg;
     }
+    // Platforms are sized to the actual train, not the whole straight --
+    // just long enough to pull the whole consist up alongside one.
+    let trainLen = 0;
+    if(vehicles.length){
+      const tail = vehicles[vehicles.length - 1];
+      trainLen = (tail.offsetPx + tail.v.w/2 + vehicles[0].v.w/2) * scale;
+    }
     const hLen = (x1 - x0) - 2*r, vLen = (y1 - y0) - 2*r;
     let platformSvg = "";
     if(hLen >= vLen){
-      const p0 = x0 + r + platMargin, p1 = x1 - r - platMargin;
+      const avail0 = x0 + r + platMargin, avail1 = x1 - r - platMargin;
+      const platLen = Math.min(avail1 - avail0, trainLen || (avail1 - avail0));
+      const mid = (avail0 + avail1) / 2;
+      const p0 = mid - platLen/2, p1 = mid + platLen/2;
       const topEdge = y0 - platGap, topFar = topEdge - platH;
       const botEdge = y1 + platGap, botFar = botEdge + platH;
       if(p1 - p0 > 46 && topFar > 2 && botFar < h - 2){
         platformSvg = hazardDefs + band(true, p0, p1, topEdge, topFar) + band(true, p0, p1, botEdge, botFar);
       }
     } else {
-      const p0 = y0 + r + platMargin, p1 = y1 - r - platMargin;
+      const avail0 = y0 + r + platMargin, avail1 = y1 - r - platMargin;
+      const platLen = Math.min(avail1 - avail0, trainLen || (avail1 - avail0));
+      const mid = (avail0 + avail1) / 2;
+      const p0 = mid - platLen/2, p1 = mid + platLen/2;
       const leftEdge = x0 - platGap, leftFar = leftEdge - platH;
       const rightEdge = x1 + platGap, rightFar = rightEdge + platH;
       if(p1 - p0 > 46 && leftFar > 2 && rightFar < w - 2){
@@ -2095,6 +2186,7 @@
     trainSetIdx = (trainSetIdx + 1) % TRAIN_ORDER.length;
     const key = TRAIN_ORDER[trainSetIdx];
     buildTrain(key);
+    layoutTrack(); // platform length tracks this train's actual length
     tone({f:520, to:780, dur:.2, type:"triangle", vol:.2});
     say(TRAIN_SETS[key].label[lang] || TRAIN_SETS[key].label.en);
   }
