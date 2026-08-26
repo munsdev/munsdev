@@ -48,7 +48,13 @@
     flex-direction:column;
     padding:clamp(10px,2.2vmin,22px);
     gap:clamp(8px,1.6vmin,18px);
+    /* clip, not hidden: an overflow:hidden box is still a scroll container
+       that focus can scroll programmatically (tapping the train picker was
+       shunting the whole screen sideways). overflow:clip can't scroll at
+       all; the hidden declaration stays as a fallback for older browsers,
+       backed up by the scroll guard in JS. */
     overflow:hidden;
+    overflow:clip;
   }
   .screen.on{display:flex}
 
@@ -333,8 +339,8 @@
   @keyframes wob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-9px) rotate(5deg)}}
 
   /* ---------- sounds ---------- */
-  #sounds .pad-grid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}
-  #sounds .pad{font-size:clamp(56px,18vmin,130px);text-shadow:none}
+  #sounds .pad-grid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(4,1fr)}
+  #sounds .pad{font-size:clamp(34px,11vmin,70px);text-shadow:none}
 
   /* ---------- letters ---------- */
   #letters .pad-grid{
@@ -396,6 +402,7 @@
   }
   .clearBtn{background:var(--pink)}
   .saveBtn{background:var(--sun);color:var(--ink)}
+  .saveBtn.cooling{background:var(--slime);color:#fff;opacity:.85}
   .clearBtn:active, .saveBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
   #drawCanvas{
     flex:1 1 auto;width:100%;min-height:0;
@@ -485,6 +492,87 @@
   .c-wh1{left:28px;top:104px;width:22px;height:22px}
   .c-wh2{left:100px;top:104px;width:22px;height:22px}
 
+  /* ---- modern stock: shared passenger car (200x150), recoloured per train ---- */
+  .mc-skirt{left:8px;top:100px;width:184px;height:13px;background:#3A3A42;border-radius:3px}
+  .mc-body{left:6px;top:46px;width:188px;height:56px;background:var(--body);border-radius:4px}
+  .mc-roof{left:6px;top:42px;width:188px;height:6px;background:var(--roof);border-radius:4px 4px 0 0}
+  .mc-win{left:18px;top:54px;width:164px;height:20px;background:var(--win);border-radius:3px}
+  .mc-stripe{left:6px;top:84px;width:188px;height:8px;background:var(--stripe)}
+  .mc-door{left:96px;top:54px;width:9px;height:46px;background:rgba(0,0,0,.16);border-radius:2px}
+  .mc-w1{left:26px;top:104px;width:22px;height:22px}
+  .mc-w2{left:52px;top:104px;width:22px;height:22px}
+  .mc-w3{left:140px;top:104px;width:22px;height:22px}
+  .mc-w4{left:166px;top:104px;width:22px;height:22px}
+
+  /* ---- ICE power car (236x150): long low nose, red cheat line ---- */
+  .ml-skirt{left:16px;top:100px;width:180px;height:13px;background:#3A3A42;border-radius:3px}
+  .ml-body{left:12px;top:46px;width:186px;height:56px;background:#F4F4F2;border-radius:5px}
+  .ml-roof{left:12px;top:42px;width:186px;height:6px;background:#DCDCDA;border-radius:4px 4px 0 0}
+  .ml-nose{left:190px;top:50px;width:44px;height:52px;background:#F4F4F2;
+    clip-path:polygon(0 0, 42% 3%, 80% 28%, 100% 64%, 100% 100%, 0 100%)}
+  .ml-nose-skirt{left:190px;top:98px;width:42px;height:14px;background:#3A3A42;
+    clip-path:polygon(0 0, 100% 0, 84% 100%, 0 100%)}
+  .ml-win{left:30px;top:54px;width:150px;height:20px;background:#22303A;border-radius:3px}
+  .ml-cabwin{left:194px;top:58px;width:26px;height:15px;background:#22303A;
+    clip-path:polygon(14% 0, 100% 26%, 100% 100%, 0 100%)}
+  .ml-stripe{left:14px;top:84px;width:184px;height:8px;background:#D0021B}
+  .ml-nosestripe{left:190px;top:84px;width:38px;height:8px;background:#D0021B;
+    clip-path:polygon(0 0, 100% 0, 78% 100%, 0 100%)}
+  .ml-lamp{left:214px;top:76px;width:12px;height:8px;background:#FFF0B8;border:2px solid #17171B;border-radius:2px}
+  .ml-w1{left:36px;top:104px;width:22px;height:22px}
+  .ml-w2{left:62px;top:104px;width:22px;height:22px}
+  .ml-w3{left:150px;top:104px;width:22px;height:22px}
+  .ml-w4{left:176px;top:104px;width:22px;height:22px}
+
+  /* ---- Shinkansen nose car (250x150): the long duck-bill ---- */
+  .sl-skirt{left:14px;top:100px;width:170px;height:13px;background:#3A3A42;border-radius:3px}
+  .sl-body{left:10px;top:46px;width:176px;height:56px;background:#F5F7F8;border-radius:5px}
+  .sl-roof{left:10px;top:42px;width:176px;height:6px;background:#E4E8EA;border-radius:4px 4px 0 0}
+  .sl-nose{left:180px;top:52px;width:66px;height:50px;background:#F5F7F8;
+    clip-path:polygon(0 0, 32% 8%, 64% 26%, 88% 52%, 100% 78%, 100% 100%, 0 100%)}
+  .sl-nose-skirt{left:180px;top:98px;width:62px;height:14px;background:#3A3A42;
+    clip-path:polygon(0 0, 100% 0, 76% 100%, 0 100%)}
+  .sl-win{left:26px;top:54px;width:146px;height:19px;background:#1E2B36;border-radius:3px}
+  .sl-cabwin{left:184px;top:60px;width:26px;height:14px;background:#1E2B36;
+    clip-path:polygon(18% 0, 100% 30%, 100% 100%, 0 100%)}
+  .sl-stripe{left:12px;top:82px;width:174px;height:9px;background:#0057A8}
+  .sl-nosestripe{left:180px;top:82px;width:56px;height:9px;background:#0057A8;
+    clip-path:polygon(0 0, 100% 0, 70% 100%, 0 100%)}
+  .sl-lamp{left:222px;top:74px;width:11px;height:8px;background:#FFF0B8;border:2px solid #17171B;border-radius:2px}
+  .sl-w1{left:34px;top:104px;width:22px;height:22px}
+  .sl-w2{left:60px;top:104px;width:22px;height:22px}
+  .sl-w3{left:140px;top:104px;width:22px;height:22px}
+  .sl-w4{left:166px;top:104px;width:22px;height:22px}
+
+  /* ---- Berlin U-Bahn lead car (210x150): boxy, blunt front, BVG yellow ---- */
+  .ul-skirt{left:12px;top:100px;width:186px;height:13px;background:#3A3A42;border-radius:3px}
+  .ul-body{left:10px;top:44px;width:190px;height:58px;background:#FFD814;border-radius:4px}
+  .ul-roof{left:10px;top:40px;width:190px;height:6px;background:#E0BC00;border-radius:4px 4px 0 0}
+  .ul-win{left:22px;top:52px;width:138px;height:22px;background:#22303A;border-radius:3px}
+  .ul-cabwin{left:166px;top:52px;width:30px;height:22px;background:#22303A;border-radius:3px}
+  .ul-stripe{left:10px;top:92px;width:190px;height:8px;background:#1A1A1A}
+  .ul-door{left:112px;top:52px;width:10px;height:48px;background:rgba(0,0,0,.16);border-radius:2px}
+  .ul-lamp{left:186px;top:78px;width:12px;height:9px;background:#FFF0B8;border:2px solid #17171B;border-radius:2px}
+  .ul-w1{left:30px;top:104px;width:22px;height:22px}
+  .ul-w2{left:56px;top:104px;width:22px;height:22px}
+  .ul-w3{left:146px;top:104px;width:22px;height:22px}
+  .ul-w4{left:172px;top:104px;width:22px;height:22px}
+
+  .trainPickBtn{
+    flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;gap:.35em;
+    font-family:var(--display);
+    font-size:clamp(12px,3vw,17px);
+    color:#fff;background:var(--purple);
+    border:5px solid var(--ink);border-radius:18px;
+    padding:.5em .5em;
+    box-shadow:0 6px 0 var(--ink);
+    cursor:pointer;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+    transition:transform .08s;
+  }
+  .trainPickBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+
   .puff{position:absolute;border-radius:50%;background:#EFE9DC;pointer-events:none;z-index:6}
 
   .controlCard{
@@ -494,10 +582,11 @@
     border:6px solid var(--ink);border-radius:28px;
     box-shadow:0 10px 0 var(--ink);
     padding:clamp(10px,2.4vw,16px);
-    display:flex;gap:clamp(8px,1.8vw,14px);
+    display:flex;flex-direction:column;gap:clamp(7px,1.6vw,11px);
     box-sizing:border-box;
     overflow:hidden;
   }
+  .ctrlMain{display:flex;gap:clamp(8px,1.8vw,14px);flex:1 1 auto;min-height:0}
   /* Vertical throttle: a real horizontal <input type=range> rotated 90deg
      inside a swapped-dimension wrapper. This reads instantly as "push up
      for faster" and gives the slider far more usable travel than a thin
@@ -717,17 +806,20 @@
     <div class="trainStage" id="trainStage">
       <svg class="track" id="trackSvg"></svg>
       <div class="controlCard" id="controlCard">
-        <div class="throttleWrap">
-          <span class="temo hi">&#128007;</span>
-          <input type="range" id="speedSlider" min="0" max="100" value="35">
-          <span class="temo lo">&#128034;</span>
+        <div class="ctrlMain">
+          <div class="throttleWrap">
+            <span class="temo hi">&#128007;</span>
+            <input type="range" id="speedSlider" min="0" max="100" value="35">
+            <span class="temo lo">&#128034;</span>
+          </div>
+          <div class="ctrlCol">
+            <button class="ctrlBtn fwd" id="btnFwd"><span class="glyph">&#9193;</span><span data-ctrl="fwd"></span></button>
+            <button class="ctrlBtn stop" id="btnStop"><span class="glyph">&#9209;</span><span data-ctrl="stop"></span></button>
+            <button class="ctrlBtn back" id="btnBack"><span class="glyph">&#9194;</span><span data-ctrl="back"></span></button>
+            <button class="whistleBtn" id="btnWhistle">&#128168; <span data-ctrl="whistle"></span></button>
+          </div>
         </div>
-        <div class="ctrlCol">
-          <button class="ctrlBtn fwd" id="btnFwd"><span class="glyph">&#9193;</span><span data-ctrl="fwd"></span></button>
-          <button class="ctrlBtn stop" id="btnStop"><span class="glyph">&#9209;</span><span data-ctrl="stop"></span></button>
-          <button class="ctrlBtn back" id="btnBack"><span class="glyph">&#9194;</span><span data-ctrl="back"></span></button>
-          <button class="whistleBtn" id="btnWhistle">&#128168; <span data-ctrl="whistle"></span></button>
-        </div>
+        <button class="trainPickBtn" id="trainPick">&#128646; <span id="trainPickLabel"></span></button>
       </div>
     </div>
   </section>
@@ -753,7 +845,7 @@
       shapeNames: { circle:"CIRCLE", square:"SQUARE", triangle:"TRIANGLE", star:"STAR", heart:"HEART", diamond:"DIAMOND" },
       colorNames: { red:"RED", orange:"ORANGE", yellow:"YELLOW", green:"GREEN", blue:"BLUE", purple:"PURPLE", pink:"PINK", brown:"BROWN" },
       numWords: ["ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN"],
-      soundNames: { honk:"HONK", drum:"DRUM", zap:"ZAP", cheer:"CHEER" },
+      soundNames: { honk:"HONK", drum:"DRUM", zap:"ZAP", cheer:"CHEER", splat:"SPLAT", bell:"BELL", twang:"TWANG", ribbit:"RIBBIT" },
       clearLabel: "CLEAR",
       saveLabel: "SAVE",
       savedMsg: "SAVED!",
@@ -771,7 +863,7 @@
       shapeNames: { circle:"KREIS", square:"QUADRAT", triangle:"DREIECK", star:"STERN", heart:"HERZ", diamond:"RAUTE" },
       colorNames: { red:"ROT", orange:"ORANGE", yellow:"GELB", green:"GRÜN", blue:"BLAU", purple:"LILA", pink:"PINK", brown:"BRAUN" },
       numWords: ["EINS","ZWEI","DREI","VIER","FÜNF","SECHS","SIEBEN","ACHT","NEUN","ZEHN"],
-      soundNames: { honk:"TUT", drum:"TROMMEL", zap:"ZISCH", cheer:"JUBEL" },
+      soundNames: { honk:"TUT", drum:"TROMMEL", zap:"ZISCH", cheer:"JUBEL", splat:"PLATSCH", bell:"GLOCKE", twang:"ZUPF", ribbit:"QUAK" },
       clearLabel: "LÖSCHEN",
       saveLabel: "SICHERN",
       savedMsg: "GESICHERT!",
@@ -1093,6 +1185,28 @@
     {key:"cheer", e:"&#127881;", col:"#FFD23F", play(){
       [523,659,784,988,1175].forEach((f,i)=>tone({f:f, at:i*.07, dur:.24, type:"triangle", vol:.24}));
       noise(.5, 0, 2200, .14);
+    }},
+    {key:"splat", e:"&#128166;", col:"#8DC63F", play(){
+      noise(.34, 0, 700, .42);
+      tone({f:420, to:80, dur:.3, type:"sawtooth", vol:.22});
+      noise(.14, .2, 380, .2);
+    }},
+    {key:"bell", e:"&#128276;", col:"#FF4FA3", play(){
+      // a struck bell: high partials over the fundamental, decaying fast
+      tone({f:880, dur:.9, type:"sine", vol:.24});
+      tone({f:1320, dur:.7, type:"sine", vol:.13});
+      tone({f:2640, dur:.35, type:"sine", vol:.07});
+      noise(.05, 0, 5000, .12);
+    }},
+    {key:"twang", e:"&#127928;", col:"#EF3E36", play(){
+      tone({f:330, to:120, dur:.7, type:"triangle", vol:.3});
+      tone({f:660, dur:.4, type:"sine", vol:.1});
+      tone({f:990, dur:.2, type:"sine", vol:.05});
+    }},
+    {key:"ribbit", e:"&#128056;", col:"#5E9017", play(){
+      tone({f:230, to:120, dur:.18, type:"sawtooth", vol:.3});
+      tone({f:250, to:110, at:.22, dur:.2, type:"sawtooth", vol:.3});
+      noise(.08, .02, 900, .12);
     }}
   ];
   const soundGrid = $("#soundGrid"), soundWord = $("#soundWord");
@@ -1295,11 +1409,21 @@
     const r = drawCanvas.getBoundingClientRect();
     burst(r.left + r.width/2, r.top + r.height/2, PALETTE, 22);
   });
-  onTap($("#saveDraw"), function(){
+  const saveBtn = $("#saveDraw"), saveLabelEl = saveBtn.querySelector("[data-save]");
+  const SAVE_COOLDOWN = 10000;
+  let lastSaveAt = 0, saveResetTimer = null;
+  onTap(saveBtn, function(){
+    // Straight to a file, no share sheet -- and rate-limited, because a
+    // toddler will happily machine-gun this button and bury the gallery.
+    if(Date.now() - lastSaveAt < SAVE_COOLDOWN){
+      tone({f:200, dur:.12, type:"square", vol:.12});
+      return;
+    }
+    lastSaveAt = Date.now();
+
     // The canvas is transparent where nothing's drawn (the white you see is
-    // the CSS background behind it), so flatten onto an opaque white canvas
-    // first -- otherwise a shared/downloaded PNG could show through onto
-    // whatever background the recipient's app or wallpaper has.
+    // the CSS background behind it), so flatten onto opaque white first --
+    // otherwise the saved PNG shows through onto whatever is behind it.
     const out = document.createElement("canvas");
     out.width = drawCanvas.width;
     out.height = drawCanvas.height;
@@ -1309,20 +1433,24 @@
     octx.drawImage(drawCanvas, 0, 0);
     out.toBlob(function(blob){
       if(!blob) return;
-      const fileName = "henrys-arcade-drawing-" + Date.now() + ".png";
-      const file = (typeof File !== "undefined") ? new File([blob], fileName, {type:"image/png"}) : null;
-      if(file && navigator.canShare && navigator.canShare({files:[file]})){
-        navigator.share({files:[file]}).catch(function(){});
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = fileName;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "henrys-arcade-" + Date.now() + ".png";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+
       tone({f:600, to:1000, dur:.28, type:"sine", vol:.22});
       const r = drawCanvas.getBoundingClientRect();
       burst(r.left + r.width/2, r.top + r.height/2, ["#FFD23F","#fff","#8DC63F"], 20);
+
+      saveBtn.classList.add("cooling");
+      if(saveLabelEl) saveLabelEl.textContent = t().savedMsg;
+      clearTimeout(saveResetTimer);
+      saveResetTimer = setTimeout(function(){
+        saveBtn.classList.remove("cooling");
+        if(saveLabelEl) saveLabelEl.textContent = t().saveLabel;
+      }, SAVE_COOLDOWN);
     }, "image/png");
   });
 
@@ -1331,20 +1459,77 @@
   const ART_H = 150, RAIL_Y = 126, ART_TOP = 12;
   const PERP_ABOVE = RAIL_Y - ART_TOP; // how much of the body stands off the rail
 
-  const VEHICLES = [
-    { cls:"loco",   w:240, axleA:74, axleB:162 },
-    { cls:"tender", w:128, axleA:37, axleB:91  },
-    { cls:"coach",  w:150, axleA:39, axleB:111, car:"#2E7DB8" },
-    { cls:"coach",  w:150, axleA:39, axleB:111, car:"#3F8F4E" }
-  ];
-  const COUPLING = 7; // art-px between vehicles
+  /* Each vehicle carries both its axle positions (used to hang it on the
+     rail) and its true drawn body extents back/front (used for coupling
+     distance). Those are different spans -- the loco's axles cover 88px but
+     its body is 216px wide -- and using the axle span for spacing is what
+     made the cars overlap. */
+  const ICE_VARS   = { body:"#F4F4F2", roof:"#DCDCDA", win:"#22303A", stripe:"#D0021B" };
+  const SHIN_VARS  = { body:"#F5F7F8", roof:"#E4E8EA", win:"#1E2B36", stripe:"#0057A8" };
+  const UBAHN_VARS = { body:"#FFD814", roof:"#E0BC00", win:"#22303A", stripe:"#1A1A1A" };
+
+  const TRAIN_SETS = {
+    steam: { label:{en:"STEAM", de:"DAMPF"}, cars:[
+      { art:"loco",   w:240, axleA:74, axleB:162, back:22, front:238 },
+      { art:"tender", w:128, axleA:37, axleB:91,  back:10, front:118 },
+      { art:"coach",  w:150, axleA:39, axleB:111, back:6,  front:144, vars:{car:"#2E7DB8"} },
+      { art:"coach",  w:150, axleA:39, axleB:111, back:6,  front:144, vars:{car:"#3F8F4E"} }
+    ]},
+    ice: { label:{en:"ICE", de:"ICE"}, cars:[
+      { art:"iceLead", w:236, axleA:47, axleB:187, back:12, front:234 },
+      { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:ICE_VARS },
+      { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:ICE_VARS }
+    ]},
+    ubahn: { label:{en:"U-BAHN", de:"U-BAHN"}, cars:[
+      { art:"ubLead", w:210, axleA:41, axleB:183, back:10, front:200 },
+      { art:"modCar", w:200, axleA:37, axleB:177, back:6,  front:194, vars:UBAHN_VARS },
+      { art:"modCar", w:200, axleA:37, axleB:177, back:6,  front:194, vars:UBAHN_VARS }
+    ]},
+    shinkansen: { label:{en:"SHINKANSEN", de:"SHINKANSEN"}, cars:[
+      { art:"shinLead", w:250, axleA:45, axleB:177, back:10, front:246 },
+      { art:"modCar",   w:200, axleA:37, axleB:177, back:6,  front:194, vars:SHIN_VARS },
+      { art:"modCar",   w:200, axleA:37, axleB:177, back:6,  front:194, vars:SHIN_VARS }
+    ]}
+  };
+  const TRAIN_ORDER = ["steam", "ice", "ubahn", "shinkansen"];
+  let trainSetIdx = 0;
+  const COUPLING = 8; // art-px of clear air between two vehicles
 
   function wheelHtml(cls, spokes){
     return '<div class="vpart w ' + cls + '">' + (spokes ?
       '<div class="wspin"><i></i><i class="b"></i><i class="c"></i></div>' : "") + "</div>";
   }
   function artFor(v){
-    if(v.cls === "loco"){
+    if(v.art === "modCar"){
+      return '<div class="vpart mc-skirt"></div><div class="vpart mc-body"></div>' +
+        '<div class="vpart mc-stripe"></div><div class="vpart mc-win"></div>' +
+        '<div class="vpart mc-door"></div><div class="vpart mc-roof"></div>' +
+        wheelHtml("mc-w1",1) + wheelHtml("mc-w2",1) + wheelHtml("mc-w3",1) + wheelHtml("mc-w4",1);
+    }
+    if(v.art === "iceLead"){
+      return '<div class="vpart ml-skirt"></div><div class="vpart ml-nose-skirt"></div>' +
+        '<div class="vpart ml-nose"></div><div class="vpart ml-body"></div>' +
+        '<div class="vpart ml-stripe"></div><div class="vpart ml-nosestripe"></div>' +
+        '<div class="vpart ml-win"></div><div class="vpart ml-cabwin"></div>' +
+        '<div class="vpart ml-roof"></div><div class="vpart ml-lamp"></div>' +
+        wheelHtml("ml-w1",1) + wheelHtml("ml-w2",1) + wheelHtml("ml-w3",1) + wheelHtml("ml-w4",1);
+    }
+    if(v.art === "shinLead"){
+      return '<div class="vpart sl-skirt"></div><div class="vpart sl-nose-skirt"></div>' +
+        '<div class="vpart sl-nose"></div><div class="vpart sl-body"></div>' +
+        '<div class="vpart sl-stripe"></div><div class="vpart sl-nosestripe"></div>' +
+        '<div class="vpart sl-win"></div><div class="vpart sl-cabwin"></div>' +
+        '<div class="vpart sl-roof"></div><div class="vpart sl-lamp"></div>' +
+        wheelHtml("sl-w1",1) + wheelHtml("sl-w2",1) + wheelHtml("sl-w3",1) + wheelHtml("sl-w4",1);
+    }
+    if(v.art === "ubLead"){
+      return '<div class="vpart ul-skirt"></div><div class="vpart ul-body"></div>' +
+        '<div class="vpart ul-stripe"></div><div class="vpart ul-win"></div>' +
+        '<div class="vpart ul-cabwin"></div><div class="vpart ul-door"></div>' +
+        '<div class="vpart ul-roof"></div><div class="vpart ul-lamp"></div>' +
+        wheelHtml("ul-w1",1) + wheelHtml("ul-w2",1) + wheelHtml("ul-w3",1) + wheelHtml("ul-w4",1);
+    }
+    if(v.art === "loco"){
       return '<div class="vpart l-frame"></div><div class="vpart l-frame2"></div>' +
         '<div class="vpart l-cab"></div><div class="vpart l-cab-roof"></div><div class="vpart l-cab-roof2"></div>' +
         '<div class="vpart l-boiler"></div><div class="vpart l-boiler-hi"></div>' +
@@ -1358,7 +1543,7 @@
         wheelHtml("l-d1",1) + wheelHtml("l-d2",1) + wheelHtml("l-d3",1) + wheelHtml("l-lead",1) +
         '<div class="vpart l-cab-win"></div>';
     }
-    if(v.cls === "tender"){
+    if(v.art === "tender"){
       return '<div class="vpart t-frame"></div><div class="vpart t-coal"></div><div class="vpart t-coal2"></div>' +
         '<div class="vpart t-body"></div><div class="vpart t-body-hi"></div><div class="vpart t-lip"></div>' +
         wheelHtml("t-w1",1) + wheelHtml("t-w2",1);
@@ -1370,23 +1555,37 @@
       wheelHtml("c-wh1",1) + wheelHtml("c-wh2",1);
   }
 
-  const vehicles = VEHICLES.map(function(v){
-    const el = document.createElement("div");
-    el.className = "vehicle";
-    if(v.car) el.style.setProperty("--car", v.car);
-    el.innerHTML = '<div class="art ' + v.cls + '" style="width:' + v.w + 'px;height:' + ART_H + 'px">' + artFor(v) + "</div>";
-    trainStage.insertBefore(el, controlCard);
-    return { el:el, v:v, offsetPx:0 };
-  });
-  // Coupling gap measured in real pixels (rear of the vehicle ahead to the
-  // front of this one), so cars ride tight instead of drifting apart.
-  (function(){
+  let vehicles = [];
+  function buildTrain(setKey){
+    vehicles.forEach(function(veh){ veh.el.remove(); });
+    vehicles = TRAIN_SETS[setKey].cars.map(function(v){
+      const el = document.createElement("div");
+      el.className = "vehicle";
+      if(v.vars){
+        Object.keys(v.vars).forEach(function(k){ el.style.setProperty("--" + k, v.vars[k]); });
+      }
+      el.innerHTML = '<div class="art" style="width:' + v.w + 'px;height:' + ART_H + 'px">' + artFor(v) + "</div>";
+      trainStage.insertBefore(el, controlCard);
+      return { el:el, v:v, offsetPx:0 };
+    });
+    // Spacing runs between real body edges, not axle positions: a vehicle's
+    // reference point is its box centre, so the distance from one centre to
+    // the next is (half the leader behind its centre) + gap + (half of this
+    // one ahead of its centre).
     let acc = 0;
     for(let i = 1; i < vehicles.length; i++){
-      acc += (vehicles[i-1].v.axleB - vehicles[i-1].v.axleA)/2 + COUPLING + (vehicles[i].v.axleB - vehicles[i].v.axleA)/2 + 30;
+      const ahead = vehicles[i-1].v, self = vehicles[i].v;
+      acc += (ahead.w/2 - ahead.back) + COUPLING + (self.front - self.w/2);
       vehicles[i].offsetPx = acc;
     }
-  })();
+    setWheelSpeed();
+    place();
+    // Fallback for browsers without overflow:clip -- undo any scroll the
+    // focus ring may have caused when the picker was tapped.
+    const trainScreen = $("#train");
+    trainScreen.scrollLeft = 0;
+    trainScreen.scrollTop = 0;
+  }
 
   let trainDirection = 0, trainSpeed = 35;
   let trainRafId = null, trainLastTs = null, chuffAccum = 0;
@@ -1511,6 +1710,23 @@
     trainSpeed = parseInt(speedSlider.value, 10);
     setWheelSpeed();
   });
+
+  const trainPickLabel = $("#trainPickLabel");
+  function updateTrainPickLabel(){
+    trainPickLabel.textContent = TRAIN_SETS[TRAIN_ORDER[trainSetIdx]].label[lang] ||
+      TRAIN_SETS[TRAIN_ORDER[trainSetIdx]].label.en;
+  }
+  onTap($("#trainPick"), function(){
+    trainSetIdx = (trainSetIdx + 1) % TRAIN_ORDER.length;
+    const key = TRAIN_ORDER[trainSetIdx];
+    buildTrain(key);
+    updateTrainPickLabel();
+    tone({f:520, to:780, dur:.2, type:"triangle", vol:.2});
+    say(TRAIN_SETS[key].label[lang] || TRAIN_SETS[key].label.en);
+  });
+  buildTrain(TRAIN_ORDER[trainSetIdx]);
+  updateTrainPickLabel();
+
   window.addEventListener("resize", function(){
     if($("#train").classList.contains("on")) layoutTrack();
     if($("#draw").classList.contains("on")) fitCanvas();
@@ -1615,6 +1831,7 @@
     document.querySelectorAll("[data-clear]").forEach(el => el.textContent = d.clearLabel);
     document.querySelectorAll("[data-save]").forEach(el => el.textContent = d.saveLabel);
     document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
+    if(typeof updateTrainPickLabel === "function") updateTrainPickLabel();
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
     colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
