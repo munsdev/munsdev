@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Henry's Arcade</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#F57D0D">
@@ -506,17 +506,17 @@
 
   /* ---- ICE power car (236x150): long low nose, red cheat line ---- */
   .ml-skirt{left:16px;top:100px;width:180px;height:13px;background:#3A3A42;border-radius:3px}
-  .ml-body{left:12px;top:46px;width:186px;height:56px;background:#F4F4F2;border-radius:5px}
-  .ml-roof{left:12px;top:42px;width:186px;height:6px;background:#DCDCDA;border-radius:4px 4px 0 0}
-  .ml-nose{left:190px;top:50px;width:44px;height:52px;background:#F4F4F2;
+  .ml-body{left:12px;top:46px;width:186px;height:56px;background:var(--body);border-radius:5px}
+  .ml-roof{left:12px;top:42px;width:186px;height:6px;background:var(--roof);border-radius:4px 4px 0 0}
+  .ml-nose{left:190px;top:50px;width:44px;height:52px;background:var(--body);
     clip-path:polygon(0 0, 42% 3%, 80% 28%, 100% 64%, 100% 100%, 0 100%)}
   .ml-nose-skirt{left:190px;top:98px;width:42px;height:14px;background:#3A3A42;
     clip-path:polygon(0 0, 100% 0, 84% 100%, 0 100%)}
-  .ml-win{left:30px;top:54px;width:150px;height:20px;background:#22303A;border-radius:3px}
-  .ml-cabwin{left:194px;top:58px;width:26px;height:15px;background:#22303A;
+  .ml-win{left:30px;top:54px;width:150px;height:20px;background:var(--win);border-radius:3px}
+  .ml-cabwin{left:194px;top:58px;width:26px;height:15px;background:var(--win);
     clip-path:polygon(14% 0, 100% 26%, 100% 100%, 0 100%)}
-  .ml-stripe{left:14px;top:84px;width:184px;height:8px;background:#D0021B}
-  .ml-nosestripe{left:190px;top:84px;width:38px;height:8px;background:#D0021B;
+  .ml-stripe{left:14px;top:84px;width:184px;height:8px;background:var(--stripe)}
+  .ml-nosestripe{left:190px;top:84px;width:38px;height:8px;background:var(--stripe);
     clip-path:polygon(0 0, 100% 0, 78% 100%, 0 100%)}
   .ml-lamp{left:214px;top:76px;width:12px;height:8px;background:#FFF0B8;border:2px solid #17171B;border-radius:2px}
   .ml-w1{left:36px;top:104px;width:22px;height:22px}
@@ -558,100 +558,156 @@
   .ul-w3{left:146px;top:104px;width:22px;height:22px}
   .ul-w4{left:172px;top:104px;width:22px;height:22px}
 
-  .trainPickBtn{
-    flex:0 0 auto;
-    display:flex;align-items:center;justify-content:center;gap:.35em;
-    font-family:var(--display);
-    font-size:clamp(12px,3vw,17px);
-    color:#fff;background:var(--purple);
-    border:5px solid var(--ink);border-radius:18px;
-    padding:.5em .5em;
-    box-shadow:0 6px 0 var(--ink);
-    cursor:pointer;white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis;
-    transition:transform .08s;
-  }
-  .trainPickBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
-
   .puff{position:absolute;border-radius:50%;background:#EFE9DC;pointer-events:none;z-index:6}
 
+  /* ---------- S-Bahn driving console ----------
+     Brushed dark panel with recessed controls, sized in JS to sit entirely
+     inside the loop so it can never sit on top of the rails. */
   .controlCard{
     position:relative;z-index:4;
-    width:min(84vw,320px);max-width:100%;
-    background:rgba(255,255,255,.85);
-    border:6px solid var(--ink);border-radius:28px;
-    box-shadow:0 10px 0 var(--ink);
-    padding:clamp(10px,2.4vw,16px);
-    display:flex;flex-direction:column;gap:clamp(7px,1.6vw,11px);
+    max-width:100%;
+    background:linear-gradient(#454B54, #2E333A 60%, #262A30);
+    border:5px solid #14161A;border-radius:18px;
+    box-shadow:0 8px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.16);
+    padding:clamp(8px,2.2vw,13px);
+    display:flex;gap:clamp(8px,2.2vw,14px);
     box-sizing:border-box;
     overflow:hidden;
+    touch-action:none;
   }
-  .ctrlMain{display:flex;gap:clamp(8px,1.8vw,14px);flex:1 1 auto;min-height:0}
-  /* Vertical throttle: a real horizontal <input type=range> rotated 90deg
-     inside a swapped-dimension wrapper. This reads instantly as "push up
-     for faster" and gives the slider far more usable travel than a thin
-     strip ever could, using the same touch target every browser already
-     knows how to render. */
+
+  /* Vertical throttle: a horizontal range rotated 90deg inside a
+     swapped-dimension wrapper, so it reads as "push up to go faster" while
+     still being the native control every browser knows how to drag. */
   .throttleWrap{
     flex:0 0 auto;position:relative;
-    width:clamp(48px,13vw,64px);height:100%;min-height:150px;
+    width:clamp(54px,15vw,72px);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .throttleTrack{
+    position:absolute;left:50%;top:2px;bottom:2px;
+    width:clamp(22px,6vw,30px);transform:translateX(-50%);
+    background:linear-gradient(#15171B,#22262C);
+    border:3px solid #0E1013;border-radius:15px;
+    box-shadow:inset 0 3px 7px rgba(0,0,0,.75);
   }
   .throttleWrap input[type="range"]{
     position:absolute;left:50%;top:50%;
-    width:var(--tlen,170px);height:clamp(30px,8vw,42px);
+    width:var(--tlen,190px);height:clamp(46px,13vw,60px);
     transform:translate(-50%,-50%) rotate(-90deg);
     -webkit-appearance:none;appearance:none;
-    margin:0;border-radius:14px;
-    background:var(--purple);border:4px solid var(--ink);
+    margin:0;background:transparent;border:none;
+    touch-action:none;
   }
   .throttleWrap input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;appearance:none;
-    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
-    border-radius:50%;background:var(--sun);
-    border:5px solid var(--ink);cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,.3);
+    width:clamp(46px,13vw,60px);height:clamp(32px,9vw,42px);
+    border-radius:9px;
+    background:linear-gradient(#F2D06B,#D9A227 55%,#B9861A);
+    border:4px solid #14161A;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.5);
   }
   .throttleWrap input[type="range"]::-moz-range-thumb{
-    width:clamp(40px,10vw,54px);height:clamp(40px,10vw,54px);
-    border-radius:50%;background:var(--sun);
-    border:5px solid var(--ink);cursor:pointer;
-    box-shadow:0 3px 0 rgba(0,0,0,.3);
+    width:clamp(46px,13vw,60px);height:clamp(32px,9vw,42px);
+    border-radius:9px;
+    background:linear-gradient(#F2D06B,#D9A227 55%,#B9861A);
+    border:4px solid #14161A;cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 2px 0 rgba(255,255,255,.5);
   }
-  .throttleWrap .temo{
-    position:absolute;left:50%;transform:translateX(-50%);
-    font-size:clamp(18px,5vw,26px);pointer-events:none;
+
+  /* Forward / stop / reverse, stacked in that order. */
+  .ctrlCol{
+    flex:1 1 auto;min-width:0;
+    display:flex;flex-direction:column;gap:clamp(6px,1.8vw,11px);
+    justify-content:center;
   }
-  .throttleWrap .temo.hi{top:2px}
-  .throttleWrap .temo.lo{bottom:2px}
-  .ctrlCol{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:clamp(6px,1.6vw,10px)}
-  .ctrlBtn{
-    display:flex;flex-direction:row;align-items:center;justify-content:center;gap:.35em;
-    font-family:var(--round);font-weight:800;
-    font-size:clamp(13px,3.4vw,18px);
-    color:#fff;
-    border:5px solid var(--ink);border-radius:18px;
-    box-shadow:0 6px 0 var(--ink);
-    padding:.5em .3em;
-    cursor:pointer;transition:transform .08s;
-    flex:1 1 0;
+  .dirBtn{
+    flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    height:clamp(44px,12vw,62px);
+    border-radius:14px;border:4px solid #14161A;
+    cursor:pointer;
+    font-size:clamp(18px,5.4vw,26px);
+    box-shadow:0 4px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.32);
+    filter:saturate(.7) brightness(.76);
+    transition:transform .08s, box-shadow .12s, filter .12s;
   }
-  .ctrlBtn .glyph{font-size:clamp(20px,5.6vw,30px);line-height:1}
-  .ctrlBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
-  .ctrlBtn.fwd{background:var(--slime)}
-  .ctrlBtn.stop{background:#EF3E36}
-  .ctrlBtn.back{background:var(--cyan)}
-  .whistleBtn{
-    display:flex;align-items:center;justify-content:center;gap:.3em;
-    font-family:var(--display);
-    font-size:clamp(13px,3.4vw,18px);
-    color:var(--ink);background:var(--sun);
-    border:5px solid var(--ink);border-radius:18px;
-    padding:.5em .4em;
-    box-shadow:0 6px 0 var(--ink);
-    cursor:pointer;transition:transform .08s;
-    flex:1 1 0;
+  .dirBtn:active{transform:translateY(4px);box-shadow:0 1px 0 #14161A}
+  .dirBtn.fwd{background:linear-gradient(#8FD64A,#3F8F1B)}
+  .dirBtn.halt{background:linear-gradient(#F4695F,#B62020)}
+  .dirBtn.rev{background:linear-gradient(#F4695F,#B62020)}
+  /* Selected notch lights up, the way a real console shows its state. */
+  .dirBtn.lit{
+    filter:saturate(1.35) brightness(1.22);
+    box-shadow:0 0 0 3px #FFD23F, 0 0 16px 3px rgba(255,210,63,.7), 0 4px 0 #14161A;
   }
-  .whistleBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+  /* Reverse blinks while engaged, like a shunting warning lamp. */
+  .dirBtn.rev.lit{animation:revBlink .62s steps(1,end) infinite}
+  @keyframes revBlink{
+    0%,49%{
+      filter:saturate(1.45) brightness(1.3);
+      box-shadow:0 0 0 3px #FFD23F, 0 0 18px 4px rgba(255,72,60,.8), 0 4px 0 #14161A;
+    }
+    50%,100%{
+      filter:saturate(.7) brightness(.74);
+      box-shadow:0 4px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.32);
+    }
+  }
+  .tri{width:.5em;height:.62em;background:#fff;display:block}
+  .tri.r{clip-path:polygon(0 0,100% 50%,0 100%)}
+  .tri.l{clip-path:polygon(100% 0,0 50%,100% 100%)}
+  .sq{width:.5em;height:.5em;background:#fff;border-radius:2px;display:block}
+
+  /* ---------- sound row along the bottom of the screen ---------- */
+  .soundRow{
+    flex:0 0 auto;position:relative;z-index:5;
+    display:flex;gap:clamp(5px,1.7vw,10px);
+    padding-top:clamp(4px,1vh,9px);
+    /* keep clear of the fixed parent-lock button in the bottom-right */
+    padding-right:clamp(40px,11vw,50px);
+  }
+  .sndBtn{
+    flex:1 1 0;min-width:0;
+    aspect-ratio:1;max-height:clamp(50px,10.5vh,72px);
+    display:flex;align-items:center;justify-content:center;
+    border-radius:14px;border:4px solid #14161A;
+    cursor:pointer;
+    box-shadow:0 5px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.28);
+    filter:saturate(.8) brightness(.86);
+    transition:transform .08s, box-shadow .12s, filter .12s;
+  }
+  .sndBtn:active{transform:translateY(5px);box-shadow:0 1px 0 #14161A}
+  .sndBtn.horn {background:linear-gradient(#FFDE6B,#E8A41C)}
+  .sndBtn.open {background:linear-gradient(#7BD97B,#2F9E44)}
+  .sndBtn.close{background:linear-gradient(#F4845F,#C0392B)}
+  .sndBtn.board{background:linear-gradient(#6FC3F0,#1B6CA8)}
+  .sndBtn.info {background:linear-gradient(#B79BE8,#6C3FB5)}
+  .sndBtn.lit{
+    filter:saturate(1.35) brightness(1.25);
+    box-shadow:0 0 0 3px #FFD23F, 0 0 14px 3px rgba(255,210,63,.65), 0 5px 0 #14161A;
+  }
+  .hornIco{
+    width:56%;height:36%;display:block;background:#14161A;
+    clip-path:polygon(0 32%, 42% 32%, 100% 0, 100% 100%, 42% 68%, 0 68%);
+  }
+  /* Elevator-style door glyphs: arrows away from the leaves means opening,
+     arrows toward them means closing. */
+  .elev{
+    display:flex;align-items:center;justify-content:center;
+    gap:7%;width:70%;height:56%;
+    font-size:inherit;
+  }
+  .elev .tri{width:26%;height:62%;background:#fff}
+  .elev .leaf{width:12%;height:100%;background:#fff;border-radius:1px;display:block}
+  .annIco{display:block;height:56%;aspect-ratio:1;flex:0 0 auto}
+  .annIco.board{
+    background:#FFFFFF;
+    clip-path:polygon(50% 0, 62% 10%, 62% 24%, 100% 34%, 100% 48%, 66% 40%, 66% 100%, 52% 100%, 52% 62%, 44% 62%, 44% 100%, 30% 100%, 30% 40%, 0 48%, 0 34%, 38% 24%, 38% 10%);
+  }
+  .annIco.greet{
+    background:#FFFFFF;
+    clip-path:polygon(0 8%, 100% 8%, 100% 70%, 56% 70%, 30% 96%, 32% 70%, 0 70%);
+  }
 
   /* ---------- particles ---------- */
   .bit{position:fixed;pointer-events:none;z-index:99;border-radius:50% 45% 55% 42%/50% 55% 45% 50%;border:3px solid var(--ink)}
@@ -806,21 +862,27 @@
     <div class="trainStage" id="trainStage">
       <svg class="track" id="trackSvg"></svg>
       <div class="controlCard" id="controlCard">
-        <div class="ctrlMain">
-          <div class="throttleWrap">
-            <span class="temo hi">&#128007;</span>
-            <input type="range" id="speedSlider" min="0" max="100" value="35">
-            <span class="temo lo">&#128034;</span>
-          </div>
-          <div class="ctrlCol">
-            <button class="ctrlBtn fwd" id="btnFwd"><span class="glyph">&#9193;</span><span data-ctrl="fwd"></span></button>
-            <button class="ctrlBtn stop" id="btnStop"><span class="glyph">&#9209;</span><span data-ctrl="stop"></span></button>
-            <button class="ctrlBtn back" id="btnBack"><span class="glyph">&#9194;</span><span data-ctrl="back"></span></button>
-            <button class="whistleBtn" id="btnWhistle">&#128168; <span data-ctrl="whistle"></span></button>
-          </div>
+        <div class="throttleWrap">
+          <div class="throttleTrack"></div>
+          <input type="range" id="speedSlider" min="0" max="100" value="35" aria-label="Speed">
         </div>
-        <button class="trainPickBtn" id="trainPick">&#128646; <span id="trainPickLabel"></span></button>
+        <div class="ctrlCol">
+          <button class="dirBtn fwd" id="btnFwd" aria-label="Forward"><i class="tri r"></i></button>
+          <button class="dirBtn halt" id="btnStop" aria-label="Stop"><i class="sq"></i></button>
+          <button class="dirBtn rev" id="btnBack" aria-label="Backward"><i class="tri l"></i></button>
+        </div>
       </div>
+    </div>
+    <div class="soundRow">
+      <button class="sndBtn horn" id="btnWhistle" aria-label="Horn"><i class="hornIco"></i></button>
+      <button class="sndBtn open" data-ann="open" aria-label="Türen öffnen">
+        <i class="elev"><b class="tri l"></b><b class="leaf"></b><b class="leaf"></b><b class="tri r"></b></i>
+      </button>
+      <button class="sndBtn close" data-ann="close" aria-label="Türen schließen">
+        <i class="elev"><b class="tri r"></b><b class="leaf"></b><b class="leaf"></b><b class="tri l"></b></i>
+      </button>
+      <button class="sndBtn board" data-ann="board" aria-label="Einsteigen bitte"><i class="annIco board"></i></button>
+      <button class="sndBtn info" data-ann="greet" aria-label="Sehr geehrte Fahrgäste"><i class="annIco greet"></i></button>
     </div>
   </section>
 </div>
@@ -1054,6 +1116,24 @@
       box.appendChild(s);
     }
   });
+
+  /* ---------------- no accidental zoom ---------------- */
+  /* iOS Safari ignores user-scalable=no, so block the pinch gestures
+     directly. A toddler dragging two fingers across the train screen was
+     zooming the whole app and stranding it off-centre. */
+  ["gesturestart","gesturechange","gestureend"].forEach(function(evt){
+    document.addEventListener(evt, function(e){ e.preventDefault(); }, {passive:false});
+  });
+  document.addEventListener("touchmove", function(e){
+    if(e.touches && e.touches.length > 1) e.preventDefault();
+  }, {passive:false});
+  // Double-tap-to-zoom: swallow the second tap of a quick pair.
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", function(e){
+    const now = Date.now();
+    if(now - lastTouchEnd < 320) e.preventDefault();
+    lastTouchEnd = now;
+  }, {passive:false});
 
   /* ---------------- forgiving taps ---------------- */
   /* Toddlers' fingers wobble mid-press, which makes browsers cancel the
@@ -1511,6 +1591,8 @@
   const ICE_VARS   = { body:"#F4F4F2", roof:"#DCDCDA", win:"#22303A", stripe:"#D0021B" };
   const SHIN_VARS  = { body:"#F5F7F8", roof:"#E4E8EA", win:"#1E2B36", stripe:"#0057A8" };
   const UBAHN_VARS = { body:"#FFD814", roof:"#E0BC00", win:"#22303A", stripe:"#1A1A1A" };
+  // Railjet: the ICE shell in OBB anthracite instead of white.
+  const RJ_VARS    = { body:"#4A4F55", roof:"#3A3E44", win:"#1B2228", stripe:"#C8102E" };
 
   const TRAIN_SETS = {
     steam: { label:{en:"STEAM", de:"DAMPF"}, cars:[
@@ -1520,11 +1602,16 @@
       { art:"coach",  w:150, axleA:39, axleB:111, back:6,  front:144, vars:{car:"#3F8F4E"} }
     ]},
     ice: { label:{en:"ICE", de:"ICE"}, cars:[
-      { art:"iceLead", w:236, axleA:47, axleB:187, back:12, front:234 },
+      { art:"iceLead", w:236, axleA:47, axleB:187, back:12, front:234, vars:ICE_VARS },
       { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:ICE_VARS },
       { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:ICE_VARS }
     ]},
-    ubahn: { label:{en:"U-BAHN", de:"U-BAHN"}, cars:[
+    railjet: { label:{en:"RAILJET", de:"RAILJET"}, cars:[
+      { art:"iceLead", w:236, axleA:47, axleB:187, back:12, front:234, vars:RJ_VARS },
+      { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:RJ_VARS },
+      { art:"modCar",  w:200, axleA:37, axleB:177, back:6,  front:194, vars:RJ_VARS }
+    ]},
+    ubahn: { label:{en:"BERLIN U-BAHN", de:"BERLIN U-BAHN"}, cars:[
       { art:"ubLead", w:210, axleA:41, axleB:183, back:10, front:200 },
       { art:"modCar", w:200, axleA:37, axleB:177, back:6,  front:194, vars:UBAHN_VARS },
       { art:"modCar", w:200, axleA:37, axleB:177, back:6,  front:194, vars:UBAHN_VARS }
@@ -1535,7 +1622,7 @@
       { art:"modCar",   w:200, axleA:37, axleB:177, back:6,  front:194, vars:SHIN_VARS }
     ]}
   };
-  const TRAIN_ORDER = ["steam", "ice", "ubahn", "shinkansen"];
+  const TRAIN_ORDER = ["steam", "ice", "railjet", "ubahn", "shinkansen"];
   let trainSetIdx = 0;
   const COUPLING = 8; // art-px of clear air between two vehicles
 
@@ -1609,6 +1696,8 @@
         Object.keys(v.vars).forEach(function(k){ el.style.setProperty("--" + k, v.vars[k]); });
       }
       el.innerHTML = '<div class="art" style="width:' + v.w + 'px;height:' + ART_H + 'px">' + artFor(v) + "</div>";
+      el.style.cursor = "pointer";
+      onTap(el, function(){ cycleTrain(); });
       trainStage.insertBefore(el, controlCard);
       return { el:el, v:v, offsetPx:0 };
     });
@@ -1634,16 +1723,16 @@
   let trainDirection = 0, trainSpeed = 35;
   let trainRafId = null, trainLastTs = null, chuffAccum = 0;
   let pathEl = null, pathLen = 0, scale = 1, headLen = 0;
-  const SPEED_PX = 60; // px along the rail per second at full throttle
+  const SPEED_PX = 120; // px along the rail per second at full throttle
 
   function layoutTrack(){
     const w = trainStage.clientWidth, h = trainStage.clientHeight;
     if(w < 20 || h < 20) return;
-    scale = Math.max(0.34, Math.min(0.56, Math.min(w, h) / 560));
+    scale = Math.max(0.32, Math.min(0.46, Math.min(w, h) / 620));
     // Generous corners: a rigid wagon chords across a curve, so a tight
     // radius is what lifts wheels off the rail. Inset must also clear the
     // body standing off the rail, or the train would hang off the screen.
-    const inset = Math.max(PERP_ABOVE * scale + 22, Math.min(w, h) * 0.19);
+    const inset = Math.max(PERP_ABOVE * scale + 18, Math.min(w, h) * 0.17);
     const x0 = inset, y0 = inset, x1 = w - inset, y1 = h - inset;
     const r = Math.min(90, (x1 - x0) / 2, (y1 - y0) / 2);
     const d = "M " + (x0+r) + " " + y0 + " L " + (x1-r) + " " + y0 + " Q " + x1 + " " + y0 + " " + x1 + " " + (y0+r) +
@@ -1656,6 +1745,24 @@
       '<path id="rail" d="' + d + '" fill="none" stroke="#FFF3D6" stroke-width="3.5" stroke-dasharray="11 11"/>';
     pathEl = trackSvg.querySelector("#rail");
     pathLen = pathEl.getTotalLength();
+
+    /* Size the console from the loop's own inner rectangle, minus the rail
+       stroke and a margin, so it always sits fully inside the track instead
+       of spilling over the rails at the sides. */
+    const railW = 15 * scale / 0.42;
+    const innerW = (x1 - x0) - railW - 20;
+    const innerH = (y1 - y0) - railW - 20;
+    controlCard.style.width = Math.max(140, Math.min(innerW, 300)) + "px";
+    controlCard.style.maxHeight = Math.max(170, innerH) + "px";
+    // The rotated range input's length has to be driven from the measured
+    // height, since a rotated element can't inherit its parent's extent.
+    requestAnimationFrame(function(){
+      const wrap = controlCard.querySelector(".throttleWrap");
+      if(wrap && wrap.clientHeight > 20){
+        wrap.style.setProperty("--tlen", Math.max(120, wrap.clientHeight - 8) + "px");
+      }
+    });
+
     place();
   }
 
@@ -1733,13 +1840,23 @@
     trainDirection = dir;
     const running = dir !== 0;
     trainStage.classList.toggle("running", running);
+    // Light the button that matches what the train is actually doing, the
+    // way a real console shows its selected notch.
+    $("#btnFwd").classList.toggle("lit", dir === 1);
+    $("#btnStop").classList.toggle("lit", dir === 0);
+    $("#btnBack").classList.toggle("lit", dir === -1);
     setWheelSpeed();
     if(dir !== 0) tone({f:340, to:520, dur:.18, type:"triangle", vol:.18});
   }
   onTap($("#btnFwd"), function(){ setTrainDirection(1); });
   onTap($("#btnStop"), function(){ setTrainDirection(0); tone({f:260, to:120, dur:.2, type:"square", vol:.2}); });
   onTap($("#btnBack"), function(){ setTrainDirection(-1); });
+  let hornLitTimer = null;
   onTap($("#btnWhistle"), function(){
+    const hb = $("#btnWhistle");
+    hb.classList.add("lit");
+    clearTimeout(hornLitTimer);
+    hornLitTimer = setTimeout(function(){ hb.classList.remove("lit"); }, 1200);
     tone({f:349, dur:.6, type:"sawtooth", vol:.22});
     tone({f:415, dur:.6, type:"sawtooth", vol:.18});
     tone({f:349, at:.65, dur:.5, type:"sawtooth", vol:.22});
@@ -1755,21 +1872,72 @@
     setWheelSpeed();
   });
 
-  const trainPickLabel = $("#trainPickLabel");
-  function updateTrainPickLabel(){
-    trainPickLabel.textContent = TRAIN_SETS[TRAIN_ORDER[trainSetIdx]].label[lang] ||
-      TRAIN_SETS[TRAIN_ORDER[trainSetIdx]].label.en;
-  }
-  onTap($("#trainPick"), function(){
+  // Tapping the train itself swaps to the next one -- no separate button.
+  function cycleTrain(){
     trainSetIdx = (trainSetIdx + 1) % TRAIN_ORDER.length;
     const key = TRAIN_ORDER[trainSetIdx];
     buildTrain(key);
-    updateTrainPickLabel();
     tone({f:520, to:780, dur:.2, type:"triangle", vol:.2});
     say(TRAIN_SETS[key].label[lang] || TRAIN_SETS[key].label.en);
-  });
+  }
   buildTrain(TRAIN_ORDER[trainSetIdx]);
-  updateTrainPickLabel();
+  setTrainDirection(0); // start with STOP lit, so the console reads its state
+
+  /* ---------------- station announcements ----------------
+     Spoken in German whatever the app language is -- these are the real
+     phrases you hear on a German platform, which is the whole point. */
+  const ANNOUNCEMENTS = {
+    open:  { de:"Vorsicht, die Türen öffnen sich!" },
+    close: { de:"Zurückbleiben bitte! Die Türen schließen." },
+    board: { de:"Einsteigen bitte!" },
+    greet: { de:"Sehr geehrte Fahrgäste, willkommen an Bord." }
+  };
+  function stationChime(){
+    // The familiar rising platform gong before an announcement.
+    [{f:659,at:0},{f:880,at:.18},{f:1109,at:.36}].forEach(function(n){
+      tone({f:n.f, at:n.at, dur:.5, type:"sine", vol:.16});
+      tone({f:n.f*2, at:n.at, dur:.32, type:"sine", vol:.05});
+    });
+  }
+  function sayGerman(text, onDone){
+    if(!("speechSynthesis" in window)) return;
+    try{
+      if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "de-DE";
+      const v = pickVoice("de");
+      if(v) u.voice = v;
+      u.rate = 1; u.pitch = 1; u.volume = 1;
+      u.onstart = function(){ clearTimeout(duckRestoreTimer); duckTo(DUCK_LEVEL); };
+      const undock = function(){
+        clearTimeout(duckRestoreTimer);
+        duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 120);
+        if(onDone) onDone();
+      };
+      u.onend = undock; u.onerror = undock;
+      speechSynthesis.speak(u);
+      clearTimeout(duckRestoreTimer);
+      duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 6000);
+    }catch(e){}
+  }
+  let annLitTimer = null;
+  document.querySelectorAll("[data-ann]").forEach(function(btn){
+    onTap(btn, function(){
+      const a = ANNOUNCEMENTS[btn.dataset.ann];
+      if(!a) return;
+      document.querySelectorAll("[data-ann]").forEach(function(o){ o.classList.remove("lit"); });
+      btn.classList.add("lit");
+      clearTimeout(annLitTimer);
+      annLitTimer = setTimeout(function(){ btn.classList.remove("lit"); }, 4200);
+      stationChime();
+      setTimeout(function(){ sayGerman(a.de, function(){
+        clearTimeout(annLitTimer);
+        btn.classList.remove("lit");
+      }); }, 620);
+      const p = centerOf(btn);
+      burst(p.x, p.y, ["#FFD23F","#fff","#8FC2E8"], 12);
+    });
+  });
 
   window.addEventListener("resize", function(){
     if($("#train").classList.contains("on")) layoutTrack();
@@ -1875,7 +2043,6 @@
     document.querySelectorAll("[data-clear]").forEach(el => el.textContent = d.clearLabel);
     document.querySelectorAll("[data-save]").forEach(el => el.textContent = d.saveLabel);
     document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
-    if(typeof updateTrainPickLabel === "function") updateTrainPickLabel();
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
     colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
