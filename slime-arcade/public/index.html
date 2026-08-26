@@ -349,6 +349,59 @@
     overflow-y:auto;
   }
   #letters .pad{font-size:clamp(24px,6.5vmin,52px)}
+  .typeBox{
+    flex:0 0 auto;
+    background:var(--ink);color:var(--cream);
+    border-radius:20px;
+    font-family:var(--display);
+    font-size:clamp(30px,10vmin,68px);
+    text-align:left;
+    padding:.2em .45em;
+    letter-spacing:.03em;
+    min-height:1.5em;
+    display:flex;align-items:center;gap:.04em;
+    overflow-x:auto;overflow-y:hidden;
+    white-space:nowrap;
+    scrollbar-width:none;
+  }
+  .typeBox::-webkit-scrollbar{display:none}
+  .typeBox.placeholder{
+    color:rgba(255,253,245,.55);
+    font-size:clamp(15px,3.4vmin,28px);
+    letter-spacing:normal;
+  }
+  .typeChar{display:inline-block;animation:charPop .25s ease-out}
+  @keyframes charPop{
+    0%{transform:scale(.3) translateY(10px);opacity:0}
+    60%{transform:scale(1.18);opacity:1}
+    100%{transform:scale(1)}
+  }
+  .typeBox.pushed{animation:pushNudge .22s ease-out}
+  @keyframes pushNudge{
+    0%{transform:translateX(0)}
+    30%{transform:translateX(-10px)}
+    100%{transform:translateX(0)}
+  }
+  .letterTools{flex:0 0 auto;display:flex;gap:clamp(6px,1.6vmin,14px)}
+  .letterTools button{
+    flex:1 1 0;
+    font-family:var(--display);
+    font-size:clamp(10px,2.1vmin,16px);
+    color:#fff;
+    border:5px solid var(--ink);border-radius:18px;
+    padding:.35em .2em;
+    box-shadow:0 6px 0 var(--ink);
+    cursor:pointer;white-space:nowrap;
+    transition:transform .08s;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15em;
+  }
+  .letterTools button i{font-size:1.6em;line-height:1;font-style:normal}
+  .letterTools button:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+  .spacebarIco{width:1.9em;height:.45em;background:currentColor;border-radius:.22em;display:inline-block}
+  #btnSpeak{background:var(--sun);color:var(--ink)}
+  #btnSpace{background:#fff;color:var(--ink)}
+  #btnErase{background:var(--pink)}
+  #btnClearLetters{background:var(--purple)}
   #bigLetter{
     position:absolute;inset:0;margin:auto;
     width:min(60vmin,340px);height:min(60vmin,340px);
@@ -835,7 +888,13 @@
       <span class="title" data-title="letters"></span>
     </header>
     <div class="stage">
-      <div class="readout" id="letterWord"></div>
+      <div class="typeBox" id="letterWord"></div>
+      <div class="letterTools">
+        <button type="button" id="btnSpeak" aria-label="Speak"><i>&#128266;</i><span data-speak></span></button>
+        <button type="button" id="btnSpace" aria-label="Space"><i class="spacebarIco"></i><span data-space></span></button>
+        <button type="button" id="btnErase" aria-label="Erase"><i>&#9003;</i><span data-erase></span></button>
+        <button type="button" id="btnClearLetters" aria-label="Clear"><i>&#129529;</i><span data-clear></span></button>
+      </div>
       <div class="pad-grid" id="letterGrid"></div>
       <div id="bigLetter"></div>
     </div>
@@ -918,6 +977,10 @@
       clearLabel: "CLEAR",
       saveLabel: "SAVE",
       savedMsg: "SAVED!",
+      speakLabel: "SAY IT",
+      spaceLabel: "SPACE",
+      eraseLabel: "ERASE",
+      langName: { en:"English", de:"Deutsch" },
       ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" },
       parent: { title:"PLAY TIME", start:"START", stop:"STOP TIMER", noLimit:"NO LIMIT" }
     },
@@ -936,6 +999,10 @@
       clearLabel: "LÖSCHEN",
       saveLabel: "SICHERN",
       savedMsg: "GESICHERT!",
+      speakLabel: "SAG'S",
+      spaceLabel: "LEER",
+      eraseLabel: "RÜCK",
+      langName: { en:"English", de:"Deutsch" },
       ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" },
       parent: { title:"SPIELZEIT", start:"START", stop:"TIMER STOPPEN", noLimit:"KEIN LIMIT" }
     }
@@ -947,12 +1014,17 @@
   const t = () => STR[lang];
 
   /* ---------------- audio ---------------- */
-  let ctx = null, masterBus = null, outGain = null, reverbSend = null;
+  let ctx = null, masterBus = null, outGain = null;
   const OUT_LEVEL = 0.75;   // headroom so the phone's own mixer isn't pushed
   const DUCK_LEVEL = 0.3;   // how far to pull the effects back under speech
   function ac(){
     if(!ctx){
-      try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+      try{
+        const AC = window.AudioContext || window.webkitAudioContext;
+        ctx = new AC({ latencyHint: "balanced" });
+      }catch(e){
+        try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e2){ return null; }
+      }
       buildMasterBus();
     }
     if(ctx.state === "suspended") ctx.resume();
@@ -985,7 +1057,6 @@
     // No convolution reverb: profiling put it at 2.3-4x the cost of
     // everything else in the graph for a wet level nobody could hear, and
     // that CPU was starving the audio thread into crackling.
-    reverbSend = null;
   }
 
   /* Pull the effects down while the voice is talking, so the two aren't
@@ -1010,8 +1081,12 @@
     g.gain.exponentialRampToValueAtTime(0.0001, tm + (opts.at||0) + (opts.dur||.3));
     o.connect(g);
     g.connect(masterBus || a.destination);
-    if(reverbSend) g.connect(reverbSend);
     o.start(tm + (opts.at||0)); o.stop(tm + (opts.at||0) + (opts.dur||.3) + .05);
+    // Every sound used to leave its gain node wired into the bus forever.
+    // Measured: rendering a second of audio costs 5.6ms with a clean graph
+    // and 45.8ms once ~2000 of these pile up -- which is roughly ten minutes
+    // of tapping. That is the crackle, and it got worse the longer you played.
+    o.onended = function(){ try{ o.disconnect(); g.disconnect(); }catch(e){} };
   }
   const noiseCache = new Map();
   function noiseBuffer(a, dur){
@@ -1034,8 +1109,8 @@
     const g = a.createGain(); g.gain.value = vol != null ? vol : 0.4;
     src.connect(f); f.connect(g);
     g.connect(masterBus || a.destination);
-    if(reverbSend) g.connect(reverbSend);
     src.start(tm);
+    src.onended = function(){ try{ src.disconnect(); f.disconnect(); g.disconnect(); }catch(e){} };
   }
 
   /* ---------------- speech ---------------- */
@@ -1359,6 +1434,58 @@
   /* ---------------- LETTERS ---------------- */
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const letterGrid = $("#letterGrid"), letterWord = $("#letterWord"), bigLetter = $("#bigLetter");
+  const btnSpeak = $("#btnSpeak"), btnSpace = $("#btnSpace"), btnErase = $("#btnErase"), btnClearLetters = $("#btnClearLetters");
+  const MAX_LETTERS = 20;
+  let typedWord = "";
+
+  function renderTypeBox(){
+    letterWord.innerHTML = "";
+    if(!typedWord.length){
+      letterWord.classList.add("placeholder");
+      letterWord.textContent = t().hints.letter;
+      return;
+    }
+    letterWord.classList.remove("placeholder");
+    typedWord.split("").forEach(function(ch){
+      const s = document.createElement("span");
+      s.className = "typeChar";
+      s.textContent = ch === " " ? " " : ch;
+      letterWord.appendChild(s);
+    });
+    letterWord.scrollLeft = letterWord.scrollWidth;
+  }
+  function pushWord(ch){
+    const wasFull = typedWord.length >= MAX_LETTERS;
+    typedWord = (typedWord + ch).slice(-MAX_LETTERS);
+    renderTypeBox();
+    if(wasFull){
+      letterWord.classList.remove("pushed"); void letterWord.offsetWidth; letterWord.classList.add("pushed");
+    }
+  }
+  function eraseWord(){
+    if(!typedWord.length) return;
+    typedWord = typedWord.slice(0, -1);
+    renderTypeBox();
+    tone({f:220, to:140, dur:.16, type:"square", vol:.18});
+  }
+  function clearWord(){
+    typedWord = "";
+    renderTypeBox();
+    tone({f:300, to:120, dur:.28, type:"sawtooth", vol:.18});
+  }
+  function speakWord(){
+    if(!typedWord.trim().length) return;
+    say(typedWord);
+    letterWord.classList.remove("flash"); void letterWord.offsetWidth; letterWord.classList.add("flash");
+  }
+  onTap(btnSpeak, speakWord);
+  onTap(btnSpace, function(){
+    pushWord(" ");
+    tone({f:180, dur:.12, type:"sine", vol:.15});
+  });
+  onTap(btnErase, eraseWord);
+  onTap(btnClearLetters, clearWord);
+
   LETTERS.forEach(function(ch, i){
     const b = document.createElement("button");
     b.className = "pad";
@@ -1367,8 +1494,7 @@
     b.setAttribute("aria-label", ch);
     onTap(b, function(){
       b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-      letterWord.textContent = ch + "!";
-      letterWord.classList.remove("flash"); void letterWord.offsetWidth; letterWord.classList.add("flash");
+      pushWord(ch);
       const f = 260 + i * 22;
       tone({f:f, dur:.22, type:"triangle"});
       tone({f:f * 1.5, at:.14, dur:.28, type:"sine", vol:.18});
@@ -1382,6 +1508,7 @@
     });
     letterGrid.appendChild(b);
   });
+  renderTypeBox();
 
   /* ---------------- DRAW ---------------- */
   const drawCanvas = $("#drawCanvas"), swatchRow = $("#swatchRow");
@@ -1497,6 +1624,8 @@
     try{
       drawGain.gain.linearRampToValueAtTime(0.0001, a.currentTime + 0.08);
       drawOsc.stop(a.currentTime + 0.1);
+      const o = drawOsc, f = drawFilter, g = drawGain;
+      o.onended = function(){ try{ o.disconnect(); f.disconnect(); g.disconnect(); }catch(e){} };
     }catch(e){}
     drawOsc = null; drawFilter = null; drawGain = null;
   }
@@ -1745,9 +1874,66 @@
       " L " + x1 + " " + (y1-r) + " Q " + x1 + " " + y1 + " " + (x1-r) + " " + y1 +
       " L " + (x0+r) + " " + y1 + " Q " + x0 + " " + y1 + " " + x0 + " " + (y1-r) +
       " L " + x0 + " " + (y0+r) + " Q " + x0 + " " + y0 + " " + (x0+r) + " " + y0 + " Z";
+    const railW = 15 * scale / 0.42;
+
+    /* A little platform on the two long straights, sitting just outside the
+       rail the way a real platform hugs the track, so Henry can pull the
+       train up alongside one and stop it there. Purely a place to park at --
+       there's no snap-to-platform logic, just the scenery. The loop is a
+       phone-shaped rounded rect, so which pair of straights is long enough
+       to hold a platform depends on whether the screen is portrait or
+       landscape -- pick whichever pair actually has room. */
+    const platH = Math.max(14, 22 * scale / 0.42);
+    const platMargin = Math.max(16, r * 0.28);
+    const platGap = 5 + railW / 2;
+    const stripe = Math.min(7, platH * 0.32);
+    const hazardDefs = '<defs><pattern id="hazard" width="14" height="14" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">' +
+      '<rect width="14" height="14" fill="#FFD23F"/><rect width="7" height="14" fill="#241A2E"/></pattern></defs>';
+    // A band's own rect plus its rail-hugging stripe and two lamps, along
+    // whichever axis it lies on: `along` is [start,end] on the axis the
+    // platform runs, `near`/`far` are the cross-axis edges (near = the one
+    // touching the rail, where the stripe goes); `axis` says which is x.
+    function band(alongAxisIsX, alongStart, alongEnd, near, far){
+      const alongLo = Math.min(alongStart, alongEnd), alongLen = Math.abs(alongEnd - alongStart);
+      const crossLo = Math.min(near, far), crossLen = Math.abs(far - near);
+      const stripeCross = near > far ? (near - stripe) : near;
+      const lampAlong = [alongLo + alongLen*0.22, alongLo + alongLen*0.78];
+      const lampCross = (near + far) / 2;
+      const rectAt = function(cLo, cLen){
+        return alongAxisIsX
+          ? { x:alongLo, y:cLo, w:alongLen, h:cLen }
+          : { x:cLo, y:alongLo, w:cLen, h:alongLen };
+      };
+      const slab = rectAt(crossLo, crossLen), edge = rectAt(stripeCross, stripe);
+      let svg = '<rect x="'+slab.x+'" y="'+slab.y+'" width="'+slab.w+'" height="'+slab.h+'" rx="4" fill="#E4D9C2" stroke="#241A2E" stroke-width="3"/>' +
+        '<rect x="'+edge.x+'" y="'+edge.y+'" width="'+edge.w+'" height="'+edge.h+'" fill="url(#hazard)"/>';
+      lampAlong.forEach(function(la){
+        const cx = alongAxisIsX ? la : lampCross, cy = alongAxisIsX ? lampCross : la;
+        svg += '<circle cx="'+cx+'" cy="'+cy+'" r="4.5" fill="#FFD23F" stroke="#241A2E" stroke-width="2.5"/>';
+      });
+      return svg;
+    }
+    const hLen = (x1 - x0) - 2*r, vLen = (y1 - y0) - 2*r;
+    let platformSvg = "";
+    if(hLen >= vLen){
+      const p0 = x0 + r + platMargin, p1 = x1 - r - platMargin;
+      const topEdge = y0 - platGap, topFar = topEdge - platH;
+      const botEdge = y1 + platGap, botFar = botEdge + platH;
+      if(p1 - p0 > 46 && topFar > 2 && botFar < h - 2){
+        platformSvg = hazardDefs + band(true, p0, p1, topEdge, topFar) + band(true, p0, p1, botEdge, botFar);
+      }
+    } else {
+      const p0 = y0 + r + platMargin, p1 = y1 - r - platMargin;
+      const leftEdge = x0 - platGap, leftFar = leftEdge - platH;
+      const rightEdge = x1 + platGap, rightFar = rightEdge + platH;
+      if(p1 - p0 > 46 && leftFar > 2 && rightFar < w - 2){
+        platformSvg = hazardDefs + band(false, p0, p1, leftEdge, leftFar) + band(false, p0, p1, rightEdge, rightFar);
+      }
+    }
+
     trackSvg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    trackSvg.innerHTML =
-      '<path d="' + d + '" fill="none" stroke="#241A2E" stroke-width="' + (15*scale/0.42) + '" stroke-linecap="round"/>' +
+    trackSvg.innerHTML = platformSvg +
+      '<path d="' + d + '" fill="none" stroke="#241A2E" stroke-width="' + railW + '" stroke-linecap="round"/>' +
       '<path id="rail" d="' + d + '" fill="none" stroke="#FFF3D6" stroke-width="3.5" stroke-dasharray="11 11"/>';
     pathEl = trackSvg.querySelector("#rail");
     pathLen = pathEl.getTotalLength();
@@ -1756,7 +1942,6 @@
     /* Size the console from the loop's own inner rectangle, minus the rail
        stroke and a margin, so it always sits fully inside the track instead
        of spilling over the rails at the sides. */
-    const railW = 15 * scale / 0.42;
     const innerW = (x1 - x0) - railW - 20;
     const innerH = (y1 - y0) - railW - 20;
     controlCard.style.width = Math.max(140, Math.min(innerW, 300)) + "px";
@@ -2078,9 +2263,12 @@
     colorWord.textContent = d.hints.color;
     numWord.textContent = d.hints.number;
     soundWord.textContent = d.hints.sound;
-    letterWord.textContent = d.hints.letter;
+    renderTypeBox();
     document.querySelectorAll("[data-clear]").forEach(el => el.textContent = d.clearLabel);
     document.querySelectorAll("[data-save]").forEach(el => el.textContent = d.saveLabel);
+    document.querySelectorAll("[data-speak]").forEach(el => el.textContent = d.speakLabel);
+    document.querySelectorAll("[data-space]").forEach(el => el.textContent = d.spaceLabel);
+    document.querySelectorAll("[data-erase]").forEach(el => el.textContent = d.eraseLabel);
     document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
@@ -2095,6 +2283,7 @@
     localStorage.setItem("slimeLang", lang);
     applyLang();
     tone({f:520, to:780, dur:.15, type:"triangle", vol:.2});
+    say(t().langName[lang]);
   }
   applyLang();
 
