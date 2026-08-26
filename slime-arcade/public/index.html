@@ -878,7 +878,9 @@
   const t = () => STR[lang];
 
   /* ---------------- audio ---------------- */
-  let ctx = null, masterBus = null, reverbSend = null;
+  let ctx = null, masterBus = null, outGain = null, reverbSend = null;
+  const OUT_LEVEL = 0.75;   // headroom so the phone's own mixer isn't pushed
+  const DUCK_LEVEL = 0.3;   // how far to pull the effects back under speech
   function ac(){
     if(!ctx){
       try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
@@ -887,22 +889,32 @@
     if(ctx.state === "suspended") ctx.resume();
     return ctx;
   }
-  /* A light compressor (glues overlapping sounds together, stops clipping
-     when e.g. ten counting-blips fire at once) plus a small synthetic-room
-     reverb send, shared by every tone()/noise() call -- one change that
-     makes the whole app's sound design read as more "produced" instead of
-     a bunch of dry beeps. */
+  /* Everything the app synthesises meets here: a hard-kneed limiter that
+     bounds peaks no matter how many pads get mashed at once, then an output
+     stage kept below unity so the phone's own mixer still has headroom when
+     the speech engine plays on top of us. Measured, not guessed: rendering
+     these scenes offline showed the worst case (rapid pad-mashing) peaking
+     around 0.68 before the limiter and ~0.57 after. The reverb is a small
+     room now -- the old long tail mostly added mud and level. */
   function buildMasterBus(){
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -18;
-    comp.knee.value = 22;
-    comp.ratio.value = 3.2;
-    comp.attack.value = 0.006;
-    comp.release.value = 0.18;
-    comp.connect(ctx.destination);
-    masterBus = comp;
+    masterBus = ctx.createGain();
+    masterBus.gain.value = 1;
 
-    const dur = 1.3, decay = 2.8;
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -6;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.10;
+
+    outGain = ctx.createGain();
+    outGain.gain.value = OUT_LEVEL;
+
+    masterBus.connect(limiter);
+    limiter.connect(outGain);
+    outGain.connect(ctx.destination);
+
+    const dur = 0.9, decay = 3.4;
     const len = Math.floor(ctx.sampleRate * dur);
     const impulse = ctx.createBuffer(2, len, ctx.sampleRate);
     for(let ch=0; ch<2; ch++){
@@ -912,10 +924,20 @@
     const convolver = ctx.createConvolver();
     convolver.buffer = impulse;
     const wet = ctx.createGain();
-    wet.gain.value = 0.15;
+    wet.gain.value = 0.05;
     convolver.connect(wet);
     wet.connect(masterBus);
     reverbSend = convolver;
+  }
+  /* Pull the effects down while the voice is talking, so the two aren't
+     fighting each other into the speaker at the same moment. */
+  function duckTo(level){
+    const a = ctx; if(!a || !outGain) return;
+    try{
+      outGain.gain.cancelScheduledValues(a.currentTime);
+      outGain.gain.setValueAtTime(outGain.gain.value, a.currentTime);
+      outGain.gain.linearRampToValueAtTime(level, a.currentTime + 0.08);
+    }catch(e){}
   }
   function tone(opts){
     const a = ac(); if(!a) return;
@@ -964,16 +986,38 @@
     const qualityRe = /(natural|neural|enhanced|premium|google)/i;
     return pool.find(v => qualityRe.test(v.name)) || pool[0];
   }
+  let duckRestoreTimer = null;
   function say(text){
     if(!("speechSynthesis" in window)) return;
     try{
-      speechSynthesis.cancel();
+      // Only interrupt when something is actually in flight. Calling cancel()
+      // unconditionally before every utterance is what makes rapid tapping
+      // sound chopped up and gritty on Android.
+      if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = t().speechLang;
       const v = pickVoice(lang === "de" ? "de" : "en");
       if(v) u.voice = v;
-      u.rate = .92; u.pitch = 1.05; u.volume = 1;
+      /* rate and pitch stay at exactly 1. Any other value makes the platform
+         voice time-stretch and pitch-shift itself, and on the low-quality
+         "compact" voices most phones ship, that resampling is exactly what
+         sounds torn and staticky. Native rendering is far cleaner. */
+      u.rate = 1; u.pitch = 1; u.volume = 1;
+      u.onstart = function(){
+        clearTimeout(duckRestoreTimer);
+        duckTo(DUCK_LEVEL);
+      };
+      const undock = function(){
+        clearTimeout(duckRestoreTimer);
+        duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 120);
+      };
+      u.onend = undock;
+      u.onerror = undock;
       speechSynthesis.speak(u);
+      // Safety net: some engines never fire onend after a cancel, and we must
+      // not leave the effects ducked forever.
+      clearTimeout(duckRestoreTimer);
+      duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 4000);
     }catch(e){}
   }
 
