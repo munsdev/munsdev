@@ -681,6 +681,7 @@
   .sndBtn.open {background:linear-gradient(#7BD97B,#2F9E44)}
   .sndBtn.close{background:linear-gradient(#F4845F,#C0392B)}
   .sndBtn.board{background:linear-gradient(#6FC3F0,#1B6CA8)}
+  .sndBtn.exit {background:linear-gradient(#FFB35C,#D9741A)}
   .sndBtn.info {background:linear-gradient(#B79BE8,#6C3FB5)}
   .sndBtn.lit{
     filter:saturate(1.35) brightness(1.25);
@@ -703,6 +704,11 @@
   .annIco.board{
     background:#FFFFFF;
     clip-path:polygon(50% 0, 62% 10%, 62% 24%, 100% 34%, 100% 48%, 66% 40%, 66% 100%, 52% 100%, 52% 62%, 44% 62%, 44% 100%, 30% 100%, 30% 40%, 0 48%, 0 34%, 38% 24%, 38% 10%);
+  }
+  /* Exit: a plain bold arrow heading out, distinct from the door glyphs. */
+  .annIco.exitIco{
+    background:#FFFFFF;
+    clip-path:polygon(0 36%, 54% 36%, 54% 14%, 100% 50%, 54% 86%, 54% 64%, 0 64%);
   }
   .annIco.greet{
     background:#FFFFFF;
@@ -881,8 +887,9 @@
       <button class="sndBtn close" data-ann="close" aria-label="Türen schließen">
         <i class="elev"><b class="tri r"></b><b class="leaf"></b><b class="leaf"></b><b class="tri l"></b></i>
       </button>
-      <button class="sndBtn board" data-ann="board" aria-label="Einsteigen bitte"><i class="annIco board"></i></button>
-      <button class="sndBtn info" data-ann="greet" aria-label="Sehr geehrte Fahrgäste"><i class="annIco greet"></i></button>
+      <button class="sndBtn board" data-ann="board" aria-label="Einsteigen bitte / All aboard"><i class="annIco board"></i></button>
+      <button class="sndBtn exit" data-ann="exit" aria-label="Bitte alle aussteigen / All passengers leave the train"><i class="annIco exitIco"></i></button>
+      <button class="sndBtn info" data-ann="greet" aria-label="Sehr geehrte Fahrgäste / Dear passengers"><i class="annIco greet"></i></button>
     </div>
   </section>
 </div>
@@ -975,22 +982,12 @@
     masterBus.connect(limiter);
     limiter.connect(outGain);
     outGain.connect(ctx.destination);
-
-    const dur = 0.9, decay = 3.4;
-    const len = Math.floor(ctx.sampleRate * dur);
-    const impulse = ctx.createBuffer(2, len, ctx.sampleRate);
-    for(let ch=0; ch<2; ch++){
-      const data = impulse.getChannelData(ch);
-      for(let i=0;i<len;i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
-    }
-    const convolver = ctx.createConvolver();
-    convolver.buffer = impulse;
-    const wet = ctx.createGain();
-    wet.gain.value = 0.05;
-    convolver.connect(wet);
-    wet.connect(masterBus);
-    reverbSend = convolver;
+    // No convolution reverb: profiling put it at 2.3-4x the cost of
+    // everything else in the graph for a wet level nobody could hear, and
+    // that CPU was starving the audio thread into crackling.
+    reverbSend = null;
   }
+
   /* Pull the effects down while the voice is talking, so the two aren't
      fighting each other into the speaker at the same moment. */
   function duckTo(level){
@@ -1016,14 +1013,23 @@
     if(reverbSend) g.connect(reverbSend);
     o.start(tm + (opts.at||0)); o.stop(tm + (opts.at||0) + (opts.dur||.3) + .05);
   }
+  const noiseCache = new Map();
+  function noiseBuffer(a, dur){
+    const key = Math.round(dur * 1000);
+    let buf = noiseCache.get(key);
+    if(!buf){
+      const len = Math.floor(a.sampleRate * dur);
+      buf = a.createBuffer(1, len, a.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1 - i/len);
+      noiseCache.set(key, buf);
+    }
+    return buf;
+  }
   function noise(dur, at, filterFreq, vol){
     const a = ac(); if(!a) return;
     const tm = a.currentTime + (at||0);
-    const len = Math.floor(a.sampleRate * dur);
-    const buf = a.createBuffer(1, len, a.sampleRate);
-    const d = buf.getChannelData(0);
-    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1 - i/len);
-    const src = a.createBufferSource(); src.buffer = buf;
+    const src = a.createBufferSource(); src.buffer = noiseBuffer(a, dur);
     const f = a.createBiquadFilter(); f.type="lowpass"; f.frequency.value = filterFreq||1400;
     const g = a.createGain(); g.gain.value = vol != null ? vol : 0.4;
     src.connect(f); f.connect(g);
@@ -1745,6 +1751,7 @@
       '<path id="rail" d="' + d + '" fill="none" stroke="#FFF3D6" stroke-width="3.5" stroke-dasharray="11 11"/>';
     pathEl = trackSvg.querySelector("#rail");
     pathLen = pathEl.getTotalLength();
+    buildPathSamples();
 
     /* Size the console from the loop's own inner rectangle, minus the rail
        stroke and a margin, so it always sits fully inside the track instead
@@ -1766,16 +1773,42 @@
     place();
   }
 
-  function at(len){ return pathEl.getPointAtLength(((len % pathLen) + pathLen) % pathLen); }
+  /* getPointAtLength is expensive enough that calling it a dozen times a
+     frame pegged the main thread. Sample the loop once per layout and
+     interpolate between the samples instead -- at this density the error is
+     well under a pixel. */
+  const PATH_SAMPLES = 720;
+  let samples = null;
+  function buildPathSamples(){
+    samples = new Float32Array((PATH_SAMPLES + 1) * 2);
+    for(let i = 0; i <= PATH_SAMPLES; i++){
+      const pt = pathEl.getPointAtLength(pathLen * i / PATH_SAMPLES);
+      samples[i*2] = pt.x;
+      samples[i*2+1] = pt.y;
+    }
+  }
+  const _pt = {x:0, y:0};
+  function at(len){
+    const L = ((len % pathLen) + pathLen) % pathLen;
+    const f = L / pathLen * PATH_SAMPLES;
+    const i = f | 0;
+    const frac = f - i;
+    const ax = samples[i*2], ay = samples[i*2+1];
+    const bx = samples[i*2+2], by = samples[i*2+3];
+    _pt.x = ax + (bx - ax) * frac;
+    _pt.y = ay + (by - ay) * frac;
+    return _pt;
+  }
 
   function placeOne(veh, lenAt){
     const v = veh.v;
-    const pA = at(lenAt + (v.axleA - v.w/2) * scale);
-    const pB = at(lenAt + (v.axleB - v.w/2) * scale);
-    const deg = Math.atan2(pB.y - pA.y, pB.x - pA.x) * 180 / Math.PI;
+    const a = at(lenAt + (v.axleA - v.w/2) * scale);
+    const ax = a.x, ay = a.y;                       // copy: at() reuses one object
+    const b = at(lenAt + (v.axleB - v.w/2) * scale);
+    const deg = Math.atan2(b.y - ay, b.x - ax) * 180 / Math.PI;
     const mx = (v.axleA + v.axleB) / 2;
     veh.el.style.transform =
-      "translate(" + ((pA.x+pB.x)/2) + "px," + ((pA.y+pB.y)/2) + "px) " +
+      "translate(" + ((ax + b.x)/2) + "px," + ((ay + b.y)/2) + "px) " +
       "rotate(" + deg + "deg) scale(" + scale + ") " +
       "translate(" + (-mx) + "px," + (-RAIL_Y) + "px)";
   }
@@ -1887,10 +1920,16 @@
      Spoken in German whatever the app language is -- these are the real
      phrases you hear on a German platform, which is the whole point. */
   const ANNOUNCEMENTS = {
-    open:  { de:"Vorsicht, die Türen öffnen sich!" },
-    close: { de:"Zurückbleiben bitte! Die Türen schließen." },
-    board: { de:"Einsteigen bitte!" },
-    greet: { de:"Sehr geehrte Fahrgäste, willkommen an Bord." }
+    open:  { de:"Vorsicht, die Türen öffnen sich!",
+             en:"Doors opening. Please stand clear." },
+    close: { de:"Zurückbleiben bitte! Die Türen schließen.",
+             en:"Stand back please! The doors are closing." },
+    board: { de:"Einsteigen bitte!",
+             en:"All aboard!" },
+    exit:  { de:"Endstation! Bitte alle aussteigen.",
+             en:"Final stop! All passengers please leave the train." },
+    greet: { de:"Sehr geehrte Fahrgäste, willkommen an Bord.",
+             en:"Dear passengers, welcome aboard." }
   };
   function stationChime(){
     // The familiar rising platform gong before an announcement.
@@ -1899,13 +1938,13 @@
       tone({f:n.f*2, at:n.at, dur:.32, type:"sine", vol:.05});
     });
   }
-  function sayGerman(text, onDone){
+  function sayAnnouncement(text, langCode, onDone){
     if(!("speechSynthesis" in window)) return;
     try{
       if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = "de-DE";
-      const v = pickVoice("de");
+      u.lang = langCode === "de" ? "de-DE" : "en-US";
+      const v = pickVoice(langCode);
       if(v) u.voice = v;
       u.rate = 1; u.pitch = 1; u.volume = 1;
       u.onstart = function(){ clearTimeout(duckRestoreTimer); duckTo(DUCK_LEVEL); };
@@ -1930,7 +1969,7 @@
       clearTimeout(annLitTimer);
       annLitTimer = setTimeout(function(){ btn.classList.remove("lit"); }, 4200);
       stationChime();
-      setTimeout(function(){ sayGerman(a.de, function(){
+      setTimeout(function(){ sayAnnouncement(a[lang] || a.en, lang, function(){
         clearTimeout(annLitTimer);
         btn.classList.remove("lit");
       }); }, 620);
