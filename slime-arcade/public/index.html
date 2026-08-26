@@ -1014,9 +1014,10 @@
   const t = () => STR[lang];
 
   /* ---------------- audio ---------------- */
-  let ctx = null, masterBus = null, outGain = null;
+  let ctx = null, masterBus = null, outGain = null, voiceBus = null;
   const OUT_LEVEL = 0.75;   // headroom so the phone's own mixer isn't pushed
   const DUCK_LEVEL = 0.3;   // how far to pull the effects back under speech
+  const VOICE_LEVEL = 1;    // the single knob for how loud the voice clips are
   function ac(){
     if(!ctx){
       try{
@@ -1070,6 +1071,17 @@
     // No convolution reverb: profiling put it at 2.3-4x the cost of
     // everything else in the graph for a wet level nobody could hear, and
     // that CPU was starving the audio thread into crackling.
+
+    /* The voice deliberately does NOT go through the limiter above. That
+       node is a DynamicsCompressorNode, and the Web Audio spec gives it a
+       fixed automatic makeup gain derived from threshold/knee/ratio that
+       cannot be switched off -- so it is a gain stage, not just a ceiling.
+       Effects can live with that; a spoken word run through it would come
+       out squashed and pushed toward the clip point, which is the opposite
+       of what we replaced speechSynthesis to get. Straight to the output. */
+    voiceBus = ctx.createGain();
+    voiceBus.gain.value = VOICE_LEVEL;
+    voiceBus.connect(ctx.destination);
   }
 
   /* Pull the effects down while the voice is talking, so the two aren't
@@ -1197,8 +1209,13 @@
     return pool.find(v => qualityRe.test(v.name)) || pool[0];
   }
   let duckRestoreTimer = null;
-  function say(text){
-    if(!("speechSynthesis" in window)) return;
+  /* The platform speech engine. This is no longer how the app says its own
+     vocabulary -- see sayClip() below -- and survives for exactly two jobs:
+     the Letters pad's SAY IT button, which reads whatever word a child typed
+     and therefore cannot be pre-generated, and as the fallback for any clip
+     that hasn't been generated and deployed yet. */
+  function say(text, onDone){
+    if(!("speechSynthesis" in window)){ if(onDone) onDone(); return; }
     try{
       // Only interrupt when something is actually in flight. Calling cancel()
       // unconditionally before every utterance is what makes rapid tapping
@@ -1217,9 +1234,11 @@
         clearTimeout(duckRestoreTimer);
         duckTo(DUCK_LEVEL);
       };
+      let finished = false;
       const undock = function(){
         clearTimeout(duckRestoreTimer);
         duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 120);
+        if(!finished){ finished = true; if(onDone) onDone(); }
       };
       u.onend = undock;
       u.onerror = undock;
@@ -1228,7 +1247,131 @@
       // not leave the effects ducked forever.
       clearTimeout(duckRestoreTimer);
       duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 4000);
-    }catch(e){}
+    }catch(e){ if(onDone) onDone(); }
+  }
+
+  /* ---------------- voice clips ----------------
+     Every phrase the app speaks on its own is a pre-generated Google Cloud
+     TTS (Chirp 3 HD) MP3 under public/voice/<lang>/<id>.mp3, produced by
+     tools/gen-voices.mjs from tools/voice-manifest.json.
+
+     The reason this exists at all: speechSynthesis does not render audio. It
+     hands the text to the platform's TTS engine -- Google Speech Services on
+     Android -- which renders it in another process entirely and plays it on
+     its own audio path. The voice, its quality and its sample rate are not
+     reachable from here, which is why tuning this file's audio graph never
+     changed how the voices sounded. They were never in this file's graph.
+
+     A generated clip is the same voice on every device, in both languages,
+     and it decodes to a plain buffer we own. If a clip is missing -- nothing
+     generated yet, a failed deploy -- we fall back to say() so the app still
+     talks rather than going silent. */
+  const VOICE_DIR = "voice/";
+  const clipCache = new Map();   // "en/letter-a" -> Promise<AudioBuffer|null>
+  let currentVoice = null;       // the clip in flight, so a new word cuts it off
+
+  function loadClip(clipLang, id){
+    const key = clipLang + "/" + id;
+    let p = clipCache.get(key);
+    if(!p){
+      p = fetch(VOICE_DIR + key + ".mp3")
+        .then(function(r){
+          /* wrangler.toml sets not_found_handling = "single-page-application",
+             so a clip that hasn't been generated yet comes back as index.html
+             with a 200 rather than a 404. Checking the content type is what
+             actually distinguishes "no such clip" from a real one. */
+          if(!r.ok) return null;
+          const type = r.headers.get("content-type") || "";
+          if(type.indexOf("audio") === -1 && type.indexOf("octet-stream") === -1) return null;
+          return r.arrayBuffer();
+        })
+        .then(function(data){
+          const a = ctx;
+          if(!data || !a) return null;
+          // decodeAudioData resamples to the context rate once, here, rather
+          // than on every play.
+          return a.decodeAudioData(data).catch(function(){ return null; });
+        })
+        .catch(function(){ return null; });
+      clipCache.set(key, p);
+    }
+    return p;
+  }
+
+  /* Must stay in step with tools/voice-manifest.json -- that file is the
+     source of truth for what gets generated, this list is what gets warmed. */
+  const VOICE_IDS = [].concat(
+    ["circle","square","triangle","star","heart","diamond"].map(function(k){ return "shape-" + k; }),
+    ["red","orange","yellow","green","blue","purple","pink","brown"].map(function(k){ return "color-" + k; }),
+    [1,2,3,4,5,6,7,8,9,10].map(function(n){ return "num-" + n; }),
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(function(c){ return "letter-" + c.toLowerCase(); }),
+    ["steam","ice","railjet","ubahn","shinkansen"].map(function(k){ return "train-" + k; }),
+    ["open","close","board","exit","greet"].map(function(k){ return "ann-" + k; }),
+    ["langname"]
+  );
+
+  /* Pull the whole current language into memory on the first tap. It's ~61
+     files of a few KB each, they're static and HTTP-cached, and doing it up
+     front means no pad ever waits on a fetch mid-play. */
+  let voicesWarmed = null;
+  function warmVoices(){
+    if(voicesWarmed === lang || !ctx) return;
+    const warmLang = lang;
+    voicesWarmed = warmLang;
+    /* Probe one clip before pulling the rest. If the clips aren't deployed,
+       every request returns the whole index.html page (see loadClip), and
+       firing 61 of those on the first tap would be a real waste of a phone's
+       data. One probe tells us whether the set is there at all. */
+    loadClip(warmLang, VOICE_IDS[0]).then(function(buf){
+      if(!buf){ voicesWarmed = null; return; }
+      VOICE_IDS.forEach(function(id){ loadClip(warmLang, id); });
+    });
+  }
+
+  /* fallbackFn lets a caller supply its own speechSynthesis path for when the
+     clip is missing; the announcements use it to keep their longer unduck
+     safety timeout. Everything else just wants say(). */
+  function sayClip(id, fallbackText, onDone, fallbackFn){
+    const speak = fallbackFn || function(cb){ say(fallbackText, cb); };
+    const a = ac();
+    if(!a){ speak(onDone); return; }
+    warmVoices();
+    const forLang = lang;
+    loadClip(forLang, id).then(function(buf){
+      if(!buf){ speak(onDone); return; }
+      playVoice(buf, onDone);
+    });
+  }
+
+  function playVoice(buf, onDone){
+    const a = ctx;
+    if(!a || !voiceBus){ if(onDone) onDone(); return; }
+    try{
+      // One voice at a time. A new word interrupts the old one, which is what
+      // the speechSynthesis.cancel() call used to do.
+      if(currentVoice){
+        try{ currentVoice.onended = null; currentVoice.stop(); currentVoice.disconnect(); }catch(e){}
+        currentVoice = null;
+      }
+      // The SAY IT button may still have an utterance in flight.
+      if("speechSynthesis" in window && (speechSynthesis.speaking || speechSynthesis.pending)){
+        try{ speechSynthesis.cancel(); }catch(e){}
+      }
+      const src = a.createBufferSource();
+      src.buffer = buf;
+      src.connect(voiceBus);
+      currentVoice = src;
+      clearTimeout(duckRestoreTimer);
+      duckTo(DUCK_LEVEL);
+      src.onended = function(){
+        try{ src.disconnect(); }catch(e){}
+        if(currentVoice === src) currentVoice = null;
+        clearTimeout(duckRestoreTimer);
+        duckRestoreTimer = setTimeout(function(){ duckTo(OUT_LEVEL); }, 120);
+        if(onDone) onDone();
+      };
+      src.start();
+    }catch(e){ if(onDone) onDone(); }
   }
 
   /* ---------------- particles ---------------- */
@@ -1358,7 +1501,7 @@
       shapeWord.classList.remove("flash"); void shapeWord.offsetWidth; shapeWord.classList.add("flash");
       tone({f:s.f, dur:.22, type:"triangle"});
       tone({f:s.f*1.5, at:.16, dur:.3, type:"sine", vol:.2});
-      say(name);
+      sayClip("shape-" + s.key, name);
       const p = centerOf(b); burst(p.x, p.y, [s.col, "#fff", "#241A2E"], 16);
       bigShape.className = "";
       bigShape.style.background = s.col;
@@ -1408,7 +1551,7 @@
       colorWord.style.color = c.c;
       colorWord.classList.remove("flash"); void colorWord.offsetWidth; colorWord.classList.add("flash");
       tone({f:c.f, to:c.f*2, dur:.35, type:"sine"});
-      say(name);
+      sayClip("color-" + c.key, name);
       const p = centerOf(b); burst(p.x, p.y, [c.c, "#fff"], 20);
     });
     colorGrid.appendChild(b);
@@ -1428,7 +1571,7 @@
       tray.innerHTML = "";
       numWord.textContent = i + " — " + t().numWords[i-1] + "!";
       numWord.classList.remove("flash"); void numWord.offsetWidth; numWord.classList.add("flash");
-      say(String(i));
+      sayClip("num-" + i, t().numWords[i-1]);
       for(let k=0;k<i;k++){
         countTimers.push(setTimeout(function(){
           const g = document.createElement("div");
@@ -1576,7 +1719,7 @@
       const f = 260 + i * 22;
       tone({f:f, dur:.22, type:"triangle"});
       tone({f:f * 1.5, at:.14, dur:.28, type:"sine", vol:.18});
-      say(ch);
+      sayClip("letter-" + ch.toLowerCase(), ch);
       const p = centerOf(b); burst(p.x, p.y, [b.style.background, "#fff", "#241A2E"], 14);
       bigLetter.style.color = b.style.background;
       bigLetter.textContent = ch;
@@ -2188,7 +2331,7 @@
     buildTrain(key);
     layoutTrack(); // platform length tracks this train's actual length
     tone({f:520, to:780, dur:.2, type:"triangle", vol:.2});
-    say(TRAIN_SETS[key].label[lang] || TRAIN_SETS[key].label.en);
+    sayClip("train-" + key, TRAIN_SETS[key].label[lang] || TRAIN_SETS[key].label.en);
   }
   buildTrain(TRAIN_ORDER[trainSetIdx]);
   setTrainDirection(0); // start with STOP lit, so the console reads its state
@@ -2216,7 +2359,7 @@
     });
   }
   function sayAnnouncement(text, langCode, onDone){
-    if(!("speechSynthesis" in window)) return;
+    if(!("speechSynthesis" in window)){ if(onDone) onDone(); return; }
     try{
       if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -2246,10 +2389,15 @@
       clearTimeout(annLitTimer);
       annLitTimer = setTimeout(function(){ btn.classList.remove("lit"); }, 4200);
       stationChime();
-      setTimeout(function(){ sayAnnouncement(a[lang] || a.en, lang, function(){
-        clearTimeout(annLitTimer);
-        btn.classList.remove("lit");
-      }); }, 620);
+      setTimeout(function(){
+        const done = function(){
+          clearTimeout(annLitTimer);
+          btn.classList.remove("lit");
+        };
+        sayClip("ann-" + btn.dataset.ann, a[lang] || a.en, done, function(cb){
+          sayAnnouncement(a[lang] || a.en, lang, cb);
+        });
+      }, 620);
       const p = centerOf(btn);
       burst(p.x, p.y, ["#FFD23F","#fff","#8FC2E8"], 12);
     });
@@ -2375,7 +2523,7 @@
     localStorage.setItem("slimeLang", lang);
     applyLang();
     tone({f:520, to:780, dur:.15, type:"triangle", vol:.2});
-    say(t().langName[lang]);
+    sayClip("langname", t().langName[lang]);
   }
   applyLang();
 
