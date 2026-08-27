@@ -235,8 +235,8 @@
   .tile.t5{background:var(--slime);transform:rotate(-1.5deg)}
   .tile.t6{background:#EF3E36;transform:rotate(2deg)}
   .tile.t7{background:#8B5A2B;transform:rotate(-1deg)}
-  .tile.t7{grid-column:1 / -1}
-  .tile.t1:active,.tile.t2:active,.tile.t3:active,.tile.t4:active,.tile.t5:active,.tile.t6:active,.tile.t7:active{transform:translateY(10px) scale(.97)}
+  .tile.t8{background:#5C6B78;transform:rotate(2deg)}
+  .tile.t1:active,.tile.t2:active,.tile.t3:active,.tile.t4:active,.tile.t5:active,.tile.t6:active,.tile.t7:active,.tile.t8:active{transform:translateY(10px) scale(.97)}
 
   /* ---------- shared play area ---------- */
   .stage{
@@ -768,6 +768,264 @@
     clip-path:polygon(0 8%, 100% 8%, 100% 70%, 56% 70%, 30% 96%, 32% 70%, 0 70%);
   }
 
+  /* ---------- ELEVATOR ----------
+     A side-on cutaway of a station: three levels stacked up the screen, a
+     shaft down the left, trains sliding in along the right. Everything is
+     paper: flat shapes with fat ink outlines and hard, unblurred cast
+     shadows, laid in visible layers.
+
+     Scenery is drawn in fixed "art units" (a room is 145 art units tall)
+     and scaled by --k, set from the measured floor height in JS -- the same
+     trick the train screen uses, so a phone and a tablet get the same
+     drawing rather than the same numbers. Actors (people, trains) are
+     positioned in real pixels by JS and scaled by the same --k. */
+  #lift{
+    --lp:#F6EAD0;      /* paper */
+    --f1:#FFC61A;      /* 1 · U-Bahn · yellow */
+    --f2:#E33629;      /* 2 · S-Bahn · red    */
+    --f3:#2D7DD2;      /* 3 · street  · blue  */
+  }
+  .liftStage{
+    flex:1 1 auto;min-height:0;position:relative;z-index:3;
+    display:flex;border:4px solid var(--ink);border-radius:6px;
+    background:var(--lp);overflow:hidden;
+  }
+  .liftShaft{
+    position:relative;flex:0 0 auto;width:76px;background:#4A5260;
+    border-right:4px solid var(--ink);overflow:hidden;z-index:4;
+  }
+  .liftShaft .srail{position:absolute;top:0;bottom:0;width:4px;background:#39404C;box-shadow:2px 0 0 rgba(255,255,255,.14)}
+  .liftShaft .srail.a{left:11%}
+  .liftShaft .srail.b{right:11%}
+  .liftCable{position:absolute;left:50%;top:0;width:3px;margin-left:-1.5px;background:#39404C;z-index:1}
+  .liftReadout{
+    position:absolute;left:5%;right:5%;top:4px;height:20px;z-index:6;
+    background:#171A1F;border:2px solid #2A2F38;border-radius:3px;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+  }
+  .liftReadout .num{font-family:var(--display);font-size:13px;color:var(--sun);line-height:1}
+  .liftReadout .ar{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;opacity:.18}
+  .liftReadout .ar.up{border-bottom:7px solid var(--sun)}
+  .liftReadout .ar.dn{border-top:7px solid var(--sun)}
+  .liftReadout .ar.on{opacity:1;animation:liftBlink .6s steps(1,end) infinite}
+  @keyframes liftBlink{0%,49%{opacity:1}50%,100%{opacity:.15}}
+
+  .liftCar{
+    position:absolute;top:0;
+    background:#E9DFC6;border:3px solid var(--ink);border-radius:3px;
+    box-shadow:inset 0 0 0 3px #C3B693, 4px 5px 0 rgba(20,16,26,.3);
+    overflow:hidden;z-index:5;
+  }
+  .liftCar .cfloor{position:absolute;left:0;right:0;bottom:0;background:#8E8163;border-top:2px solid var(--ink)}
+  .liftCar .leaf{
+    position:absolute;top:0;bottom:0;width:50.5%;background:#B9BFC7;
+    box-shadow:inset -3px 0 0 rgba(255,255,255,.4);
+  }
+  .liftCar .leaf.l{left:0;border-right:2px solid #2C3138}
+  .liftCar .leaf.r{right:0;border-left:2px solid #2C3138}
+
+  .liftFloors{flex:1 1 auto;min-width:0;position:relative;display:flex;flex-direction:column}
+  .lroom{position:relative;flex:1 1 0;overflow:hidden;border-bottom:3px solid var(--ink)}
+  .lroom:last-child{border-bottom:0}
+  .lroom.r3{background:#A9CBE8}
+  .lroom.r2{background:#D9948C}
+  .lroom.r1{background:#EFD79A}
+  /* the art box: art units across the full room, scaled by --k */
+  .lart{
+    position:absolute;left:0;bottom:0;height:145px;
+    width:calc(var(--artw,205) * 1px);
+    transform-origin:0 100%;transform:scale(var(--k,1));
+  }
+  .lart > *{filter:drop-shadow(2px 3px 0 rgba(20,16,26,.22))}
+  .lart > .backing, .lart > .slab, .lart > .tiles{filter:none}
+  /* a second sheet laid over the wall, cut short at the top */
+  .backing{position:absolute;left:0;right:0;top:0;bottom:11px;background:rgba(255,255,255,.22);
+    clip-path:polygon(0 4px,26% 1px,58% 5px,100% 2px,100% 100%,0 100%)}
+  .slab{position:absolute;left:0;right:0;bottom:0;height:11px;background:var(--lp);
+    border-top:3px solid var(--ink);filter:drop-shadow(0 -3px 0 rgba(20,16,26,.14))}
+  .tiles{position:absolute;inset:0;opacity:.30;
+    background:repeating-linear-gradient(90deg,transparent 0 15px,rgba(20,16,26,.16) 15px 17px),
+               repeating-linear-gradient(0deg,transparent 0 11px,rgba(20,16,26,.16) 11px 13px)}
+  .hazard{position:absolute;right:0;bottom:11px;width:60%;height:5px;
+    background:repeating-linear-gradient(45deg,var(--sun) 0 6px,#241A2E 6px 12px)}
+  .ltrack{position:absolute;right:0;bottom:5px;width:66%;height:4px;background:#6E6656;border-radius:2px}
+  .ltunnel{position:absolute;right:0;top:12%;bottom:11px;width:20px;background:#241A2E;
+    border-left:3px solid var(--ink);border-radius:9px 0 0 0}
+  .lsign{position:absolute;left:7px;top:6px;display:flex;align-items:center;gap:5px;transform:rotate(-1.4deg)}
+  .lsign i{width:19px;height:19px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-size:11px;color:#fff;border:2px solid var(--ink);box-shadow:0 0 0 3px var(--lp)}
+  .lsign span{font-family:var(--display);font-size:9px;color:#241A2E;letter-spacing:.04em;
+    background:var(--lp);border:2px solid var(--ink);padding:2px 5px}
+  .lt1{background:var(--f1);color:#241A2E !important}
+  .lt2{background:var(--f2)}
+  .lt3{background:var(--f3)}
+  /* street level */
+  .lexit{position:absolute;right:12px;bottom:11px;width:60px;height:76px;background:#DFF1FF;
+    border:3px solid var(--ink);border-radius:6px 6px 0 0;transform:rotate(.5deg)}
+  .lexit i{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--ink)}
+  .lexit b{position:absolute;left:0;right:0;bottom:0;height:12px;background:#9FBED4;border-top:3px solid var(--ink)}
+  .lexitSign{position:absolute;right:12px;bottom:90px;width:60px;height:16px;background:#0F7B3E;
+    border:2px solid var(--ink);box-shadow:0 0 0 3px var(--lp);transform:rotate(-1.6deg);
+    display:flex;align-items:center;justify-content:center;gap:3px}
+  .lexitSign span{font-family:var(--display);font-size:7px;color:#fff;letter-spacing:.06em}
+  .lexitSign i{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #fff}
+  .lawn{position:absolute;right:82px;bottom:36px;width:52px;height:14px;border:3px solid var(--ink);
+    border-radius:3px 3px 8px 8px;transform:rotate(1deg);
+    background:repeating-linear-gradient(90deg,#EF3E36 0 7px,#FFF3D6 7px 14px)}
+  .lcounter{position:absolute;right:82px;bottom:11px;width:52px;height:24px;background:#B4581F;
+    border:3px solid var(--ink);border-radius:4px 4px 2px 2px;transform:rotate(-.6deg)}
+  .lcounter i{position:absolute;left:6px;top:-11px;font-size:11px;font-style:normal}
+  .pipRow{position:absolute;right:7px;top:6px;display:flex;gap:3px}
+  .pipRow i{display:block;width:9px;height:9px;background:rgba(20,16,26,.22);border:2px solid var(--ink)}
+  .pipRow i.on{background:var(--sun)}
+
+  /* ---- trains: real-px position from JS, art-unit insides ---- */
+  .ltrainLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:2}
+  .ltrain{position:absolute;left:0;top:0;width:116px;height:52px;transform-origin:0 0;pointer-events:auto}
+  .ltrain .tbody{position:absolute;inset:0;border:3px solid var(--ink);border-radius:4px 4px 3px 3px}
+  .ltrain.u .tbody{background:var(--f1)}
+  .ltrain.s .tbody{background:var(--f2)}
+  .ltrain.s .ttop{position:absolute;left:0;right:0;top:3px;height:13px;background:#E8A020}
+  .ltrain .twin{position:absolute;top:16px;height:15px;background:#22303A;border:2px solid var(--ink);border-radius:3px}
+  .ltrain .twin.w1{left:6px;width:15px}
+  .ltrain .twin.w2{left:41px;width:20px}
+  .ltrain .twin.w3{left:81px;width:26px}
+  .ltrain .tdoor{position:absolute;top:14px;bottom:5px;width:12px;background:#5A626C;border:2px solid var(--ink)}
+  .ltrain .tdoor::after{content:"";position:absolute;left:1px;right:1px;top:1px;height:12px;background:#22303A}
+  .ltrain .tdoor.d1{left:25px}
+  .ltrain .tdoor.d2{left:65px}
+  .ltrain.open .tdoor{background:#241A2E;box-shadow:inset 0 0 0 2px #6D7684}
+  .ltrain.open .tdoor::after{background:#241A2E}
+  .ltrain .tnose{position:absolute;left:-16px;top:0;bottom:0;width:18px;border:3px solid var(--ink);border-right:0;
+    clip-path:polygon(38% 0,100% 0,100% 100%,0 100%)}
+  .ltrain.u .tnose{background:var(--f1)}
+  .ltrain.s .tnose{background:var(--f2)}
+  .ltrain .tlamp{position:absolute;left:-12px;bottom:12px;width:8px;height:5px;background:#FFF0B8;border:2px solid var(--ink)}
+  .ltrain .tw{position:absolute;bottom:-7px;width:11px;height:11px;background:#191920;border:2px solid #6E6656;border-radius:50%}
+  .ltrain .tw.k1{left:12px}
+  .ltrain .tw.k2{left:38px}
+  .ltrain .tw.k3{left:72px}
+  .ltrain .tw.k4{left:96px}
+
+  /* ---- paper-doll people ---- */
+  .lpedLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;z-index:3}
+  .ped{
+    position:absolute;left:0;top:0;width:22px;height:44px;
+    transform-origin:0 0;cursor:pointer;
+    filter:drop-shadow(2px 3px 0 rgba(20,16,26,.26));
+  }
+  .ped .head{position:absolute;left:4px;top:0;width:14px;height:14px;background:var(--skin,#E8B98A);
+    border:2px solid var(--ink);border-radius:50%}
+  .ped .torso{position:absolute;left:2px;top:14px;width:18px;height:18px;background:var(--shirt,#22CFE0);
+    border:2px solid var(--ink);border-radius:6px 6px 3px 3px}
+  .ped .arm{position:absolute;top:16px;width:5px;height:13px;background:var(--shirt,#22CFE0);
+    border:2px solid var(--ink);border-radius:3px}
+  .ped .arm.a{left:-2px;transform:rotate(7deg)}
+  .ped .arm.b{right:-2px;transform:rotate(-7deg)}
+  .ped .leg{position:absolute;top:31px;width:8px;height:13px;background:#4B5464;
+    border:2px solid var(--ink);border-radius:0 0 3px 3px}
+  .ped .leg.a{left:2px}
+  .ped .leg.b{left:12px}
+  .ped.walk .leg.a{animation:stepA .46s steps(1,end) infinite}
+  .ped.walk .leg.b{animation:stepB .46s steps(1,end) infinite}
+  @keyframes stepA{0%,49%{height:13px}50%,100%{height:9px}}
+  @keyframes stepB{0%,49%{height:9px}50%,100%{height:13px}}
+  .badge{
+    position:absolute;left:0;top:-29px;width:22px;height:23px;border:2px solid var(--ink);
+    box-shadow:0 0 0 3px var(--lp,#F6EAD0), 2px 3px 0 rgba(20,16,26,.26);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    transform:rotate(-4deg);
+  }
+  .badge::after{content:"";position:absolute;left:50%;margin-left:-4px;bottom:-6px;width:0;height:0;
+    border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--ink)}
+  .badge b{font-family:var(--display);font-size:11px;color:#fff;line-height:1}
+  .badge s{display:flex;gap:3px;text-decoration:none}
+  .badge u{display:block;width:3px;height:3px;background:#fff;text-decoration:none}
+  .bg1{background:var(--f1)}
+  .bg1 b{color:#241A2E}
+  .bg1 u{background:#241A2E}
+  .bg2{background:var(--f2)}
+  .bg3{background:var(--f3)}
+  .poof{position:absolute;left:13px;top:-44px;width:24px;height:24px;pointer-events:none}
+  .poof i{position:absolute;background:var(--lp,#F6EAD0);border:2px solid var(--ink);border-radius:50%}
+  .poof i:nth-child(1){left:0;top:6px;width:9px;height:9px}
+  .poof i:nth-child(2){left:11px;top:0;width:11px;height:11px}
+  .poof i:nth-child(3){left:16px;top:13px;width:8px;height:8px}
+  .thanks{
+    position:absolute;left:-17px;top:-24px;background:var(--lp,#F6EAD0);border:2px solid var(--ink);
+    font-family:var(--display);font-size:8px;color:#241A2E;padding:3px 5px;white-space:nowrap;
+    transform:rotate(-3deg);box-shadow:2px 3px 0 rgba(20,16,26,.26);border-radius:5px 5px 5px 1px;
+  }
+
+  /* ---- console ---- */
+  .liftConsole{
+    flex:0 0 auto;
+    background:linear-gradient(#454B54,#2E333A 60%,#262A30);
+    border:5px solid var(--ink);border-radius:18px;
+    box-shadow:0 7px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.16);
+    padding:clamp(7px,1.5vh,11px);
+    display:flex;flex-direction:column;gap:clamp(6px,1.2vh,10px);
+    /* keep clear of the fixed parent-lock button in the corner */
+    padding-right:clamp(38px,10vw,52px);
+  }
+  .floorRow{display:flex;gap:clamp(10px,4vw,22px);justify-content:center}
+  .floorBtn{
+    width:clamp(44px,15vw,66px);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%,#F6F3E8,#CAC4B5 62%,#9D988B);
+    border:3px solid var(--ink);position:relative;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-size:clamp(16px,5vw,24px);color:#241A2E;
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.28), 0 3px 0 rgba(0,0,0,.45);
+    transition:transform .08s;
+  }
+  .floorBtn::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--ring,#666)}
+  .floorBtn.k1{--ring:var(--f1)}
+  .floorBtn.k2{--ring:var(--f2)}
+  .floorBtn.k3{--ring:var(--f3)}
+  .floorBtn:active{transform:translateY(3px)}
+  .floorBtn.lit{
+    background:radial-gradient(circle at 34% 30%,#FFF3B8,#FFD23F 58%,#E0A400);
+    box-shadow:0 0 15px 3px rgba(255,210,63,.75), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.45);
+  }
+  .doorRow{display:flex;gap:clamp(6px,2vw,10px)}
+  .liftPill{
+    flex:1 1 0;height:clamp(34px,7vh,46px);border:3px solid var(--ink);border-radius:12px;
+    display:flex;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+    box-shadow:0 4px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.3);
+    filter:saturate(.8) brightness(.88);transition:transform .08s, filter .12s, box-shadow .12s;
+  }
+  .liftPill:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .liftPill.o{background:linear-gradient(#7BD97B,#2F9E44)}
+  .liftPill.c{background:linear-gradient(#F4845F,#C0392B)}
+  .liftPill.bell{background:linear-gradient(#FFDE6B,#E8A41C);flex:0 0 clamp(52px,16vw,74px)}
+  .liftPill.lit{filter:saturate(1.35) brightness(1.22);
+    box-shadow:0 0 0 3px var(--sun),0 0 13px 3px rgba(255,210,63,.6),0 4px 0 var(--ink)}
+  .liftPill .tri{width:8px;height:14px;background:#fff;flex:0 0 auto}
+  .liftPill .tri.r{clip-path:polygon(0 0,100% 50%,0 100%)}
+  .liftPill .tri.l{clip-path:polygon(100% 0,0 50%,100% 100%)}
+  .liftPill .lf{display:block;width:4px;height:18px;background:#fff;border-radius:1px;flex:0 0 auto}
+  .liftPill .glBell{display:block;width:18px;height:18px;background:#fff;
+    clip-path:polygon(50% 0,66% 8%,78% 26%,80% 62%,92% 76%,8% 76%,20% 62%,22% 26%,34% 8%)}
+
+  /* Landscape on a phone: three floors in a short screen only work if the
+     console gets out of the way, so it folds into one row and hands the
+     height back to the station. */
+  @media (orientation:landscape) and (max-height:600px){
+    #lift{padding:6px;gap:5px}
+    #lift header{gap:6px}
+    .liftConsole{
+      flex-direction:row;align-items:center;justify-content:center;
+      gap:clamp(8px,2vw,18px);padding:6px 8px;padding-right:clamp(34px,6vw,46px);
+      border-width:4px;border-radius:14px;box-shadow:0 5px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.16);
+    }
+    .floorRow{gap:clamp(8px,2vw,16px)}
+    .floorBtn{width:clamp(36px,11vh,54px);font-size:clamp(14px,4.5vh,20px)}
+    .floorBtn::before{inset:-4px}
+    .doorRow{flex:0 1 auto;gap:8px}
+    .liftPill{flex:0 0 clamp(56px,14vw,92px);height:clamp(30px,10vh,44px)}
+    .liftPill.bell{flex:0 0 clamp(44px,8vw,64px)}
+  }
+
   /* ---------- particles ---------- */
   .bit{position:fixed;pointer-events:none;z-index:99;border-radius:50% 45% 55% 42%/50% 55% 45% 50%;border:3px solid var(--ink)}
 
@@ -823,6 +1081,7 @@
       <button class="tile t5" data-go="letters"><span class="ico">&#128292;</span><span data-tile="letters"></span></button>
       <button class="tile t6" data-go="draw"><span class="ico">&#9999;&#65039;</span><span data-tile="draw"></span></button>
       <button class="tile t7" data-go="train"><span class="ico">&#128642;</span><span data-tile="train"></span></button>
+      <button class="tile t8" data-go="lift"><span class="ico">&#128727;</span><span data-tile="lift"></span></button>
     </div>
   </section>
 
@@ -951,6 +1210,91 @@
       <button class="sndBtn info" data-ann="greet" aria-label="Sehr geehrte Fahrgäste / Dear passengers"><i class="annIco greet"></i></button>
     </div>
   </section>
+
+  <!-- ============ ELEVATOR ============ -->
+  <section class="screen" id="lift" style="background:#5C6B78">
+    <div class="splats" data-splats></div>
+    <header>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="lift"></span>
+    </header>
+
+    <div class="liftStage" id="liftStage">
+      <div class="liftShaft" id="liftShaft">
+        <i class="srail a"></i><i class="srail b"></i>
+        <div class="liftCable" id="liftCable"></div>
+        <div class="liftReadout" id="liftReadout">
+          <i class="ar up" id="liftUp"></i>
+          <span class="num" id="liftNum">1</span>
+          <i class="ar dn" id="liftDn"></i>
+        </div>
+        <div class="liftCar" id="liftCar">
+          <div class="cfloor"></div>
+          <div class="leaf l"></div>
+          <div class="leaf r"></div>
+        </div>
+      </div>
+
+      <div class="liftFloors" id="liftFloors">
+        <!-- 3 · street level -->
+        <div class="lroom r3">
+          <div class="lart">
+            <div class="backing"></div>
+            <div class="lsign"><i class="lt3">3</i><span data-lname="3"></span></div>
+            <div class="pipRow" id="pipRow"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="lawn"></div>
+            <div class="lcounter"><i>&#129384;</i></div>
+            <div class="lexitSign"><span data-lexit></span><i></i></div>
+            <div class="lexit"><i></i><b></b></div>
+            <div class="slab"></div>
+          </div>
+        </div>
+        <!-- 2 · S-Bahn -->
+        <div class="lroom r2">
+          <div class="lart">
+            <div class="backing"></div>
+            <div class="lsign"><i class="lt2">2</i><span data-lname="2"></span></div>
+            <div class="ltunnel"></div>
+            <div class="ltrack"></div>
+            <div class="hazard"></div>
+            <div class="slab"></div>
+          </div>
+        </div>
+        <!-- 1 · U-Bahn -->
+        <div class="lroom r1">
+          <div class="lart">
+            <div class="backing"></div>
+            <div class="tiles"></div>
+            <div class="lsign"><i class="lt1">1</i><span data-lname="1"></span></div>
+            <div class="ltunnel"></div>
+            <div class="ltrack"></div>
+            <div class="hazard"></div>
+            <div class="slab"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ltrainLayer" id="liftTrains"></div>
+      <div class="lpedLayer" id="liftPeds"></div>
+    </div>
+
+    <div class="liftConsole">
+      <div class="floorRow">
+        <button class="floorBtn k1" data-floor="0" aria-label="1">1</button>
+        <button class="floorBtn k2" data-floor="1" aria-label="2">2</button>
+        <button class="floorBtn k3" data-floor="2" aria-label="3">3</button>
+      </div>
+      <div class="doorRow">
+        <button class="liftPill o" id="liftOpen" aria-label="Doors open">
+          <i class="tri l"></i><i class="lf"></i><i class="lf"></i><i class="tri r"></i>
+        </button>
+        <button class="liftPill c" id="liftClose" aria-label="Doors close">
+          <i class="tri r"></i><i class="lf"></i><i class="lf"></i><i class="tri l"></i>
+        </button>
+        <button class="liftPill bell" id="liftBell" aria-label="Bell"><i class="glBell"></i></button>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -967,8 +1311,8 @@
       speechLang: "en-US",
       tagline: "PICK A GAME! TAP ANYTHING!",
       home: "HOME",
-      titles:  { shapes:"SHAPES!", colors:"COLORS!", numbers:"COUNT!", sounds:"SOUNDS!", letters:"LETTERS!", draw:"DRAW!", train:"TRAIN!" },
-      tiles:   { shapes:"SHAPES", colors:"COLORS", numbers:"COUNT", sounds:"SOUNDS", letters:"LETTERS", draw:"DRAW", train:"TRAIN" },
+      titles:  { shapes:"SHAPES!", colors:"COLORS!", numbers:"COUNT!", sounds:"SOUNDS!", letters:"LETTERS!", draw:"DRAW!", train:"TRAIN!", lift:"ELEVATOR!" },
+      tiles:   { shapes:"SHAPES", colors:"COLORS", numbers:"COUNT", sounds:"SOUNDS", letters:"LETTERS", draw:"DRAW", train:"TRAIN", lift:"ELEVATOR" },
       hints:   { shape:"TAP A SHAPE", color:"TAP A COLOR", number:"TAP A NUMBER", sound:"TAP TO MAKE NOISE", letter:"TAP A LETTER" },
       shapeNames: { circle:"CIRCLE", square:"SQUARE", triangle:"TRIANGLE", star:"STAR", heart:"HEART", diamond:"DIAMOND" },
       colorNames: { red:"RED", orange:"ORANGE", yellow:"YELLOW", green:"GREEN", blue:"BLUE", purple:"PURPLE", pink:"PINK", brown:"BROWN" },
@@ -981,6 +1325,10 @@
       spaceLabel: "SPACE",
       eraseLabel: "ERASE",
       langName: { en:"English", de:"Deutsch" },
+      liftNames: ["U-BAHN", "S-BAHN", "STREET"],
+      liftExit: "EXIT",
+      liftThanks: "THANK YOU!",
+      liftSay: ["One. Subway.", "Two. City rail.", "Three. Exit and shops."],
       ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" },
       parent: { title:"PLAY TIME", start:"START", stop:"STOP TIMER", noLimit:"NO LIMIT" }
     },
@@ -989,8 +1337,8 @@
       speechLang: "de-DE",
       tagline: "WÄHL EIN SPIEL! TIPP ÜBERALL!",
       home: "HAUS",
-      titles:  { shapes:"FORMEN!", colors:"FARBEN!", numbers:"ZÄHLEN!", sounds:"GERÄUSCHE!", letters:"BUCHSTABEN!", draw:"MALEN!", train:"ZUG!" },
-      tiles:   { shapes:"FORMEN", colors:"FARBEN", numbers:"ZÄHLEN", sounds:"GERÄUSCHE", letters:"BUCHSTABEN", draw:"MALEN", train:"ZUG" },
+      titles:  { shapes:"FORMEN!", colors:"FARBEN!", numbers:"ZÄHLEN!", sounds:"GERÄUSCHE!", letters:"BUCHSTABEN!", draw:"MALEN!", train:"ZUG!", lift:"AUFZUG!" },
+      tiles:   { shapes:"FORMEN", colors:"FARBEN", numbers:"ZÄHLEN", sounds:"GERÄUSCHE", letters:"BUCHSTABEN", draw:"MALEN", train:"ZUG", lift:"AUFZUG" },
       hints:   { shape:"TIPP EINE FORM", color:"TIPP EINE FARBE", number:"TIPP EINE ZAHL", sound:"TIPPEN FÜR KNALL", letter:"TIPP EINEN BUCHSTABEN" },
       shapeNames: { circle:"KREIS", square:"QUADRAT", triangle:"DREIECK", star:"STERN", heart:"HERZ", diamond:"RAUTE" },
       colorNames: { red:"ROT", orange:"ORANGE", yellow:"GELB", green:"GRÜN", blue:"BLAU", purple:"LILA", pink:"PINK", brown:"BRAUN" },
@@ -1003,6 +1351,10 @@
       spaceLabel: "LEER",
       eraseLabel: "RÜCK",
       langName: { en:"English", de:"Deutsch" },
+      liftNames: ["U-BAHN", "S-BAHN", "STRASSE"],
+      liftExit: "AUSGANG",
+      liftThanks: "DANKE!",
+      liftSay: ["Eins. U-Bahn.", "Zwei. S-Bahn.", "Drei. Ausgang und Geschäfte."],
       ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" },
       parent: { title:"SPIELZEIT", start:"START", stop:"TIMER STOPPEN", noLimit:"KEIN LIMIT" }
     }
@@ -1319,6 +1671,12 @@
       startTrainLoop();
     } else if(typeof stopTrainLoop === "function"){
       stopTrainLoop();
+    }
+    if(id === "lift" && typeof layoutLift === "function"){
+      requestAnimationFrame(layoutLift);
+      startLiftLoop();
+    } else if(typeof stopLiftLoop === "function"){
+      stopLiftLoop();
     }
   }
   document.addEventListener("pointerdown", function(e){
@@ -2257,7 +2615,419 @@
 
   window.addEventListener("resize", function(){
     if($("#train").classList.contains("on")) layoutTrack();
+    if($("#lift").classList.contains("on")) layoutLift();
     if($("#draw").classList.contains("on")) fitCanvas();
+  });
+
+  /* ---------------- ELEVATOR ----------------
+     A side-on cutaway of a station. Three levels stacked up the screen, a
+     shaft down the left, trains sliding in along the right. People get off
+     the trains, walk to the lift and wait there holding up the number of
+     the floor they want; the number pops off the moment you deliver them.
+
+     Scenery is drawn in art units and scaled by --k (set from the measured
+     floor height), the way the train screen scales its rolling stock.
+     Actors are positioned in real pixels by this loop and scaled by the
+     same factor, so one drawing serves every screen size. */
+  const liftStage = $("#liftStage"), liftShaft = $("#liftShaft"), liftCar = $("#liftCar"),
+        liftPeds = $("#liftPeds"), liftTrainLayer = $("#liftTrains"), liftCable = $("#liftCable"),
+        liftNum = $("#liftNum"), liftUp = $("#liftUp"), liftDn = $("#liftDn"), pipRow = $("#pipRow");
+
+  const PED_W = 22, PED_H = 44, SLAB = 11, TRAIN_W = 116, TRAIN_H = 52;
+  const CAR_CAP = 3, MAX_PEOPLE = 8, PIPS = 5;
+  const SHIRTS = ["#22CFE0","#EF3E36","#8DC63F","#7A3FBF","#FF4FA3","#FFD23F","#F57D0D","#FFF3D6"];
+  const SKINS  = ["#E8B98A","#C98B5E","#8D5A3B","#F0D0B0"];
+
+  let LK = 1, LW = 0, LH = 0, shaftW = 76, floorH = 0, carW = 0, carH = 0;
+  const groundY = [0, 0, 0];             // real px of each floor's ground line
+  let carFloor = 0, carY = 0, carFrom = 0, carTo = 0, carT = 0, carDur = 1;
+  let carMoving = false, carGoingTo = 0, shownFloor = 0;
+  let doorPos = 0, doorState = "shut", doorHold = 0, pending = -1;
+  let people = [], riders = [], trainList = [];
+  let streetTimer = 5, motorAcc = 0, delivered = 0;
+  let liftRaf = null, liftLastTs = null, liftReady = false, liftSeeded = false;
+
+  function ease(t){ return t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2; }
+  function queueX(i){ return shaftW + (9 + i * 25) * LK; }
+  function slotX(i){ return 3 + i * (PED_W * LK + 4); }
+  function stopX(){ return LW - (8 + TRAIN_W) * LK; }
+  function awayX(){ return LW + 26 * LK; }
+
+  function layoutLift(){
+    LW = liftStage.clientWidth; LH = liftStage.clientHeight;
+    if(LW < 60 || LH < 60) return;
+    floorH = LH / 3;
+    LK = Math.max(0.40, Math.min(1.25, floorH / 145));
+    shaftW = Math.round(Math.max(46, Math.min(112, LW * 0.24)));
+    liftShaft.style.width = shaftW + "px";
+    liftStage.style.setProperty("--k", LK);
+    liftStage.style.setProperty("--artw", Math.round((LW - shaftW) / LK));
+    for(let i = 0; i < 3; i++) groundY[i] = LH - i * floorH - SLAB * LK;
+    carW = Math.max(24, shaftW - 12);
+    carH = Math.min(floorH - 10, 118 * LK);
+    liftCar.style.width = carW + "px";
+    liftCar.style.height = carH + "px";
+    liftCar.style.left = Math.round((shaftW - carW) / 2 - 2) + "px";
+    liftCar.querySelector(".cfloor").style.height = Math.max(3, 7 * LK) + "px";
+    if(!carMoving) carY = groundY[carFloor] - carH;
+    liftReady = true;
+    buildTrains();
+    riders.forEach(function(p, i){ p.slot = i; p.x = slotX(i); });
+    people.forEach(placePed);
+    positionTrains();
+    applyCar();
+    if(!liftSeeded){
+      liftSeeded = true;
+      spawnPed(0, 2, stopX() + 40 * LK);
+      spawnPed(1, 0, stopX() + 70 * LK);
+    }
+  }
+
+  function applyCar(){
+    liftCar.style.transform = "translateY(" + carY + "px)";
+    liftCable.style.height = Math.max(0, carY) + "px";
+    const l = liftCar.querySelector(".leaf.l"), r = liftCar.querySelector(".leaf.r");
+    l.style.transform = "translateX(" + (-100 * doorPos) + "%)";
+    r.style.transform = "translateX(" + (100 * doorPos) + "%)";
+  }
+
+  function setArrows(){
+    const up = carMoving && carTo < carFrom, dn = carMoving && carTo > carFrom;
+    liftUp.classList.toggle("on", up);
+    liftDn.classList.toggle("on", dn);
+  }
+
+  /* ---- people ---- */
+  function pedHtml(dest){
+    let dots = "";
+    for(let i = 0; i <= dest; i++) dots += "<u></u>";
+    return '<i class="badge bg' + (dest + 1) + '"><b>' + (dest + 1) + '</b><s>' + dots + '</s></i>' +
+      '<i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i>' +
+      '<i class="leg a"></i><i class="leg b"></i>';
+  }
+  function otherFloor(f){
+    const opts = [0, 1, 2].filter(function(i){ return i !== f; });
+    return opts[(Math.random() * opts.length) | 0];
+  }
+  function spawnPed(floor, dest, x){
+    if(people.length >= MAX_PEOPLE) return null;
+    const el = document.createElement("div");
+    el.className = "ped walk";
+    el.style.setProperty("--shirt", SHIRTS[(Math.random() * SHIRTS.length) | 0]);
+    el.style.setProperty("--skin", SKINS[(Math.random() * SKINS.length) | 0]);
+    el.innerHTML = pedHtml(dest);
+    liftPeds.appendChild(el);
+    const p = { el: el, floor: floor, dest: dest, x: x, tx: x, state: "toLift",
+                inCar: false, slot: 0, dead: false, spd: 0.9 + Math.random() * 0.3 };
+    people.push(p);
+    onTap(el, function(){
+      say(t().numWords[p.dest]);
+      const c = centerOf(el); burst(c.x, c.y, ["#fff", "#FFD23F"], 8);
+    });
+    requeue(floor);
+    placePed(p);
+    return p;
+  }
+  function placePed(p){
+    const y = p.inCar ? (carH - Math.max(3, 7 * LK) - PED_H * LK) : (groundY[p.floor] - PED_H * LK);
+    p.el.style.transform = "translate(" + p.x + "px," + y + "px) scale(" + LK + ")";
+  }
+  function requeue(f){
+    let i = 0;
+    people.forEach(function(p){
+      if(p.floor === f && !p.inCar && (p.state === "toLift" || p.state === "wait")){
+        p.tx = queueX(i++);
+        if(p.state === "wait" && Math.abs(p.x - p.tx) > 1.5) p.state = "toLift";
+      }
+    });
+  }
+  function boarding(){
+    return people.some(function(p){ return p.state === "board" || p.state === "off"; });
+  }
+
+  function intoCar(p){
+    liftCar.insertBefore(p.el, liftCar.querySelector(".leaf.l"));
+    p.inCar = true; p.state = "ride";
+    riders.push(p);
+    p.slot = riders.length - 1;
+    p.x = slotX(p.slot);
+    placePed(p);
+    requeue(carFloor);
+    tone({ f: 520, dur: .08, type: "sine", vol: .12 });
+  }
+  function startUnload(p){
+    p.state = "off";
+    riders = riders.filter(function(r){ return r !== p; });
+    riders.forEach(function(r, i){ r.slot = i; r.x = slotX(i); placePed(r); });
+    liftPeds.appendChild(p.el);
+    p.inCar = false; p.floor = carFloor;
+    p.x = shaftW * 0.4;
+    const b = p.el.querySelector(".badge");
+    if(b) b.remove();
+    const poof = document.createElement("i");
+    poof.className = "poof";
+    poof.innerHTML = "<i></i><i></i><i></i>";
+    p.el.appendChild(poof);
+    setTimeout(function(){ if(poof.parentNode) poof.remove(); }, 520);
+    const th = document.createElement("i");
+    th.className = "thanks";
+    th.textContent = t().liftThanks;
+    p.el.appendChild(th);
+    setTimeout(function(){ if(th.parentNode) th.remove(); }, 1700);
+    tone({ f: 880, to: 1320, dur: .2, type: "triangle", vol: .18 });
+    const c = centerOf(p.el);
+    burst(c.x, c.y, ["#FFD23F", "#fff", "#8DC63F"], 12);
+    p.tx = LW + (30 + Math.random() * 40) * LK;
+    p.state = "leave";
+    addPip();
+  }
+  function addPip(){
+    delivered++;
+    const pips = pipRow.children;
+    for(let i = 0; i < pips.length; i++) pips[i].classList.toggle("on", i < ((delivered - 1) % PIPS) + 1);
+    if(delivered % PIPS === 0){
+      const r = liftStage.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 3, PALETTE, 26);
+      stationChime();
+      setTimeout(function(){
+        for(let i = 0; i < pips.length; i++) pips[i].classList.remove("on");
+      }, 900);
+    }
+  }
+
+  /* ---- trains ---- */
+  function buildTrains(){
+    if(trainList.length) return;
+    for(let f = 0; f < 2; f++){
+      const el = document.createElement("div");
+      el.className = "ltrain " + (f === 0 ? "u" : "s");
+      el.innerHTML = '<div class="tnose"></div><div class="tlamp"></div><div class="tbody"></div>' +
+        (f === 1 ? '<div class="ttop"></div>' : "") +
+        '<div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>' +
+        '<div class="tdoor d1"></div><div class="tdoor d2"></div>' +
+        '<i class="tw k1"></i><i class="tw k2"></i><i class="tw k3"></i><i class="tw k4"></i>';
+      liftTrainLayer.appendChild(el);
+      const tr = { el: el, f: f, state: "away", t: 2.5 + f * 2.5, x: 0, p: 0 };
+      onTap(el, function(){
+        tone({ f: 330, dur: .5, type: "sawtooth", vol: .2 });
+        tone({ f: 392, dur: .5, type: "sawtooth", vol: .16 });
+      });
+      trainList.push(tr);
+    }
+  }
+  function positionTrains(){
+    trainList.forEach(function(tr){
+      if(tr.state === "away") tr.x = awayX();
+      else if(tr.state === "stop") tr.x = stopX();
+      tr.el.style.transform = "translate(" + tr.x + "px," + (groundY[tr.f] - (TRAIN_H + 3) * LK) + "px) scale(" + LK + ")";
+    });
+  }
+  function stepTrains(dt){
+    trainList.forEach(function(tr){
+      tr.t -= dt;
+      if(tr.state === "away"){
+        if(tr.t <= 0){ tr.state = "in"; tr.p = 0; noise(.9, 0, 320, .14); }
+      } else if(tr.state === "in"){
+        tr.p = Math.min(1, tr.p + dt / 1.5);
+        tr.x = awayX() + (stopX() - awayX()) * ease(tr.p);
+        if(tr.p >= 1){
+          tr.state = "stop"; tr.t = 6.5;
+          tr.el.classList.add("open");
+          noise(.4, 0, 900, .12);
+          const n = 1 + ((Math.random() * 2) | 0);
+          for(let i = 0; i < n; i++){
+            spawnPed(tr.f, otherFloor(tr.f), stopX() + (24 + i * 30 + Math.random() * 14) * LK);
+          }
+        }
+      } else if(tr.state === "stop"){
+        if(tr.t <= 0){ tr.state = "out"; tr.p = 0; tr.el.classList.remove("open"); noise(.4, 0, 900, .12); }
+      } else if(tr.state === "out"){
+        tr.p = Math.min(1, tr.p + dt / 1.5);
+        tr.x = stopX() + (awayX() - stopX()) * ease(tr.p);
+        if(tr.p >= 1){ tr.state = "away"; tr.t = 7 + Math.random() * 6; }
+      }
+      tr.el.style.transform = "translate(" + tr.x + "px," + (groundY[tr.f] - (TRAIN_H + 3) * LK) + "px) scale(" + LK + ")";
+    });
+  }
+
+  /* ---- doors ---- */
+  function openDoors(){
+    if(carMoving) return;
+    if(doorState === "open"){ doorHold = 4; return; }
+    doorState = "opening";
+    noise(.45, 0, 900, .14);
+    $("#liftOpen").classList.add("lit");
+    setTimeout(function(){ $("#liftOpen").classList.remove("lit"); }, 700);
+  }
+  function closeDoors(){
+    if(doorState === "shut" || doorState === "shutting") return;
+    doorState = "shutting";
+    noise(.45, 0, 900, .14);
+    $("#liftClose").classList.add("lit");
+    setTimeout(function(){ $("#liftClose").classList.remove("lit"); }, 700);
+  }
+  function stepDoors(dt){
+    const SPD = 1 / 0.7;
+    if(doorState === "opening"){
+      doorPos = Math.min(1, doorPos + dt * SPD);
+      if(doorPos >= 1){ doorState = "open"; doorHold = 4; }
+      applyCar();
+    } else if(doorState === "shutting"){
+      doorPos = Math.max(0, doorPos - dt * SPD);
+      if(doorPos <= 0){
+        doorState = "shut";
+        if(pending >= 0 && pending !== carFloor) startTravel(pending);
+        else pending = -1;
+      }
+      applyCar();
+    } else if(doorState === "open"){
+      doorHold -= dt;
+      if(boarding()) doorHold = Math.max(doorHold, 1.4);
+      if(doorHold <= 0) closeDoors();
+    }
+  }
+
+  /* ---- the ride ---- */
+  function startTravel(i){
+    pending = -1;
+    carGoingTo = i;
+    carFrom = carY;
+    carTo = groundY[i] - carH;
+    carDur = 0.85 * Math.max(1, Math.abs(i - carFloor));
+    carT = 0;
+    carMoving = true;
+    setArrows();
+  }
+  function stepCar(dt){
+    if(!carMoving) return;
+    carT += dt;
+    const tt = Math.min(1, carT / carDur);
+    carY = carFrom + (carTo - carFrom) * ease(tt);
+    const bottom = carY + carH;
+    let near = 0, best = 1e9;
+    for(let i = 0; i < 3; i++){
+      const d = Math.abs(groundY[i] - bottom);
+      if(d < best){ best = d; near = i; }
+    }
+    if(near !== shownFloor){
+      shownFloor = near;
+      liftNum.textContent = String(near + 1);
+      tone({ f: 880, dur: .05, type: "sine", vol: .09 });
+    }
+    motorAcc += dt;
+    if(motorAcc > 0.3){ motorAcc = 0; noise(.09, 0, 420, .08); }
+    applyCar();
+    if(tt >= 1){
+      carMoving = false;
+      carFloor = carGoingTo;
+      shownFloor = carFloor;
+      liftNum.textContent = String(carFloor + 1);
+      setArrows();
+      document.querySelectorAll(".floorBtn").forEach(function(b){ b.classList.remove("lit"); });
+      tone({ f: 1046, dur: .45, type: "sine", vol: .2 });
+      tone({ f: 784, at: .22, dur: .55, type: "sine", vol: .18 });
+      say(t().liftSay[carFloor]);
+      openDoors();
+    }
+  }
+
+  /* ---- who gets on and off ---- */
+  function service(){
+    if(doorState !== "open" || carMoving || boarding()) return;
+    const out = riders.find(function(r){ return r.dest === carFloor; });
+    if(out){ startUnload(out); return; }
+    if(riders.length < CAR_CAP){
+      let next = null;
+      people.forEach(function(p){
+        if(p.inCar || p.floor !== carFloor) return;
+        if(p.state !== "wait" && p.state !== "toLift") return;
+        if(!next || p.tx < next.tx) next = p;
+      });
+      if(next && next.state === "wait"){
+        next.state = "board";
+        next.tx = shaftW / 2 - PED_W * LK / 2;
+        doorHold = Math.max(doorHold, 2);
+      }
+    }
+  }
+
+  function stepPeople(dt){
+    const pace = Math.max(42 * LK, (LW - shaftW) * 0.13);
+    people.forEach(function(p){
+      if(p.state === "toLift" || p.state === "leave" || p.state === "board"){
+        const d = p.tx - p.x, step = pace * p.spd * dt;
+        if(Math.abs(d) <= step){
+          p.x = p.tx;
+          if(p.state === "toLift"){ p.state = "wait"; }
+          else if(p.state === "board"){ intoCar(p); }
+          else { p.dead = true; p.el.remove(); }
+        } else {
+          p.x += (d > 0 ? 1 : -1) * step;
+        }
+        p.el.classList.add("walk");
+      } else {
+        p.el.classList.remove("walk");
+      }
+      if(!p.dead) placePed(p);
+    });
+    people = people.filter(function(p){ return !p.dead; });
+  }
+
+  function stepSpawns(dt){
+    streetTimer -= dt;
+    if(streetTimer <= 0){
+      streetTimer = 9 + Math.random() * 7;
+      spawnPed(2, (Math.random() < .5 ? 0 : 1), LW - 44 * LK);
+    }
+  }
+
+  function liftStep(ts){
+    liftRaf = requestAnimationFrame(liftStep);
+    if(!liftReady) return;
+    if(liftLastTs == null) liftLastTs = ts;
+    const dt = Math.min(0.05, (ts - liftLastTs) / 1000);
+    liftLastTs = ts;
+    stepCar(dt);
+    stepDoors(dt);
+    stepTrains(dt);
+    stepPeople(dt);
+    stepSpawns(dt);
+    service();
+  }
+  function startLiftLoop(){
+    if(liftRaf != null) return;
+    liftLastTs = null;
+    liftRaf = requestAnimationFrame(liftStep);
+  }
+  function stopLiftLoop(){
+    if(liftRaf != null){ cancelAnimationFrame(liftRaf); liftRaf = null; }
+  }
+
+  /* ---- console ---- */
+  document.querySelectorAll(".floorBtn").forEach(function(btn){
+    onTap(btn, function(){
+      const i = parseInt(btn.dataset.floor, 10);
+      if(carMoving){
+        tone({ f: 150, dur: .14, type: "square", vol: .16 });
+        return;
+      }
+      tone({ f: 660, dur: .09, type: "square", vol: .18 });
+      const c = centerOf(btn); burst(c.x, c.y, ["#FFD23F", "#fff"], 8);
+      if(i === carFloor){ openDoors(); return; }
+      pending = i;
+      document.querySelectorAll(".floorBtn").forEach(function(b){ b.classList.remove("lit"); });
+      btn.classList.add("lit");
+      if(doorState === "shut") startTravel(i);
+      else closeDoors();
+    });
+  });
+  onTap($("#liftOpen"), function(){ if(!carMoving) openDoors(); else tone({ f: 150, dur: .14, type: "square", vol: .16 }); });
+  onTap($("#liftClose"), function(){ if(!carMoving && !boarding()) closeDoors(); });
+  onTap($("#liftBell"), function(){
+    const b = $("#liftBell");
+    b.classList.add("lit");
+    setTimeout(function(){ b.classList.remove("lit"); }, 900);
+    stationChime();
   });
 
   /* ---------------- PARENT MODE ---------------- */
@@ -2301,6 +3071,7 @@
       // to hold the lock icon again to open the modal and resume play.
       if(typeof stopDrawTone === "function") stopDrawTone();
       if(typeof stopTrainLoop === "function") stopTrainLoop();
+      if(typeof stopLiftLoop === "function") stopLiftLoop();
       if("speechSynthesis" in window) speechSynthesis.cancel();
       if(parentTickId != null){ clearInterval(parentTickId); parentTickId = null; }
       sessionEndAt = null;
@@ -2363,6 +3134,8 @@
     document.querySelectorAll("[data-erase]").forEach(el => el.textContent = d.eraseLabel);
     document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
+    document.querySelectorAll("[data-lname]").forEach(el => el.textContent = d.liftNames[parseInt(el.dataset.lname, 10) - 1]);
+    document.querySelectorAll("[data-lexit]").forEach(el => el.textContent = d.liftExit);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
     colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
     document.querySelectorAll(".langSwitch button").forEach(btn => {
