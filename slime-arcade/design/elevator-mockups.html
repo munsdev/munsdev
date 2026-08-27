@@ -4,27 +4,36 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Baloo+2:wght@500;600;800&display=swap">
 <style>
 /* ==========================================================================
-   Visual mockups for THE ELEVATOR, a new screen in Henry's Arcade.
-   Single-theme on purpose: this page is a station at night with lit
-   arcade screens hanging in it, so every colour is painted explicitly and
-   nothing is inherited from the viewer's theme.
+   THE ELEVATOR — visual mockups.
+   A side-view station cutaway for Henry's Arcade, drawn the way a DOS game
+   would draw it. Single-theme on purpose: this page is a dark machine room
+   with lit arcade screens in it, so every colour is painted explicitly.
    ========================================================================== */
 :root{
-  --ground:#16181D;        /* station slate */
-  --ground-2:#1E2128;      /* raised plate */
-  --rule:#2E323B;
-  --text:#F2EBDD;          /* warm off-white */
-  --text-dim:#A8A296;
-  --brass:#D9A227;         /* the train console's throttle */
+  --ground:#15171C;
+  --ground-2:#1D2027;
+  --rule:#2C3038;
+  --text:#F2EBDD;
+  --text-dim:#A6A093;
+  --brass:#D9A227;
   --brass-soft:#F2D06B;
 
-  /* the arcade's own tokens, used inside every mockup frame */
-  --ink:#241A2E;
+  /* floors, and everything that codes for them.
+     Bottom is yellow because the U-Bahn is BVG yellow, the middle is red
+     because the S-Bahn is red, and the top is the blue of the sky you walk
+     out into. The level's colour is its train's colour. */
+  --f1:#FFC61A;   /* 1 · U-Bahn · yellow */
+  --f2:#E33629;   /* 2 · S-Bahn · red    */
+  --f3:#2D7DD2;   /* 3 · street  · blue  */
+  --w1:#EFD79A;   /* the same three, dulled down to wall paper */
+  --w2:#D9948C;
+  --w3:#A9CBE8;
+  --paper:#F6EAD0;
+  --paper-2:#E4D5B6;
+
+  --ink:#14161A;
   --cream:#FFF3D6;
   --sun:#FFD23F;
-  --slime:#8DC63F;
-  --orange:#F57D0D;
-  --cyan:#22CFE0;
 
   --display:"Bungee","Baloo 2",system-ui,sans-serif;
   --round:"Baloo 2",system-ui,sans-serif;
@@ -32,773 +41,764 @@
 }
 *{box-sizing:border-box}
 body{
-  margin:0;
-  background:var(--ground);
-  color:var(--text);
-  font-family:var(--round);
-  font-weight:500;
-  font-size:16px;
-  line-height:1.6;
+  margin:0;background:var(--ground);color:var(--text);
+  font-family:var(--round);font-weight:500;font-size:16px;line-height:1.6;
   -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:1180px;margin:0 auto;padding:clamp(28px,6vw,72px) clamp(18px,4vw,40px) 96px}
 
-/* ---------- page masthead ---------- */
+/* ---------- masthead ---------- */
 .masthead{display:flex;flex-direction:column;gap:14px;padding-bottom:34px;border-bottom:1px solid var(--rule)}
-.eyebrow{
-  font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--brass);
-}
-.masthead h1{
-  font-family:var(--display);font-weight:400;
-  font-size:clamp(34px,7vw,68px);line-height:.98;margin:0;
-  text-wrap:balance;color:var(--text);
-}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+.masthead h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,7vw,68px);line-height:.98;margin:0;text-wrap:balance}
 .masthead h1 em{font-style:normal;color:var(--brass-soft)}
-.lede{max-width:62ch;font-size:clamp(16px,2.1vw,19px);color:var(--text-dim);margin:0}
+.lede{max-width:64ch;font-size:clamp(16px,2.1vw,19px);color:var(--text-dim);margin:0}
 .metaRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.chip{
-  font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
-  color:var(--text-dim);border:1px solid var(--rule);border-radius:999px;
-  padding:5px 11px;background:var(--ground-2);
-}
+.chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--text-dim);
+  border:1px solid var(--rule);border-radius:999px;padding:5px 11px;background:var(--ground-2)}
 
 /* ---------- plates ---------- */
 .plate{padding:clamp(38px,6vw,64px) 0;border-bottom:1px solid var(--rule)}
 .plate:last-of-type{border-bottom:0}
-.plateHead{display:flex;flex-direction:column;gap:8px;margin-bottom:28px}
-.plateHead h2{
-  font-family:var(--display);font-weight:400;font-size:clamp(20px,3.2vw,30px);
-  margin:0;color:var(--text);text-wrap:balance;
-}
+.plateHead{display:flex;flex-direction:column;gap:8px;margin-bottom:30px}
+.plateHead h2{font-family:var(--display);font-weight:400;font-size:clamp(20px,3.2vw,30px);margin:0;text-wrap:balance}
 .plateHead p{margin:0;max-width:66ch;color:var(--text-dim)}
-
-.split{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:start}
-@media (max-width:760px){.split{grid-template-columns:1fr}}
-
-/* annotation list beside a frame */
-.notes{display:flex;flex-direction:column;gap:0}
+.split{display:grid;grid-template-columns:minmax(0,332px) minmax(0,1fr);gap:clamp(24px,5vw,56px);align-items:start}
+@media (max-width:780px){.split{grid-template-columns:1fr}}
+.notes{display:flex;flex-direction:column}
 .note{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:15px 0;border-top:1px solid var(--rule)}
 .note:first-child{border-top:0;padding-top:0}
-.note .k{
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--brass);white-space:nowrap;padding-top:3px;
-}
+.note .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);white-space:nowrap;padding-top:3px}
 .note .v{margin:0;color:var(--text-dim);font-size:15px}
 .note .v b{color:var(--text);font-weight:600}
-
-/* horizontal scroller for frame rows */
-.rail{display:flex;gap:clamp(16px,3vw,30px);overflow-x:auto;padding-bottom:14px;scrollbar-width:thin}
+.rail{display:flex;gap:clamp(14px,2.6vw,26px);overflow-x:auto;padding-bottom:14px}
 .rail::-webkit-scrollbar{height:8px}
 .rail::-webkit-scrollbar-thumb{background:var(--rule);border-radius:99px}
-.railItem{flex:0 0 auto;display:flex;flex-direction:column;gap:12px}
-.railCap{max-width:220px}
-.railCap .step{
-  font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--brass);
-  display:block;text-transform:uppercase;
-}
-.railCap .t{font-family:var(--display);font-weight:400;font-size:13px;color:var(--text);display:block;margin:3px 0 2px}
-.railCap .d{font-size:13.5px;color:var(--text-dim);line-height:1.45}
+.railItem{flex:0 0 auto;display:flex;flex-direction:column;gap:11px;width:210px}
+.railCap .step{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--brass);text-transform:uppercase;display:block}
+.railCap .t{font-family:var(--display);font-weight:400;font-size:12.5px;display:block;margin:3px 0 3px}
+.railCap .d{font-size:13.5px;color:var(--text-dim);line-height:1.45;display:block}
 
 /* ==========================================================================
-   THE MOCKUP FRAME — the arcade's own visual system, drawn at 300x620 and
-   scaled with a transform so several fit side by side.
+   THE SCREEN — drawn at 320x640 and scaled with a transform.
+   Scenery has square corners on purpose; only the console is rounded.
    ========================================================================== */
-.frameBox{position:relative}
+.hold{position:relative;flex:0 0 auto}
+.hold.full{width:320px;height:640px}
 .frame{
-  width:300px;height:620px;
-  transform-origin:0 0;
-  background:#8B5A2B;               /* TRAIN's screen brown; ELEVATOR keeps it */
-  border:6px solid var(--ink);
-  border-radius:34px;
-  padding:10px;
-  display:flex;flex-direction:column;gap:9px;
-  overflow:hidden;
+  width:320px;height:640px;transform-origin:0 0;
+  background:#5C6B78;border:6px solid #241A2E;border-radius:34px;
+  padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden;
   box-shadow:0 22px 46px rgba(0,0,0,.5);
-  font-family:var(--round);
 }
-.frame.s72{transform:scale(.72)}
-.frame.s55{transform:scale(.62)}
-.frame.s46{transform:scale(.46)}
-.hold{position:relative}
-.hold.h72{width:216px;height:446px}
-.hold.h55{width:186px;height:385px}
-.hold.h46{width:138px;height:285px}
+.fHead{flex:0 0 auto;display:flex;align-items:center;gap:9px;height:32px}
+.fBack{font-family:var(--display);font-size:10.5px;color:#fff;background:#241A2E;border-radius:13px;padding:6px 10px;box-shadow:0 4px 0 #000}
+.fTitle{font-family:var(--display);font-size:21px;color:#fff;text-shadow:2.5px 2.5px 0 #241A2E;transform:rotate(-2deg)}
 
-/* --- header row --- */
-.fHead{flex:0 0 auto;display:flex;align-items:center;gap:9px}
-.fBack{
-  font-family:var(--display);font-size:11px;color:#fff;background:var(--ink);
-  border-radius:14px;padding:7px 11px;box-shadow:0 4px 0 #000;letter-spacing:.02em;
+/* ---- the station cutaway ---- */
+.stage{flex:1 1 auto;min-height:0;display:flex;border:3px solid var(--ink);background:var(--paper);position:relative}
+.shaft{
+  position:relative;flex:0 0 80px;background:#4A5260;
+  border-right:3px solid var(--ink);overflow:hidden;
 }
-.fTitle{
-  font-family:var(--display);font-size:22px;color:#fff;
-  text-shadow:2.5px 2.5px 0 var(--ink);transform:rotate(-2deg);
+.shaft .rail1,.shaft .rail2{position:absolute;top:0;bottom:0;width:4px;background:#39404C;box-shadow:2px 0 0 rgba(255,255,255,.14)}
+.shaft .rail1{left:12px}.shaft .rail2{right:12px}
+.readout{
+  position:absolute;left:5px;right:5px;top:4px;height:19px;z-index:4;
+  background:#0A0C0F;border:2px solid #2A2F38;
+  display:flex;align-items:center;justify-content:center;gap:5px;
 }
+.readout .num{font-family:var(--display);font-size:12px;color:var(--sun);line-height:1}
+.readout .ar{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.readout .ar.up{border-bottom:7px solid var(--sun)}
+.readout .ar.dn{border-top:7px solid var(--sun)}
+.readout .ar.off{opacity:.2}
+.readout .ar.blink{animation:blip .6s steps(1,end) infinite}
+@keyframes blip{0%,49%{opacity:1}50%,100%{opacity:.15}}
 
-/* --- stage --- */
-.stage{
-  flex:1 1 auto;min-height:0;
-  background:rgba(0,0,0,.06);
-  border-radius:26px;
-  padding:9px;
-  display:flex;flex-direction:column;gap:9px;
+.car{
+  position:absolute;left:5px;width:70px;height:118px;
+  background:#E9DFC6;border:3px solid var(--ink);
+  box-shadow:inset 0 0 0 3px #C3B693, 4px 5px 0 rgba(20,16,26,.3);
+  overflow:hidden;z-index:3;
 }
+.car .cfloor{position:absolute;left:0;right:0;bottom:0;height:7px;background:#8E8163;border-top:2px solid var(--ink)}
+.car .leaf{position:absolute;top:0;bottom:0;width:50%;background:#B9BFC7;box-shadow:inset -3px 0 0 rgba(255,255,255,.4);
+  border:0;transition:transform .7s cubic-bezier(.5,.05,.35,1)}
+.car .leaf.l{left:0;border-right:2px solid #2C3138}
+.car .leaf.r{right:0;border-left:2px solid #2C3138}
+.car.open .leaf.l{transform:translateX(-100%)}
+.car.open .leaf.r{transform:translateX(100%)}
+.car.demo .leaf.l{animation:dL 8s ease-in-out infinite}
+.car.demo .leaf.r{animation:dR 8s ease-in-out infinite}
+@keyframes dL{0%,10%{transform:translateX(0)}28%,70%{transform:translateX(-100%)}88%,100%{transform:translateX(0)}}
+@keyframes dR{0%,10%{transform:translateX(0)}28%,70%{transform:translateX(100%)}88%,100%{transform:translateX(0)}}
+.cable{position:absolute;left:39px;top:0;width:2px;background:#4A525E;z-index:1}
 
-/* indicator strip */
-.ind{
-  flex:0 0 auto;height:62px;
-  background:linear-gradient(#15171B,#22262C);
-  border:3px solid #0E1013;border-radius:14px;
-  box-shadow:inset 0 3px 7px rgba(0,0,0,.7);
-  display:flex;align-items:center;gap:10px;padding:0 11px;
-}
-.arrows{display:flex;flex-direction:column;gap:5px}
-.arw{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;opacity:.22}
-.arw.up{border-bottom:11px solid var(--sun)}
-.arw.dn{border-top:11px solid var(--sun)}
-.arw.on{opacity:1;filter:drop-shadow(0 0 6px rgba(255,210,63,.85))}
-.arw.blink{animation:arwBlink .62s steps(1,end) infinite}
-@keyframes arwBlink{0%,49%{opacity:1;filter:drop-shadow(0 0 7px rgba(255,210,63,.9))}50%,100%{opacity:.2;filter:none}}
-.floorTile{
-  width:42px;height:42px;flex:0 0 auto;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--display);font-size:22px;color:#fff;
-  border:3px solid #0E1013;box-shadow:inset 0 2px 0 rgba(255,255,255,.25);
-}
-.indText{min-width:0;display:flex;flex-direction:column;line-height:1.12}
-.indText .de{font-family:var(--display);font-size:12px;color:var(--sun);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.indText .en{font-size:11px;color:#9FA6AE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ---- the three rooms ---- */
+.floors{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+.room{position:relative;flex:1 1 0;overflow:hidden;border-bottom:3px solid var(--ink)}
+.room:last-child{border-bottom:0}
+.room.f3{background:var(--w3)}
+.room.f2{background:var(--w2)}
+.room.f1{background:var(--w1)}
+/* a second sheet of paper laid over the wall, cut a little short of the
+   edges and shadowed, so every room reads as layers rather than a fill */
+.backing{position:absolute;left:0;right:0;top:0;bottom:9px;
+  background:rgba(255,255,255,.22);
+  clip-path:polygon(0 4px,26% 1px,58% 5px,100% 2px,100% 100%,0 100%);
+  filter:drop-shadow(0 3px 0 rgba(20,16,26,.13))}
+.slab{position:absolute;left:0;right:0;bottom:0;height:11px;background:var(--paper);
+  border-top:3px solid var(--ink);
+  filter:drop-shadow(0 -3px 0 rgba(20,16,26,.14))}
+.hz{position:absolute;right:0;bottom:11px;width:56%;height:5px;
+  background:repeating-linear-gradient(45deg,var(--sun) 0 6px,#241A2E 6px 12px)}
+.track{position:absolute;right:0;bottom:5px;width:66%;height:4px;background:#6E6656;border-radius:2px}
+.tunnel{position:absolute;right:0;top:12%;bottom:11px;width:20px;background:#241A2E;border-left:3px solid var(--ink);border-radius:9px 0 0 0}
+.room > *{filter:drop-shadow(2px 3px 0 rgba(20,16,26,.22))}
+.room > .backing, .room > .slab, .room > .tilewall{filter:none}
+.roomSign{position:absolute;left:7px;top:6px;display:flex;align-items:center;gap:5px;z-index:2;transform:rotate(-1.4deg)}
+.roomSign i{width:19px;height:19px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:11px;color:#fff;border:2px solid var(--ink);
+  box-shadow:0 0 0 3px var(--paper)}
+.roomSign span{font-family:var(--display);font-size:9px;color:#241A2E;letter-spacing:.04em;
+  background:var(--paper);border:2px solid var(--ink);padding:2px 5px}
+.tile3{background:var(--f3)}.tile2{background:var(--f2)}.tile1{background:var(--f1);color:#241A2E}
 
-/* car body: doorway + wall panel */
-.carRow{flex:1 1 auto;min-height:0;display:flex;gap:9px}
+/* tiled tunnel wall on the U-Bahn floor */
+.tilewall{position:absolute;inset:0;opacity:.30;
+  background:repeating-linear-gradient(90deg,transparent 0 15px,rgba(20,16,26,.16) 15px 17px),
+             repeating-linear-gradient(0deg,transparent 0 11px,rgba(20,16,26,.16) 11px 13px)}
+.lamp{position:absolute;top:6px;right:96px;width:28px;height:6px;background:#FFF0B8;border:2px solid var(--ink);border-radius:4px;transform:rotate(-1deg);
+  box-shadow:0 0 16px 5px rgba(255,240,184,.35)}
 
-.doorway{
-  flex:1 1 auto;min-width:0;position:relative;overflow:hidden;
-  border:4px solid #14161A;border-radius:12px;
-  background:#0C0E12;
-  box-shadow:inset 0 0 22px rgba(0,0,0,.8);
-}
-.floorCol{position:absolute;inset:0}
-.scene{position:absolute;inset:0;overflow:hidden}
-.leaf{
-  position:absolute;top:0;bottom:0;width:50%;
-  background:linear-gradient(100deg,#6E747D,#9AA1AA 32%,#7B828B 55%,#5F656E);
-  transition:transform .8s cubic-bezier(.5,.05,.35,1);
-}
-.leaf.l{left:0;border-right:3px solid #3A3E45}
-.leaf.r{right:0;border-left:3px solid #3A3E45}
-.leaf::after{ /* rubber nose */
-  content:"";position:absolute;top:0;bottom:0;width:6px;background:#23262B;
-}
-.leaf.l::after{right:0}
-.leaf.r::after{left:0}
-.leaf::before{ /* brushed sheen */
-  content:"";position:absolute;inset:0;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 5px);
-}
-.doorway.open .leaf.l{transform:translateX(-100%)}
-.doorway.open .leaf.r{transform:translateX(100%)}
-.doorway.ajar .leaf.l{transform:translateX(-42%)}
-.doorway.ajar .leaf.r{transform:translateX(42%)}
-/* the hero frame breathes: doors cycle so the mechanic is legible at a glance */
-.doorway.demo .leaf.l{animation:doorL 7s ease-in-out infinite}
-.doorway.demo .leaf.r{animation:doorR 7s ease-in-out infinite}
-@keyframes doorL{0%,8%{transform:translateX(0)}26%,66%{transform:translateX(-100%)}88%,100%{transform:translateX(0)}}
-@keyframes doorR{0%,8%{transform:translateX(0)}26%,66%{transform:translateX(100%)}88%,100%{transform:translateX(0)}}
+/* ---- trains ---- */
+.train{position:absolute;right:0;bottom:14px;width:116px;height:52px;z-index:2}
+.train .tbody{position:absolute;inset:0;border:3px solid var(--ink);border-radius:4px 4px 3px 3px}
+.train.u .tbody{background:#FFD814}
+.train.s .tbody{background:#C1121F}
+.train.s .ttop{position:absolute;left:0;right:0;top:3px;height:13px;background:#E8A020}
+.train .twin{position:absolute;top:16px;height:15px;background:#22303A;border:2px solid var(--ink);border-radius:3px}
+.train .twin.w1{left:6px;width:15px}
+.train .twin.w2{left:41px;width:20px}
+.train .twin.w3{left:81px;width:26px}
+.train .tdoor{position:absolute;top:14px;bottom:5px;width:12px;background:#5A626C;border:2px solid var(--ink)}
+.train .tdoor::after{content:"";position:absolute;left:1px;right:1px;top:1px;height:12px;background:#22303A}
+.train .tdoor.d1{left:25px}.train .tdoor.d2{left:65px}
+.train.open .tdoor{background:#0D1014;box-shadow:inset 0 0 0 2px #6D7684}
+.train .tnose{position:absolute;left:-16px;top:0;bottom:0;width:18px;border:3px solid var(--ink);border-right:0;
+  clip-path:polygon(38% 0,100% 0,100% 100%,0 100%)}
+.train.u .tnose{background:#FFD814}
+.train.s .tnose{background:#C1121F}
+.train .tlamp{position:absolute;left:-12px;bottom:12px;width:8px;height:5px;background:#FFF0B8;border:2px solid var(--ink)}
+.train .tw{position:absolute;bottom:-7px;width:11px;height:11px;background:#191920;border:2px solid #6E6656;border-radius:50%}
+.train .tw.w1{left:12px}.train .tw.w2{left:38px}.train .tw.w3{left:72px}.train .tw.w4{left:96px}
 
-/* wall panel: TRAIN's brushed console, turned portrait */
-.panel{
-  flex:0 0 auto;width:76px;
+/* ---- street level: exit, steps, bakery ---- */
+.exit{position:absolute;right:12px;bottom:11px;width:60px;height:76px;background:#DFF1FF;border:3px solid var(--ink);border-radius:6px 6px 0 0;transform:rotate(.5deg)}
+.exit i{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--ink)}
+.exit b{position:absolute;left:0;right:0;bottom:0;height:12px;background:#9FBED4;border-top:3px solid var(--ink)}
+.exitSign{position:absolute;right:12px;bottom:90px;width:60px;height:16px;background:#0F7B3E;border:2px solid var(--ink);box-shadow:0 0 0 3px var(--paper);transform:rotate(-1.6deg);
+  display:flex;align-items:center;justify-content:center;gap:3px}
+.exitSign span{font-family:var(--display);font-size:7px;color:#fff;letter-spacing:.06em}
+.exitSign i{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #fff}
+.steps{position:absolute;right:74px;bottom:12px;width:26px;height:26px}
+.steps i{position:absolute;bottom:0;background:#C9B98F;border:2px solid var(--ink)}
+.steps i:nth-child(1){left:0;width:10px;height:9px}
+.steps i:nth-child(2){left:8px;width:10px;height:16px}
+.steps i:nth-child(3){left:16px;width:12px;height:24px}
+.awn{position:absolute;left:88px;bottom:36px;width:52px;height:14px;border:3px solid var(--ink);border-radius:3px 3px 8px 8px;transform:rotate(1deg);
+  background:repeating-linear-gradient(90deg,#EF3E36 0 7px,#FFF3D6 7px 14px)}
+.counter{position:absolute;left:88px;bottom:11px;width:52px;height:24px;background:#B4581F;border:3px solid var(--ink);border-radius:4px 4px 2px 2px;transform:rotate(-.6deg)}
+.counter i{position:absolute;left:5px;top:-9px;font-size:9px}
+
+/* ---- people ---- */
+.ped{position:absolute;bottom:9px;width:22px;height:44px;z-index:3;
+  filter:drop-shadow(2px 3px 0 rgba(20,16,26,.26))}
+.ped .head{position:absolute;left:4px;top:0;width:14px;height:14px;background:var(--skin,#E8B98A);border:2px solid var(--ink);border-radius:50%}
+.ped .torso{position:absolute;left:2px;top:14px;width:18px;height:18px;background:var(--shirt,#22CFE0);
+  border:2px solid var(--ink);border-radius:6px 6px 3px 3px}
+.ped .arm{position:absolute;top:16px;width:5px;height:13px;background:var(--shirt,#22CFE0);
+  border:2px solid var(--ink);border-radius:3px}
+.ped .arm.a{left:-2px;transform:rotate(7deg)}
+.ped .arm.b{right:-2px;transform:rotate(-7deg)}
+.ped .leg{position:absolute;top:31px;width:8px;height:13px;background:#4B5464;border:2px solid var(--ink);border-radius:0 0 3px 3px}
+.ped .leg.a{left:2px}
+.ped .leg.b{left:12px}
+.car .ped{bottom:6px}
+.ped.walk .leg.a{animation:stepA .46s steps(1,end) infinite}
+.ped.walk .leg.b{animation:stepB .46s steps(1,end) infinite}
+@keyframes stepA{0%,49%{height:12px}50%,100%{height:8px}}
+@keyframes stepB{0%,49%{height:8px}50%,100%{height:12px}}
+.ped.flip{transform:scaleX(-1)}
+.badge{
+  position:absolute;left:0;top:-29px;width:22px;height:23px;border:2px solid var(--ink);
+  box-shadow:0 0 0 3px var(--paper), 2px 3px 0 rgba(20,16,26,.26);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  transform:rotate(-4deg);
+}
+.badge::after{content:"";position:absolute;left:50%;margin-left:-4px;bottom:-6px;
+  width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--ink)}
+.badge b{font-family:var(--display);font-size:11px;color:#fff;line-height:1}
+.badge s{display:flex;gap:3px;text-decoration:none}
+.badge u{display:block;width:3px;height:3px;background:#fff;text-decoration:none;opacity:.95}
+.b1{background:var(--f1)}.b2{background:var(--f2)}.b3{background:var(--f3)}
+.b1 b{color:#241A2E}.b1 u{background:#241A2E}
+/* delivered: the tag comes off, so a person with no number is a person
+   who is where they wanted to be */
+.poof{position:absolute;left:13px;top:-44px;width:24px;height:24px;pointer-events:none}
+.poof i{position:absolute;background:var(--paper);border:2px solid var(--ink);border-radius:50%}
+.poof i:nth-child(1){left:0;top:6px;width:9px;height:9px}
+.poof i:nth-child(2){left:11px;top:0;width:11px;height:11px}
+.poof i:nth-child(3){left:16px;top:13px;width:8px;height:8px}
+.thanks{position:absolute;left:-17px;top:-24px;background:var(--paper);border:2px solid var(--ink);
+  font-family:var(--display);font-size:8px;color:#241A2E;padding:3px 5px;white-space:nowrap;
+  transform:rotate(-3deg);box-shadow:2px 3px 0 rgba(20,16,26,.26);border-radius:5px 5px 5px 1px}
+
+/* ---- the console ---- */
+.console{
+  flex:0 0 auto;
   background:linear-gradient(#454B54,#2E333A 60%,#262A30);
-  border:4px solid #14161A;border-radius:14px;
-  box-shadow:0 6px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.16);
-  padding:8px 0;
-  display:flex;flex-direction:column;align-items:center;gap:7px;
+  border:4px solid var(--ink);border-radius:16px;
+  box-shadow:0 6px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.16);
+  padding:9px;display:flex;flex-direction:column;gap:8px;
 }
+.btnRow{display:flex;gap:14px;justify-content:center}
 .fBtn{
-  width:46px;height:46px;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,#F4F1E6,#C9C3B4 62%,#9C978A);
-  border:3px solid #14161A;
+  width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#F6F3E8,#CAC4B5 62%,#9D988B);
+  border:3px solid var(--ink);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--display);font-size:19px;color:var(--ink);
+  font-family:var(--display);font-size:20px;color:#241A2E;
   box-shadow:inset 0 -3px 0 rgba(0,0,0,.28), 0 3px 0 rgba(0,0,0,.45);
+  position:relative;
 }
-.fBtn.lit{
-  background:radial-gradient(circle at 34% 30%,#FFF3B8,#FFD23F 58%,#E0A400);
-  box-shadow:0 0 0 3px var(--sun),0 0 15px 3px rgba(255,210,63,.7),0 3px 0 rgba(0,0,0,.45);
-}
-.fBtn.here{box-shadow:0 0 0 3px var(--slime),0 3px 0 rgba(0,0,0,.45)}
-.panelRule{width:52px;height:2px;background:#14161A;border-radius:2px;margin:1px 0}
-.dBtn{
-  width:52px;height:30px;border-radius:9px;border:3px solid #14161A;
+.fBtn::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--ring,#666)}
+.r1{--ring:var(--f1)}.r2{--ring:var(--f2)}.r3{--ring:var(--f3)}
+.fBtn::after{content:"";position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 3px rgba(20,16,26,.55)}
+.fBtn.lit{background:radial-gradient(circle at 34% 30%,#FFF3B8,#FFD23F 58%,#E0A400);
+  box-shadow:0 0 14px 3px rgba(255,210,63,.75), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.45)}
+.doorRow{display:flex;gap:8px}
+.pill{
+  flex:1 1 0;height:34px;border:3px solid var(--ink);border-radius:10px;
   display:flex;align-items:center;justify-content:center;gap:3px;
-  box-shadow:0 3px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.3);
-  filter:saturate(.78) brightness(.88);
+  box-shadow:0 3px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.3);
+  filter:saturate(.8) brightness(.88);
 }
-.dBtn.open{background:linear-gradient(#7BD97B,#2F9E44)}
-.dBtn.close{background:linear-gradient(#F4845F,#C0392B)}
-.dBtn.lit{filter:saturate(1.35) brightness(1.22);box-shadow:0 0 0 3px var(--sun),0 0 13px 3px rgba(255,210,63,.6),0 3px 0 #14161A}
-.tri{width:7px;height:11px;background:#fff;flex:0 0 auto}
+.pill.o{background:linear-gradient(#7BD97B,#2F9E44)}
+.pill.c{background:linear-gradient(#F4845F,#C0392B)}
+.pill.bell{background:linear-gradient(#FFDE6B,#E8A41C);flex:0 0 52px}
+.pill.lit{filter:saturate(1.35) brightness(1.22);box-shadow:0 0 0 3px var(--sun),0 0 13px 3px rgba(255,210,63,.6),0 3px 0 var(--ink)}
+.tri{width:7px;height:12px;background:#fff;flex:0 0 auto}
 .tri.r{clip-path:polygon(0 0,100% 50%,0 100%)}
 .tri.l{clip-path:polygon(100% 0,0 50%,100% 100%)}
-.leafGlyph{width:4px;height:15px;background:#fff;border-radius:1px;flex:0 0 auto}
+.lf{display:block;width:4px;height:16px;background:#fff;border-radius:1px;flex:0 0 auto}
+.glBell{display:block;width:16px;height:16px;background:#fff;
+  clip-path:polygon(50% 0,66% 8%,78% 26%,80% 62%,92% 76%,8% 76%,20% 62%,22% 26%,34% 8%)}
 
-/* sound row, straight from TRAIN */
-.sndRow{flex:0 0 auto;display:flex;gap:6px;padding-right:34px}
-.snd{
-  flex:1 1 0;height:44px;border-radius:12px;border:3px solid #14161A;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 0 #14161A, inset 0 2px 0 rgba(255,255,255,.28);
-  filter:saturate(.8) brightness(.86);font-size:17px;
-}
-.snd.lit{filter:saturate(1.35) brightness(1.25);box-shadow:0 0 0 3px var(--sun),0 0 12px 3px rgba(255,210,63,.6),0 4px 0 #14161A}
-.snd.bell{background:linear-gradient(#FFDE6B,#E8A41C)}
-.snd.o{background:linear-gradient(#7BD97B,#2F9E44)}
-.snd.c{background:linear-gradient(#F4845F,#C0392B)}
-.snd.next{background:linear-gradient(#6FC3F0,#1B6CA8)}
-.snd.gap{background:linear-gradient(#FFB35C,#D9741A)}
-.snd.hi{background:linear-gradient(#B79BE8,#6C3FB5)}
-.gl{display:block;width:15px;height:15px;background:#fff}
-.gl.bell{clip-path:polygon(50% 0,66% 8%,78% 26%,80% 62%,92% 76%,8% 76%,20% 62%,22% 26%,34% 8%)}
-.gl.arrow{clip-path:polygon(0 34%,56% 34%,56% 12%,100% 50%,56% 88%,56% 66%,0 66%)}
-.gl.speak{clip-path:polygon(0 6%,100% 6%,100% 70%,56% 70%,30% 96%,32% 70%,0 70%)}
-.stopBar{display:block;width:4px;height:16px;background:#fff;border-radius:1px;margin-left:2px;flex:0 0 auto}
-.gapBar{display:block;width:9px;height:5px;background:#fff;border-radius:1px;flex:0 0 auto}
-.tri.d{width:9px;height:8px;clip-path:polygon(0 0,100% 0,50% 100%);margin:0 3px}
+/* pip row */
+.pips{position:absolute;right:7px;top:6px;display:flex;gap:3px;z-index:5}
+.pips i{display:block;width:9px;height:9px;background:#3A4049;border:2px solid var(--ink)}
+.pips i.on{background:var(--sun)}
 
 /* ==========================================================================
-   FLOOR SCENES — flat boxes only, the same "paper cutout" grammar the
-   train cars are drawn in.
+   page-side diagrams
    ========================================================================== */
-.sc-sky{position:absolute;inset:0}
+.argGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:clamp(18px,3vw,30px)}
+.argCard{background:var(--ground-2);border:1px solid var(--rule);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.argCard h3{font-family:var(--display);font-weight:400;font-size:14px;margin:0;color:var(--text)}
+.argCard p{margin:0;font-size:14.5px;color:var(--text-dim)}
+.argCard .demoBox{background:#2A2F38;border:2px solid var(--ink);border-radius:8px;min-height:118px;position:relative;overflow:hidden}
 
-/* U — U-Bahn: tiled tunnel, blue U, yellow BVG flank */
-.ub{background:linear-gradient(#3A4049,#23272E)}
-.ub .tiles{position:absolute;left:0;right:0;top:0;height:52%;
-  background:
-    repeating-linear-gradient(90deg,#D9D3C4 0 22px,#BFB9AA 22px 24px),
-    repeating-linear-gradient(0deg,#D9D3C4 0 15px,#BFB9AA 15px 17px);
-  opacity:.9}
-.ub .usign{position:absolute;left:9px;top:9px;width:26px;height:26px;background:#0063AF;
-  border:2px solid #0B2C4A;border-radius:3px;color:#fff;font-family:var(--display);font-size:16px;
-  display:flex;align-items:center;justify-content:center}
-.ub .lamp{position:absolute;right:12px;top:6px;width:34px;height:7px;background:#FFF0B8;border-radius:3px;
-  box-shadow:0 0 18px 6px rgba(255,240,184,.45)}
-.ub .plat{position:absolute;left:0;right:0;bottom:0;height:22%;background:#C9C0A8;border-top:3px solid #241A2E}
-.ub .hazard{position:absolute;left:0;right:0;bottom:22%;height:6px;
-  background:repeating-linear-gradient(45deg,#FFD23F 0 7px,#241A2E 7px 14px)}
-.ub .car{position:absolute;left:0;right:0;bottom:28%;height:34%;background:#FFD814;border-top:3px solid #E0BC00;border-bottom:3px solid #1A1A1A}
-.ub .win{position:absolute;left:8%;right:8%;top:52%;height:13%;background:#22303A;border-radius:2px}
-.ub .door{position:absolute;left:44%;width:12%;top:50%;height:22%;background:rgba(0,0,0,.18);border-radius:2px}
+/* the arrow-is-redundant diagram */
+.stack{display:flex;flex-direction:column;gap:3px;padding:12px}
+.lvl{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.lvl .box{width:26px;height:22px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-size:11px;color:#fff}
+.lvl .verdict{color:var(--text-dim)}
+.lvl.amb .verdict{color:var(--brass-soft)}
 
-/* E — S-Bahn and the main hall */
-.sb{background:linear-gradient(#F6EEDA,#E4D9C2)}
-.sb .ceil{position:absolute;left:0;right:0;top:0;height:9%;background:#CFC5AC;border-bottom:3px solid #241A2E}
-.sb .pillar{position:absolute;left:6%;top:9%;bottom:0;width:9%;background:#D3C9B0;border-left:3px solid #241A2E;border-right:3px solid #241A2E;opacity:.85}
-.sb .bench{position:absolute;right:9%;bottom:6%;width:26%;height:5%;background:#B4581F;border:2px solid #241A2E;border-radius:2px}
-.sb .benchBack{position:absolute;right:9%;bottom:11%;width:26%;height:4%;background:#8B5A2B;border:2px solid #241A2E;border-radius:2px}
-.sb .ssign{position:absolute;left:9px;top:9px;width:26px;height:26px;background:#008D4F;border:2px solid #05411F;
-  border-radius:50%;color:#fff;font-family:var(--display);font-size:15px;display:flex;align-items:center;justify-content:center}
-.sb .board{position:absolute;right:9px;top:9px;width:64px;height:34px;background:#1A1D22;border:2px solid #241A2E;border-radius:3px;
-  padding:4px;display:flex;flex-direction:column;gap:3px}
-.sb .board i{display:block;height:4px;background:#FFB000;border-radius:1px}
-.sb .board i:nth-child(2){width:76%}
-.sb .board i:nth-child(3){width:58%;background:#8DC63F}
-.sb .plat{position:absolute;left:0;right:0;bottom:0;height:24%;background:#D8CDB4;border-top:3px solid #241A2E}
-.sb .hazard{position:absolute;left:0;right:0;bottom:24%;height:6px;
-  background:repeating-linear-gradient(45deg,#FFD23F 0 7px,#241A2E 7px 14px)}
-.sb .car{position:absolute;left:0;right:0;bottom:30%;height:33%;background:#C1121F;border-bottom:3px solid #1A1A1A}
-.sb .carTop{position:absolute;left:0;right:0;bottom:52%;height:11%;background:#E8A020}
-.sb .win{position:absolute;left:8%;right:8%;bottom:42%;height:11%;background:#22303A;border-radius:2px}
-.sb .door{position:absolute;left:45%;width:11%;bottom:30%;height:22%;background:rgba(0,0,0,.2);border-radius:2px}
+/* badge anatomy */
+.anatomy{display:flex;align-items:center;justify-content:center;gap:26px;padding:16px 10px}
+.anatomy .callouts{display:flex;flex-direction:column;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--text-dim)}
+.anatomy .callouts span{display:flex;align-items:center;gap:6px}
+.anatomy .callouts i{width:8px;height:2px;background:var(--brass);display:block;flex:0 0 auto}
+.bigPed{position:relative;width:26px;height:70px}
+.bigPed .ped{position:absolute;left:4px;bottom:0}
 
-/* 1 — the shops */
-.shp{background:linear-gradient(#FFF6E0,#F3E4C4)}
-.shp .awn{position:absolute;left:6px;right:6px;top:6px;height:26px;border-radius:5px 5px 2px 2px;
-  background:repeating-linear-gradient(90deg,#EF3E36 0 12px,#FFF3D6 12px 24px);border:2px solid #241A2E}
-.shp .sign{position:absolute;left:10px;top:38px;font-family:var(--display);font-size:11px;color:#8B5A2B}
-.shp .case{position:absolute;left:8px;bottom:34%;width:52%;height:26%;background:#FFF9EC;border:2px solid #241A2E;border-radius:4px}
-.shp .goods{position:absolute;left:8px;bottom:34%;width:52%;height:26%;display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px}
-.shp .tree{position:absolute;right:12px;bottom:26%;width:26px;height:26px;background:#3F8F4E;border-radius:50%}
-.shp .pot{position:absolute;right:16px;bottom:20%;width:18px;height:12px;background:#B4581F;border-radius:2px 2px 5px 5px}
-.shp .bench{position:absolute;left:12px;bottom:14%;width:56px;height:7px;background:#B4581F;border-radius:2px}
-.shp .benchLeg{position:absolute;bottom:8%;width:5px;height:10px;background:#8B5A2B}
-.shp .floorLine{position:absolute;left:0;right:0;bottom:0;height:14%;background:#E2D3B2;border-top:3px solid #241A2E}
+/* single-floor strips for the passenger sequence */
+.strip{width:210px;height:150px;position:relative;overflow:hidden;border:3px solid var(--ink);background:var(--paper);display:flex}
+.strip .shaft{flex:0 0 58px}
+.strip .room{flex:1 1 auto;border-bottom:0}
+.strip .car{left:4px;width:50px;height:104px;bottom:9px;top:auto}
+.strip .train{transform:scale(.72);transform-origin:100% 100%}
+.strip .roomSign{display:none}
 
-/* 2 — Fernbahn under the glass roof */
-.ice{background:linear-gradient(#8FC2E8,#CFE6F6 62%,#E9F2F8)}
-.ice .arch{position:absolute;left:-6%;right:-6%;top:-14%;height:52%;border-radius:50% 50% 0 0/70% 70% 0 0;
-  border:3px solid #241A2E;border-bottom:0;
-  background:repeating-linear-gradient(74deg,rgba(255,255,255,.55) 0 8px,rgba(143,194,232,.35) 8px 16px)}
-.ice .plat{position:absolute;left:0;right:0;bottom:0;height:24%;background:#D8CDB4;border-top:3px solid #241A2E}
-.ice .hazard{position:absolute;left:0;right:0;bottom:24%;height:6px;
-  background:repeating-linear-gradient(45deg,#FFD23F 0 7px,#241A2E 7px 14px)}
-.ice .car{position:absolute;left:0;right:0;bottom:30%;height:30%;background:#F4F4F2;border-bottom:3px solid #3A3A42}
-.ice .roof{position:absolute;left:0;right:0;bottom:60%;height:6%;background:#DCDCDA}
-.ice .stripe{position:absolute;left:0;right:0;bottom:38%;height:7%;background:#D0021B}
-.ice .win{position:absolute;left:7%;right:7%;bottom:47%;height:11%;background:#22303A;border-radius:2px}
-.ice .nose{position:absolute;right:0;bottom:30%;width:34%;height:30%;background:#E7E7E3;
-  clip-path:polygon(0 0,46% 6%,84% 34%,100% 72%,100% 100%,0 100%)}
-.ice .noseStripe{position:absolute;right:0;bottom:38%;width:30%;height:7%;background:#D0021B;
-  clip-path:polygon(0 0,100% 0,72% 100%,0 100%)}
-.ice .cab{position:absolute;right:19%;bottom:47%;width:13%;height:10%;background:#22303A;
-  clip-path:polygon(16% 0,100% 34%,100% 100%,0 100%)}
-.ice .lamp{position:absolute;right:3%;bottom:34%;width:9%;height:5%;background:#FFF0B8;border:2px solid #17171B;border-radius:2px}
-.ice .seam{position:absolute;right:34%;bottom:30%;width:2px;height:30%;background:rgba(58,58,66,.5)}
-
-/* travelling: the shaft between floors */
-.shaft{background:linear-gradient(#1A1D22,#2A2F37 50%,#1A1D22)}
-.shaft .rungs{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.09) 0 3px,transparent 3px 26px)}
-
-/* ---------- the four-floor board ---------- */
-.floorGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:clamp(14px,2.6vw,26px)}
-.floorCard{display:flex;flex-direction:column;gap:11px}
-.floorCard .vig{
-  position:relative;height:184px;border:4px solid #14161A;border-radius:12px;overflow:hidden;
-  box-shadow:0 12px 26px rgba(0,0,0,.42);
-}
-.vigLabel{display:flex;align-items:baseline;gap:9px}
-.vigKey{
-  width:30px;height:30px;flex:0 0 auto;border-radius:7px;color:#fff;
-  font-family:var(--display);font-size:15px;display:flex;align-items:center;justify-content:center;
-  border:2px solid #0E1013;
-}
-.vigName{font-family:var(--display);font-size:13px;color:var(--text);line-height:1.25}
-.vigSub{font-size:13.5px;color:var(--text-dim);margin:0}
-.vigSay{
-  font-family:var(--mono);font-size:12px;color:var(--brass-soft);
-  background:var(--ground-2);border-left:2px solid var(--brass);
-  padding:7px 10px;border-radius:0 6px 6px 0;
-}
-
-/* ---------- control detail strip ---------- */
-.detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px;align-items:start}
-.detailCell{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
-.swatchBox{
-  background:var(--ground-2);border:1px solid var(--rule);border-radius:14px;
-  padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:104px;
-}
-.detailCell .cap{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
-.detailCell .txt{font-size:14px;color:var(--text-dim);margin:0}
-
-/* ---------- closing table ---------- */
+/* tables */
 .tableWrap{overflow-x:auto;border:1px solid var(--rule);border-radius:14px;background:var(--ground-2)}
-table{border-collapse:collapse;width:100%;min-width:520px;font-size:14.5px}
+table{border-collapse:collapse;width:100%;min-width:540px;font-size:14.5px}
 th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--rule);vertical-align:top}
 th{font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--brass);font-weight:400}
 tr:last-child td{border-bottom:0}
-td b{color:var(--text);font-weight:600}
 td{color:var(--text-dim)}
-
-.footNote{margin-top:34px;padding-top:20px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:14px;max-width:70ch}
+td b{color:var(--text);font-weight:600}
+.footNote{margin-top:30px;padding-top:20px;border-top:1px solid var(--rule);color:var(--text-dim);font-size:14px;max-width:70ch}
+.flag{margin-top:26px;background:var(--ground-2);border-left:3px solid var(--brass);border-radius:0 10px 10px 0;padding:16px 18px;max-width:70ch}
+.flag b{color:var(--brass-soft);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+.flag p{margin:0;color:var(--text-dim);font-size:14.5px}
 
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
-  .doorway.demo .leaf.l{transform:translateX(-100%)}
-  .doorway.demo .leaf.r{transform:translateX(100%)}
+  .car.demo .leaf.l{transform:translateX(-100%)}
+  .car.demo .leaf.r{transform:translateX(100%)}
 }
 </style>
 
 <div class="wrap">
 
   <header class="masthead">
-    <span class="eyebrow">Henry's Arcade · new screen · mockups</span>
+    <span class="eyebrow">Henry's Arcade · new screen · mockups v2</span>
     <h1>The <em>Elevator</em></h1>
-    <p class="lede">You are inside a station lift. Push a button, the doors close, the car moves, the doors
-    open somewhere else — U‑Bahn in the basement, S‑Bahn in the main hall, shops above that, the ICE platform
-    up top. Built from the same flat boxes, chunky ink outlines and brushed console as the train screen.</p>
+    <p class="lede">A side‑on cutaway of a station, three floors tall. U‑Bahn at the bottom, S‑Bahn in the
+    middle, the street entrance up top, and a lift shaft running the whole height on the left. Trains slide in
+    from the right and let people out; each person holds up the number of the floor they want. You drive the
+    lift and take them there.</p>
     <div class="metaRow">
-      <span class="chip">4 floors</span>
-      <span class="chip">no score, no fail state</span>
-      <span class="chip">German-first announcements</span>
-      <span class="chip">one file, no new assets</span>
-      <span class="chip">visual mockups — not built yet</span>
+      <span class="chip">3 floors</span>
+      <span class="chip">numbers, not arrows</span>
+      <span class="chip">nobody gets angry</span>
+      <span class="chip">no score, no timer</span>
+      <span class="chip">design only — not built yet</span>
     </div>
   </header>
 
-  <!-- ================= PLATE 1: the screen ================= -->
+  <!-- ============ PLATE 1: the screen ============ -->
   <section class="plate">
     <div class="plateHead">
-      <h2>The car, parked at the main hall</h2>
-      <p>The default state: doors open on the S‑Bahn platform, <b>E</b> ringed green on the panel because
-      that is where you are. The doors on this mockup cycle so the mechanic reads at a glance.</p>
+      <h2>The whole station, all at once</h2>
+      <p>Everything is on screen: the shaft, all three floors, both trains, everyone waiting. Nothing is
+      off‑camera, so a two‑year‑old can see the consequence of every button he presses. The car doors on this
+      mockup cycle by themselves.</p>
     </div>
 
     <div class="split">
-      <div class="frameBox">
-        <div class="hold" style="width:300px;height:620px">
-          <div class="frame">
-            <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-            <div class="stage">
-              <div class="ind">
-                <div class="arrows"><i class="arw up"></i><i class="arw dn"></i></div>
-                <div class="floorTile" style="background:#008D4F">E</div>
-                <div class="indText"><span class="de">ERDGESCHOSS</span><span class="en">S‑Bahn · Haupthalle</span></div>
-              </div>
-              <div class="carRow">
-                <div class="doorway demo">
-                  <div class="floorCol">
-                    <div class="scene sb">
-                      <div class="ssign">S</div>
-                      <div class="board"><i></i><i></i><i></i></div>
-                      <div class="car"></div><div class="carTop"></div><div class="win"></div>
-                      <div class="door"></div><div class="hazard"></div><div class="plat"></div>
-                    </div>
-                  </div>
-                  <div class="leaf l"></div>
-                  <div class="leaf r"></div>
+      <div class="hold full">
+        <div class="frame">
+          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
+
+          <div class="stage">
+            <div class="shaft">
+              <div class="rail1"></div><div class="rail2"></div>
+              <div class="readout"><i class="ar up off"></i><span class="num">2</span><i class="ar dn off"></i></div>
+              <div class="cable" style="height:160px"></div>
+              <div class="car demo" style="bottom:154px">
+                <div class="cfloor"></div>
+                <div class="ped" style="left:3px;--shirt:#7A3FBF;--skin:#C98B5E">
+                  <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
                 </div>
-                <div class="panel">
-                  <div class="fBtn">2</div>
-                  <div class="fBtn">1</div>
-                  <div class="fBtn here">E</div>
-                  <div class="fBtn">U</div>
-                  <div class="panelRule"></div>
-                  <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                  <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
+                <div class="ped" style="left:25px;--shirt:#FFD23F;--skin:#E8B98A">
+                  <i class="badge b1"><b>1</b><s><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+                <div class="leaf l"></div><div class="leaf r"></div>
+              </div>
+            </div>
+
+            <div class="floors">
+              <!-- floor 3 : street -->
+              <div class="room f3">
+                <div class="backing"></div>
+                <div class="roomSign"><i class="tile3">3</i><span>AUSGANG</span></div>
+                <div class="pips"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+                <div class="awn"></div>
+                <div class="counter"><i>🥨</i></div>
+                <div class="exitSign"><span>AUSGANG</span><i></i></div>
+                <div class="exit"><i></i><b></b></div>
+                <div class="slab"></div>
+                <div class="ped walk" style="left:56px;--shirt:#EF3E36;--skin:#8D5A3B">
+                  <i class="thanks">DANKE!</i><i class="poof"><i></i><i></i><i></i></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+                <div class="ped" style="left:8px;--shirt:#22CFE0;--skin:#E8B98A">
+                  <i class="badge b1"><b>1</b><s><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+              </div>
+
+              <!-- floor 2 : S-Bahn -->
+              <div class="room f2">
+                <div class="backing"></div>
+                <div class="roomSign"><i class="tile2">2</i><span>S-BAHN</span></div>
+                <div class="tunnel"></div>
+                <div class="train s open">
+                  <div class="tnose"></div><div class="tlamp"></div>
+                  <div class="tbody"></div><div class="ttop"></div><div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>
+                  <div class="tdoor d1"></div><div class="tdoor d2"></div>
+                  <i class="tw w1"></i><i class="tw w2"></i><i class="tw w3"></i><i class="tw w4"></i>
+                </div>
+                <div class="track"></div><div class="hz"></div><div class="slab"></div>
+                <div class="ped walk" style="left:44px;--shirt:#8DC63F;--skin:#C98B5E">
+                  <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+                <div class="ped" style="left:8px;--shirt:#F57D0D;--skin:#E8B98A">
+                  <i class="badge b1"><b>1</b><s><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+              </div>
+
+              <!-- floor 1 : U-Bahn -->
+              <div class="room f1">
+                <div class="backing"></div>
+                <div class="roomSign"><i class="tile1">1</i><span>U-BAHN</span></div>
+                <div class="tilewall"></div>
+                <div class="tunnel"></div>
+                <div class="train u">
+                  <div class="tnose"></div><div class="tlamp"></div>
+                  <div class="tbody"></div><div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>
+                  <div class="tdoor d1"></div><div class="tdoor d2"></div>
+                  <i class="tw w1"></i><i class="tw w2"></i><i class="tw w3"></i><i class="tw w4"></i>
+                </div>
+                <div class="track"></div><div class="hz"></div><div class="slab"></div>
+                <div class="ped" style="left:6px;--shirt:#FF4FA3;--skin:#8D5A3B">
+                  <i class="badge b2"><b>2</b><s><u></u><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+                </div>
+                <div class="ped" style="left:34px;--shirt:#FFF3D6;--skin:#E8B98A">
+                  <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+                  <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
                 </div>
               </div>
             </div>
-            <div class="sndRow">
-              <div class="snd bell"><i class="gl bell"></i></div>
-              <div class="snd o"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-              <div class="snd c"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              <div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-              <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div>
-              <div class="snd hi"><i class="gl speak"></i></div>
+          </div>
+
+          <div class="console">
+            <div class="btnRow">
+              <div class="fBtn r1">1</div>
+              <div class="fBtn r2 lit">2</div>
+              <div class="fBtn r3">3</div>
+            </div>
+            <div class="doorRow">
+              <div class="pill o"><i class="tri l"></i><i class="lf"></i><i class="lf"></i><i class="tri r"></i></div>
+              <div class="pill c"><i class="tri r"></i><i class="lf"></i><i class="lf"></i><i class="tri l"></i></div>
+              <div class="pill bell"><i class="glBell"></i></div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="notes">
-        <div class="note"><span class="k">Indicator</span><p class="v">Up and down arrows, the floor tile in that
-        floor's own sign colour, and the floor name in Bungee. The moving arrow <b>blinks</b> — the same lamp
-        behaviour the train's reverse notch already has.</p></div>
-        <div class="note"><span class="k">Doorway</span><p class="v">Two brushed leaves with rubber noses, each
-        sliding out by its own width. Behind them, a column of four floor scenes that slides vertically. That
-        translate is the <b>entire</b> animation — no path maths, unlike the train.</p></div>
-        <div class="note"><span class="k">Panel</span><p class="v">The train's brushed console turned portrait.
-        Round buttons, because lift buttons are round and it separates them instantly from the train's square
-        console. Order is top‑down <b>2 / 1 / E / U</b>, the way a real panel reads.</p></div>
-        <div class="note"><span class="k">Green ring</span><p class="v">Where you are now. A pressed floor lights
-        <b>amber</b> instead and holds that light for the whole ride, then goes out on arrival.</p></div>
-        <div class="note"><span class="k">Sound row</span><p class="v">The train screen's own row, six buttons:
-        bell, doors opening, doors closing, next stop, mind the gap, welcome aboard. German first, English on
-        the English setting.</p></div>
-        <div class="note"><span class="k">Tap size</span><p class="v">Every control clears 44 px at the smallest
-        phone size; floor buttons land near 60. Nothing is ever disabled‑looking and nothing can fail.</p></div>
+        <div class="note"><span class="k">Shaft</span><p class="v">Left quarter of the screen, floor to ceiling.
+        The car runs in it on a visible cable, and a small readout at the top shows the floor it is on and
+        which way it is heading. <b>That is the only arrow in the game</b> — it describes the lift, not a person.</p></div>
+        <div class="note"><span class="k">Floors</span><p class="v">Bottom <b>1 · U‑Bahn</b>, middle
+        <b>2 · S‑Bahn</b>, top <b>3 · Ausgang und Geschäfte</b>. Each has one colour, used on the floor sign, on
+        people's badges and on the ring around its console button.</p></div>
+        <div class="note"><span class="k">Trains</span><p class="v">They slide in from the right on floors 1 and
+        2, stop, open their doors, let one to three people out, and leave again — whether or not the lift ever
+        moves. The station runs on its own; driving it is the game.</p></div>
+        <div class="note"><span class="k">People</span><p class="v">Four boxes and a badge. They walk to the
+        shaft, queue in order, board on their own when the doors are open, and get out at their number. Tapping
+        one says the number aloud.</p></div>
+        <div class="note"><span class="k">Car</span><p class="v">Holds three. A fourth person waits for the next
+        trip — patiently, because nobody in this game ever gets impatient.</p></div>
+        <div class="note"><span class="k">Console</span><p class="v">1 · 2 · 3 left to right, the direction he
+        counts in, each ringed in its floor's colour. Then doors‑open, doors‑close, and the station bell.</p></div>
+        <div class="note"><span class="k">Pips</span><p class="v">Five little lamps in the top‑right corner; each delivered
+        passenger fills one, the fifth fires the confetti and resets. A reason to keep going with nothing to lose —
+        and the first thing to cut if the screen feels busy.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ================= PLATE 2: the ride ================= -->
+  <!-- ============ PLATE 2: why numbers ============ -->
   <section class="plate">
     <div class="plateHead">
-      <h2>One ride, start to finish</h2>
-      <p>Pressing <b>2</b> from the main hall. Five states, about four and a half seconds end to end. This is a
-      real sequence, so it is numbered.</p>
+      <h2>Why a number beats an arrow</h2>
+      <p>You asked me to think this through. Numbers are the right call, and the reason is stronger than
+      "numbers are nicer" — an arrow would barely say anything in a building this short.</p>
+    </div>
+
+    <div class="argGrid">
+
+      <div class="argCard">
+        <div class="demoBox">
+          <div class="stack">
+            <div class="lvl"><span class="box tile3">3</span><span class="verdict">only ▼ is possible</span></div>
+            <div class="lvl amb"><span class="box tile2">2</span><span class="verdict">▲ or ▼ — the one real fact</span></div>
+            <div class="lvl"><span class="box tile1">1</span><span class="verdict">only ▲ is possible</span></div>
+          </div>
+        </div>
+        <h3>An arrow says almost nothing</h3>
+        <p>With three floors, the top and bottom have exactly one possible direction. Two floors out of three, the
+        arrow tells you something you could already see. A number is a fact on every floor.</p>
+      </div>
+
+      <div class="argCard">
+        <div class="demoBox">
+          <div class="anatomy">
+            <div class="bigPed">
+              <div class="ped" style="--shirt:#22CFE0;--skin:#E8B98A">
+                <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+                <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i>
+              </div>
+            </div>
+            <div class="callouts">
+              <span><i></i>numeral</span>
+              <span><i></i>that many dots</span>
+              <span><i></i>the floor's colour</span>
+              <span><i></i>same colour as its button</span>
+            </div>
+          </div>
+        </div>
+        <h3>Coded three ways at once</h3>
+        <p>A child who can't read a "3" yet can still count the dots, or just match blue to blue. Any one of the
+        three routes gets him to the right button — the game works before numbers do, and teaches them on the way.</p>
+      </div>
+
+      <div class="argCard">
+        <div class="demoBox">
+          <div class="anatomy" style="gap:10px">
+            <div class="bigPed"><div class="ped" style="--shirt:#EF3E36;--skin:#8D5A3B">
+              <i class="badge b1"><b>1</b><s><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+            <div class="bigPed"><div class="ped" style="--shirt:#8DC63F;--skin:#E8B98A">
+              <i class="badge b2"><b>2</b><s><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+            <div class="bigPed"><div class="ped" style="--shirt:#7A3FBF;--skin:#C98B5E">
+              <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+          </div>
+        </div>
+        <h3>It survives the ride</h3>
+        <p>An arrow is spent the moment someone boards. The badge rides along, so when the doors open at 2 you can
+        see at a glance which of your three passengers gets out. That is what makes a full car readable.</p>
+      </div>
+
+      <div class="argCard">
+        <div class="demoBox">
+          <div class="anatomy" style="gap:18px">
+            <div class="bigPed"><div class="ped" style="--shirt:#F57D0D;--skin:#E8B98A">
+              <i class="badge b2"><b>2</b><s><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+            <div class="fBtn r2" style="transform:scale(.86)">2</div>
+          </div>
+        </div>
+        <h3>One step, not two</h3>
+        <p>Badge says 2, press 2. An arrow would need a second thought — "up from floor 1 means 2" — which turns a
+        matching game into a deduction game. And it quietly rehearses the counting screen he already plays.</p>
+      </div>
+
+      <div class="argCard">
+        <div class="demoBox">
+          <div class="anatomy" style="gap:22px">
+            <div class="bigPed"><div class="ped" style="--shirt:#EF3E36;--skin:#8D5A3B">
+              <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+            <span style="font-family:var(--display);font-size:18px;color:var(--brass)">&#8594;</span>
+            <div class="bigPed"><div class="ped" style="--shirt:#EF3E36;--skin:#8D5A3B">
+              <i class="thanks">DANKE!</i><i class="poof"><i></i><i></i><i></i></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div></div>
+          </div>
+        </div>
+        <h3>And it comes off when it's done</h3>
+        <p>The moment the doors open on the floor a person asked for, their number pops off in a little puff of
+        paper. <b>Nobody on screen with a number is where they want to be</b> &mdash; so the remaining work is
+        countable at a glance, and a delivered passenger visibly stops asking for anything.</p>
+      </div>
+
+    </div>
+
+    <div class="flag">
+      <b>Where the arrows went</b>
+      <p>They didn't vanish — they moved to where they're actually true. One up/down indicator sits at the top of
+      the shaft showing which way the <i>car</i> is travelling. That's the lift's own state, and the only place an
+      arrow carries information a number doesn't.</p>
+    </div>
+  </section>
+
+  <!-- ============ PLATE 3: the life of a passenger ============ -->
+  <section class="plate">
+    <div class="plateHead">
+      <h2>One passenger, end to end</h2>
+      <p>Off the U‑Bahn, up to the street, out the door. Five states, each one a step in the same little machine
+      that runs every person on screen.</p>
     </div>
 
     <div class="rail">
 
       <div class="railItem">
-        <div class="hold h55"><div class="frame s55">
-          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-          <div class="stage">
-            <div class="ind">
-              <div class="arrows"><i class="arw up"></i><i class="arw dn"></i></div>
-              <div class="floorTile" style="background:#008D4F">E</div>
-              <div class="indText"><span class="de">ERDGESCHOSS</span><span class="en">S‑Bahn · Haupthalle</span></div>
-            </div>
-            <div class="carRow">
-              <div class="doorway open">
-                <div class="floorCol"><div class="scene sb"><div class="ceil"></div><div class="pillar"></div><div class="ssign">S</div><div class="board"><i></i><i></i><i></i></div>
-                <div class="car"></div><div class="carTop"></div><div class="win"></div><div class="door"></div><div class="hazard"></div><div class="plat"></div></div></div>
-                <div class="leaf l"></div><div class="leaf r"></div>
-              </div>
-              <div class="panel">
-                <div class="fBtn lit">2</div><div class="fBtn">1</div><div class="fBtn here">E</div><div class="fBtn">U</div>
-                <div class="panelRule"></div>
-                <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              </div>
-            </div>
+        <div class="strip">
+          <div class="shaft"><div class="rail1"></div><div class="rail2"></div><div class="car" style="bottom:9px"><div class="cfloor"></div><div class="leaf l"></div><div class="leaf r"></div></div></div>
+          <div class="room f1">
+                <div class="backing"></div>
+            <div class="tilewall"></div><div class="tunnel"></div>
+            <div class="train u open"><div class="tnose"></div><div class="tlamp"></div><div class="tbody"></div>
+              <div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div><div class="tdoor d1"></div><div class="tdoor d2"></div>
+              <i class="tw w1"></i><i class="tw w2"></i><i class="tw w3"></i><i class="tw w4"></i></div>
+            <div class="track"></div><div class="hz"></div><div class="slab"></div>
+            <div class="ped" style="left:58px;--shirt:#22CFE0;--skin:#E8B98A">
+              <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
           </div>
-          <div class="sndRow">
-            <div class="snd bell"><i class="gl bell"></i></div><div class="snd o"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-            <div class="snd c"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div><div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-            <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div><div class="snd hi"><i class="gl speak"></i></div>
-          </div>
-        </div></div>
-        <div class="railCap"><span class="step">Step 1</span><span class="t">PRESS</span>
-        <span class="d">Button 2 lights amber and stays lit. A short square beep, a confetti burst — the arcade's standard tap reward.</span></div>
-      </div>
-
-      <div class="railItem">
-        <div class="hold h55"><div class="frame s55">
-          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-          <div class="stage">
-            <div class="ind">
-              <div class="arrows"><i class="arw up"></i><i class="arw dn"></i></div>
-              <div class="floorTile" style="background:#008D4F">E</div>
-              <div class="indText"><span class="de">TÜREN SCHLIESSEN</span><span class="en">Zurückbleiben bitte</span></div>
-            </div>
-            <div class="carRow">
-              <div class="doorway ajar">
-                <div class="floorCol"><div class="scene sb"><div class="ceil"></div><div class="pillar"></div><div class="ssign">S</div><div class="board"><i></i><i></i><i></i></div>
-                <div class="car"></div><div class="carTop"></div><div class="win"></div><div class="door"></div><div class="hazard"></div><div class="plat"></div></div></div>
-                <div class="leaf l"></div><div class="leaf r"></div>
-              </div>
-              <div class="panel">
-                <div class="fBtn lit">2</div><div class="fBtn">1</div><div class="fBtn here">E</div><div class="fBtn">U</div>
-                <div class="panelRule"></div>
-                <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                <div class="dBtn close lit"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="sndRow">
-            <div class="snd bell"><i class="gl bell"></i></div><div class="snd o"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-            <div class="snd c lit"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div><div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-            <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div><div class="snd hi"><i class="gl speak"></i></div>
-          </div>
-        </div></div>
-        <div class="railCap"><span class="step">Step 2</span><span class="t">DOORS CLOSE · 0.8 s</span>
-        <span class="d">Motor hiss, then <i>„Zurückbleiben bitte, die Türen schließen.“</i> The car cannot move until they are shut.</span></div>
-      </div>
-
-      <div class="railItem">
-        <div class="hold h55"><div class="frame s55">
-          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-          <div class="stage">
-            <div class="ind">
-              <div class="arrows"><i class="arw up on blink"></i><i class="arw dn"></i></div>
-              <div class="floorTile" style="background:#C9C3B4;color:#241A2E">1</div>
-              <div class="indText"><span class="de">AUFWÄRTS</span><span class="en">1 · Geschäfte</span></div>
-            </div>
-            <div class="carRow">
-              <div class="doorway">
-                <div class="floorCol"><div class="scene shaft"><div class="rungs"></div></div></div>
-                <div class="leaf l"></div><div class="leaf r"></div>
-              </div>
-              <div class="panel">
-                <div class="fBtn lit">2</div><div class="fBtn">1</div><div class="fBtn">E</div><div class="fBtn">U</div>
-                <div class="panelRule"></div>
-                <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="sndRow">
-            <div class="snd bell"><i class="gl bell"></i></div><div class="snd o"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-            <div class="snd c"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div><div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-            <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div><div class="snd hi"><i class="gl speak"></i></div>
-          </div>
-        </div></div>
-        <div class="railCap"><span class="step">Step 3</span><span class="t">TRAVEL · 1 s per floor</span>
-        <span class="d">Up arrow blinks, low hum plays, and the tile flips with a tick at every floor passed — floors you can count by ear.</span></div>
-      </div>
-
-      <div class="railItem">
-        <div class="hold h55"><div class="frame s55">
-          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-          <div class="stage">
-            <div class="ind">
-              <div class="arrows"><i class="arw up on"></i><i class="arw dn"></i></div>
-              <div class="floorTile" style="background:#C9C3B4;color:#241A2E">2</div>
-              <div class="indText"><span class="de">ZWEITE ETAGE</span><span class="en">Fernbahn · ICE</span></div>
-            </div>
-            <div class="carRow">
-              <div class="doorway ajar">
-                <div class="floorCol"><div class="scene ice"><div class="arch"></div><div class="car"></div><div class="roof"></div>
-                <div class="win"></div><div class="stripe"></div><div class="nose"></div><div class="noseStripe"></div><div class="cab"></div><div class="lamp"></div><div class="seam"></div><div class="hazard"></div><div class="plat"></div></div></div>
-                <div class="leaf l"></div><div class="leaf r"></div>
-              </div>
-              <div class="panel">
-                <div class="fBtn">2</div><div class="fBtn">1</div><div class="fBtn">E</div><div class="fBtn">U</div>
-                <div class="panelRule"></div>
-                <div class="dBtn open lit"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="sndRow">
-            <div class="snd bell"><i class="gl bell"></i></div><div class="snd o lit"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-            <div class="snd c"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div><div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-            <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div><div class="snd hi"><i class="gl speak"></i></div>
-          </div>
-        </div></div>
-        <div class="railCap"><span class="step">Step 4</span><span class="t">DING · DOORS OPEN</span>
-        <span class="d">Two‑tone gong, 1046 Hz then 784 Hz. The 2 button goes dark — you have arrived, so it stops asking.</span></div>
-      </div>
-
-      <div class="railItem">
-        <div class="hold h55"><div class="frame s55">
-          <div class="fHead"><span class="fBack">◀ HAUS</span><span class="fTitle">AUFZUG!</span></div>
-          <div class="stage">
-            <div class="ind">
-              <div class="arrows"><i class="arw up"></i><i class="arw dn"></i></div>
-              <div class="floorTile" style="background:#C9C3B4;color:#241A2E">2</div>
-              <div class="indText"><span class="de">ZWEITE ETAGE</span><span class="en">Fernbahn · ICE</span></div>
-            </div>
-            <div class="carRow">
-              <div class="doorway open">
-                <div class="floorCol"><div class="scene ice"><div class="arch"></div><div class="car"></div><div class="roof"></div>
-                <div class="win"></div><div class="stripe"></div><div class="nose"></div><div class="noseStripe"></div><div class="cab"></div><div class="lamp"></div><div class="seam"></div><div class="hazard"></div><div class="plat"></div></div></div>
-                <div class="leaf l"></div><div class="leaf r"></div>
-              </div>
-              <div class="panel">
-                <div class="fBtn">2</div><div class="fBtn">1</div><div class="fBtn">E</div><div class="fBtn">U</div>
-                <div class="panelRule"></div>
-                <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-                <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="sndRow">
-            <div class="snd bell"><i class="gl bell"></i></div><div class="snd o"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-            <div class="snd c"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div><div class="snd next"><i class="gl arrow"></i><i class="stopBar"></i></div>
-            <div class="snd gap"><i class="gapBar"></i><i class="tri d"></i><i class="gapBar"></i></div><div class="snd hi"><i class="gl speak"></i></div>
-          </div>
-        </div></div>
-        <div class="railCap"><span class="step">Step 5</span><span class="t">ARRIVED</span>
-        <span class="d">Platform gong, then <i>„Zweite Etage. Fernbahn.“</i> The ICE is sitting there waiting. Press anything to go again.</span></div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ================= PLATE 3: the floors ================= -->
-  <section class="plate">
-    <div class="plateHead">
-      <h2>What is behind the doors</h2>
-      <p>Four floors of a composite German main station. Each scene is a single screen‑width slab of flat boxes —
-      the same drawing grammar as the train cars, reusing their exact liveries: BVG yellow, S‑Bahn red and ochre,
-      ICE white with the red cheat line.</p>
-    </div>
-
-    <div class="floorGrid">
-
-      <div class="floorCard">
-        <div class="vig scene ice"><div class="arch"></div><div class="car"></div><div class="roof"></div>
-          <div class="win"></div><div class="stripe"></div><div class="nose"></div><div class="noseStripe"></div><div class="cab"></div><div class="lamp"></div><div class="seam"></div><div class="hazard"></div><div class="plat"></div></div>
-        <div class="vigLabel"><span class="vigKey" style="background:#C9C3B4;color:#241A2E">2</span>
-          <span class="vigName">ZWEITE ETAGE<br>Fernbahn</span></div>
-        <p class="vigSub">The ICE nose under a glass arch, sky behind it. The top of the building and the loudest reward.</p>
-        <div class="vigSay">„Zweite Etage. Fernbahn.“</div>
-      </div>
-
-      <div class="floorCard">
-        <div class="vig scene shp"><div class="awn"></div><div class="sign">BÄCKEREI</div>
-          <div class="case"></div><div class="goods">🥨 🍦</div>
-          <div class="tree"></div><div class="pot"></div>
-          <div class="bench"></div><div class="benchLeg" style="left:14px"></div><div class="benchLeg" style="left:60px"></div>
-          <div class="floorLine"></div></div>
-        <div class="vigLabel"><span class="vigKey" style="background:#C9C3B4;color:#241A2E">1</span>
-          <span class="vigName">ERSTE ETAGE<br>Geschäfte</span></div>
-        <p class="vigSub">Bakery awning, a pretzel and an ice cream in the case, a bench and a potted tree. The one floor with no train — deliberately.</p>
-        <div class="vigSay">„Erste Etage. Geschäfte.“</div>
-      </div>
-
-      <div class="floorCard">
-        <div class="vig scene sb"><div class="ceil"></div><div class="pillar"></div><div class="ssign">S</div><div class="board"><i></i><i></i><i></i></div>
-          <div class="car"></div><div class="carTop"></div><div class="win"></div><div class="door"></div>
-          <div class="hazard"></div><div class="plat"></div><div class="benchBack"></div><div class="bench"></div></div>
-        <div class="vigLabel"><span class="vigKey" style="background:#008D4F">E</span>
-          <span class="vigName">ERDGESCHOSS<br>S‑Bahn · Haupthalle</span></div>
-        <p class="vigSub">Street level and the game's home floor: green S roundel, a departure board, the red‑and‑ochre S‑Bahn at the platform.</p>
-        <div class="vigSay">„Erdgeschoss. S‑Bahn und Haupthalle.“</div>
-      </div>
-
-      <div class="floorCard">
-        <div class="vig scene ub"><div class="tiles"></div><div class="usign">U</div><div class="lamp"></div>
-          <div class="car"></div><div class="win"></div><div class="door"></div>
-          <div class="hazard"></div><div class="plat"></div></div>
-        <div class="vigLabel"><span class="vigKey" style="background:#0063AF">U</span>
-          <span class="vigName">UNTERGESCHOSS<br>U‑Bahn</span></div>
-        <p class="vigSub">Tiled tunnel wall, a tunnel lamp, and the BVG‑yellow U‑Bahn car from the train screen seen flank‑on.</p>
-        <div class="vigSay">„Untergeschoss. U‑Bahn.“</div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ================= PLATE 4: control states ================= -->
-  <section class="plate">
-    <div class="plateHead">
-      <h2>Button states</h2>
-      <p>Three states per control, all of them lit rather than greyed. Nothing on this screen ever looks broken
-      or switched off — the arcade's rule, carried over intact.</p>
-    </div>
-
-    <div class="detail">
-      <div class="detailCell">
-        <div class="swatchBox"><div class="fBtn">2</div></div>
-        <span class="cap">At rest</span>
-        <p class="txt">Ivory, domed, ink outline. Reads as pressable from across the room.</p>
-      </div>
-      <div class="detailCell">
-        <div class="swatchBox"><div class="fBtn lit">2</div></div>
-        <span class="cap">Called</span>
-        <p class="txt">Amber halo, held for the whole ride, out on arrival — same lamp treatment as the train console.</p>
-      </div>
-      <div class="detailCell">
-        <div class="swatchBox"><div class="fBtn here">E</div></div>
-        <span class="cap">You are here</span>
-        <p class="txt">A green ring. Always exactly one, so the panel answers "where am I" without reading a word.</p>
-      </div>
-      <div class="detailCell">
-        <div class="swatchBox"><i class="arw up on blink" style="border-bottom-width:16px;border-left-width:11px;border-right-width:11px"></i></div>
-        <span class="cap">Moving</span>
-        <p class="txt">The direction arrow blinks while the car runs, the way the train's reverse notch does.</p>
-      </div>
-      <div class="detailCell">
-        <div class="swatchBox">
-          <div class="dBtn open"><i class="tri l"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri r"></i></div>
-          <div class="dBtn close"><i class="tri r"></i><i class="leafGlyph"></i><i class="leafGlyph"></i><i class="tri l"></i></div>
         </div>
-        <span class="cap">Door pair</span>
-        <p class="txt">Arrows away from the leaves opens, arrows toward them closes. The exact glyphs the train screen already uses.</p>
+        <div class="railCap"><span class="step">Step 1</span><span class="t">STEPS OFF THE TRAIN</span>
+        <span class="d">The U‑Bahn stops, its doors open, one to three people come out. This one is holding a 3 — he wants the street.</span></div>
       </div>
-      <div class="detailCell">
-        <div class="swatchBox">
-          <div class="snd bell" style="flex:0 0 44px"><i class="gl bell"></i></div>
-          <div class="snd next" style="flex:0 0 44px"><i class="gl arrow"></i><i class="stopBar"></i></div>
-          <div class="snd hi" style="flex:0 0 44px"><i class="gl speak"></i></div>
+
+      <div class="railItem">
+        <div class="strip">
+          <div class="shaft"><div class="rail1"></div><div class="rail2"></div><div class="car" style="bottom:9px"><div class="cfloor"></div><div class="leaf l"></div><div class="leaf r"></div></div></div>
+          <div class="room f1">
+                <div class="backing"></div>
+            <div class="tilewall"></div><div class="tunnel"></div>
+            <div class="train u"><div class="tnose"></div><div class="tlamp"></div><div class="tbody"></div>
+              <div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div><div class="tdoor d1"></div><div class="tdoor d2"></div>
+              <i class="tw w1"></i><i class="tw w2"></i><i class="tw w3"></i><i class="tw w4"></i></div>
+            <div class="track"></div><div class="hz"></div><div class="slab"></div>
+            <div class="ped walk" style="left:26px;--shirt:#22CFE0;--skin:#E8B98A">
+              <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+          </div>
         </div>
-        <span class="cap">Sound row</span>
-        <p class="txt">Bell, next stop, welcome aboard — plus the two door calls and mind‑the‑gap.</p>
+        <div class="railCap"><span class="step">Step 2</span><span class="t">WALKS TO THE LIFT</span>
+        <span class="d">Left along the platform on two‑frame legs, badge bobbing over his head. No input needed — people walk themselves.</span></div>
+      </div>
+
+      <div class="railItem">
+        <div class="strip">
+          <div class="shaft"><div class="rail1"></div><div class="rail2"></div><div class="car" style="bottom:9px"><div class="cfloor"></div><div class="leaf l"></div><div class="leaf r"></div></div></div>
+          <div class="room f1">
+                <div class="backing"></div>
+            <div class="tilewall"></div><div class="tunnel"></div>
+            <div class="track"></div><div class="hz"></div><div class="slab"></div>
+            <div class="ped" style="left:6px;--shirt:#22CFE0;--skin:#E8B98A">
+              <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+            <div class="ped" style="left:32px;--shirt:#FF4FA3;--skin:#8D5A3B">
+              <i class="badge b2"><b>2</b><s><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+          </div>
+        </div>
+        <div class="railCap"><span class="step">Step 3</span><span class="t">QUEUES AND WAITS</span>
+        <span class="d">First in front, in order. Now the screen is asking a question with one right answer: press 3.</span></div>
+      </div>
+
+      <div class="railItem">
+        <div class="strip">
+          <div class="shaft"><div class="rail1"></div><div class="rail2"></div>
+            <div class="car open" style="bottom:9px"><div class="cfloor"></div>
+              <div class="ped" style="left:4px;--shirt:#22CFE0;--skin:#E8B98A">
+                <i class="badge b3"><b>3</b><s><u></u><u></u><u></u></s></i>
+                <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+              <div class="leaf l"></div><div class="leaf r"></div></div></div>
+          <div class="room f1">
+                <div class="backing"></div>
+            <div class="tilewall"></div><div class="tunnel"></div>
+            <div class="track"></div><div class="hz"></div><div class="slab"></div>
+            <div class="ped" style="left:20px;--shirt:#FF4FA3;--skin:#8D5A3B">
+              <i class="badge b2"><b>2</b><s><u></u><u></u></s></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+          </div>
+        </div>
+        <div class="railCap"><span class="step">Step 4</span><span class="t">BOARDS AND RIDES</span>
+        <span class="d">Doors open, he walks in on his own. Car holds three; the pink 2 waits for the next trip without minding.</span></div>
+      </div>
+
+      <div class="railItem">
+        <div class="strip">
+          <div class="shaft"><div class="rail1"></div><div class="rail2"></div><div class="car open" style="bottom:9px"><div class="cfloor"></div><div class="leaf l"></div><div class="leaf r"></div></div></div>
+          <div class="room f3">
+                <div class="backing"></div>
+            <div class="exitSign" style="bottom:80px;right:8px"><span>AUSGANG</span><i></i></div>
+            <div class="exit" style="right:8px;bottom:12px;height:66px"><i></i><b></b></div>
+            <div class="steps" style="right:66px"><i></i><i></i><i></i></div>
+            <div class="slab"></div>
+            <div class="ped walk" style="left:48px;--shirt:#22CFE0;--skin:#E8B98A">
+              <i class="thanks">DANKE!</i><i class="poof"><i></i><i></i><i></i></i>
+              <i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+          </div>
+        </div>
+        <div class="railCap"><span class="step">Step 5</span><span class="t">OUT THROUGH THE DOOR</span>
+        <span class="d">Doors open at 3, the badge comes off, a little hop and a <i>„Danke!“</i>, and he walks out to the street.</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ PLATE 4: the console ============ -->
+  <section class="plate">
+    <div class="plateHead">
+      <h2>The console, and the rules around it</h2>
+      <p>Five controls. Everything else on screen happens on its own.</p>
+    </div>
+
+    <div class="split">
+      <div class="hold" style="width:300px;height:auto">
+        <div class="console" style="width:300px">
+          <div class="btnRow">
+            <div class="fBtn r1">1</div>
+            <div class="fBtn r2 lit">2</div>
+            <div class="fBtn r3">3</div>
+          </div>
+          <div class="doorRow">
+            <div class="pill o lit"><i class="tri l"></i><i class="lf"></i><i class="lf"></i><i class="tri r"></i></div>
+            <div class="pill c"><i class="tri r"></i><i class="lf"></i><i class="lf"></i><i class="tri l"></i></div>
+            <div class="pill bell"><i class="glBell"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes">
+        <div class="note"><span class="k">1 · 2 · 3</span><p class="v">Round, ivory, 54 px, each ringed in its
+        floor's colour so the badge‑to‑button match can be made on colour alone. Pressed, it lights amber and
+        <b>holds that light for the whole trip</b>, then goes out on arrival.</p></div>
+        <div class="note"><span class="k">Doors</span><p class="v">Arrows away from the leaves opens, arrows
+        toward them closes — the train screen's own glyphs. Doors also open by themselves on arrival and close
+        after four idle seconds, but <b>never while someone is walking through</b>.</p></div>
+        <div class="note"><span class="k">Bell</span><p class="v">The station gong. No purpose at all, which is
+        the purpose.</p></div>
+        <div class="note"><span class="k">Same floor</span><p class="v">Press the floor you're already on and the
+        doors simply re‑open. Never an error.</p></div>
+        <div class="note"><span class="k">Mid‑ride</span><p class="v">A press while the car is moving buzzes softly
+        and is ignored. No hidden queue, nothing pending — what you see is what the lift is doing.</p></div>
+        <div class="note"><span class="k">Doors open</span><p class="v">The car won't move with its doors open;
+        press a floor and it closes them first, then goes. The order is always visible.</p></div>
+        <div class="note"><span class="k">Everything taps</span><p class="v">Tap a person and they say their
+        number. Tap a train and it sounds its horn. Nothing on screen ignores a finger.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ================= PLATE 5: inheritance ================= -->
+  <!-- ============ PLATE 5: build ============ -->
   <section class="plate">
     <div class="plateHead">
-      <h2>Borrowed from the train screen</h2>
-      <p>Almost nothing here is new machinery. The train screen already answered the hard questions; this one
-      inherits the answers.</p>
+      <h2>What it costs to build</h2>
+      <p>Still one file, no build step, no external assets. The DOS feeling comes from a coarse grid, square
+      corners on all the scenery, hard two‑frame walk animation instead of smooth easing, and the whole
+      building being visible at once.</p>
     </div>
 
     <div class="tableWrap">
       <table>
-        <thead><tr><th>Piece</th><th>Where it comes from</th><th>What changes</th></tr></thead>
+        <thead><tr><th>Piece</th><th>How</th><th>Borrowed from</th></tr></thead>
         <tbody>
-          <tr><td><b>Console</b></td><td>The S‑Bahn driving console's gradient, border and inset highlight</td><td>Turned portrait; buttons go round</td></tr>
-          <tr><td><b>Lit state</b></td><td>The <code>.lit</code> amber halo and the blinking reverse notch</td><td>Used for called floors and the direction arrow</td></tr>
-          <tr><td><b>Sound row</b></td><td>The six announcement buttons along the bottom</td><td>New phrases, same gong and same 4‑second light</td></tr>
-          <tr><td><b>Audio</b></td><td>Pre‑rendered, cached one‑shots — no live oscillators</td><td>Ding, hiss and beep are new parameter sets, not new code</td></tr>
-          <tr><td><b>Liveries</b></td><td>BVG yellow, ICE white and red, the platform hazard stripe</td><td>Reused verbatim so the two screens share a world</td></tr>
-          <tr><td><b>Lifecycle</b></td><td>One rAF loop started on entry, stopped on exit and on the parent timer</td><td>Same hooks, one axis instead of a curved path</td></tr>
+          <tr><td><b>Station</b></td><td>Three room <code>div</code>s in a column plus a shaft column; one geometry table of floor ground‑lines, recomputed on resize</td><td>New, but the same flat‑box drawing grammar as the trains</td></tr>
+          <tr><td><b>Car</b></td><td>One <code>div</code>, <code>translateY</code> to the target floor, ease‑in‑out; two leaves on <code>translateX</code></td><td>The door glyphs and lit states from TRAIN</td></tr>
+          <tr><td><b>People</b></td><td>Four boxes and a badge each, ~8 alive, one five‑state machine stepped in the existing rAF loop</td><td>New — the only genuinely new machinery</td></tr>
+          <tr><td><b>Trains</b></td><td>One <code>div</code> per platform sliding in and out from the right</td><td>U‑Bahn and S‑Bahn liveries lifted straight from <code>TRAIN_SETS</code></td></tr>
+          <tr><td><b>Console</b></td><td>Brushed panel, amber <code>.lit</code> halo, door glyphs</td><td>TRAIN's <code>.controlCard</code>, unchanged</td></tr>
+          <tr><td><b>Sound</b></td><td>Beep, buzz, hiss, gong, rumble, <i>„Danke!“</i></td><td>The pre‑rendered cached one‑shots — no new audio code</td></tr>
+          <tr><td><b>Lifecycle</b></td><td>One rAF loop, started in <code>go()</code>, cancelled on leaving and by the parent timer</td><td>Identical hooks to TRAIN</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p class="footNote">Deliberately out of scope: passengers to deliver, a score, a call panel on other floors,
-    queued stops, an alarm phone. This is a machine to operate, not a puzzle to solve — a press during a ride
-    just buzzes and is ignored, which is instant and honest rather than silently queued.</p>
+    <p class="footNote">Roughly 180 lines of CSS and 300 of JS — bigger than a screen with no actors in it, but
+    still the smallest kind of simulation. Deliberately left out: a score, a timer, impatient passengers, real
+    lift call logic, and walking the people yourself. The lift is the only thing you drive, which is exactly why
+    one small console is enough.</p>
   </section>
 
 </div>

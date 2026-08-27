@@ -1,231 +1,301 @@
 # THE ELEVATOR — design
 
-A new mini-game for Henry's Arcade. You are standing *inside* a station
-elevator. You push the buttons, the doors close, the car moves, the doors open
-somewhere else. That is the whole game.
+A side-view cutaway of a station, drawn the way an old DOS game would draw
+it: three floors stacked up the screen, a lift shaft running the full height
+down the left, trains sliding in and out along the right. Little people get off
+the trains, walk to the lift, and wait there holding up the number of the floor
+they want. You drive the lift and take them there.
 
-It is the companion piece to TRAIN: same station, different vehicle. Where
-TRAIN gives you a machine to drive around a loop, ELEVATOR gives you a machine
-that takes you somewhere and shows you what is there.
+No score to lose, no timer, nobody ever gets angry. The whole game is: read the
+number over someone's head, press that number, open the doors.
 
-Status: **design only**. No game code written yet; `public/index.html` is
-untouched.
-
----
-
-## 1. What we are copying from TRAIN
-
-The train screen already settled every hard question this game would otherwise
-re-open. ELEVATOR inherits its answers rather than inventing new ones.
-
-| TRAIN does this | ELEVATOR does the same |
-| --- | --- |
-| Flat "paper cutout" art: absolutely-positioned `div`s, flat fills, no images, no SVG art | Car interior, doors and every floor scene are `div` boxes |
-| Chunky ink outlines (`--ink #241A2E`), hard drop shadows, Bungee display type | Identical, so the two screens read as one arcade |
-| One brushed-metal console (`.controlCard`) holding the real controls | The car's wall panel is the same panel, rotated to portrait |
-| Buttons *light up* to show state (`.lit`), reverse blinks | Floor buttons stay lit until the car arrives; direction arrow blinks while moving |
-| Bottom `.soundRow` of announcement buttons, German-first, with the platform gong | Same row, same gong, elevator/station phrases |
-| Every one-shot sound pre-rendered through `OfflineAudioContext` and cached (`tone()`, `noise()`) | Ding, door motor, button beep all go through `tone()`/`noise()` — no new audio machinery |
-| One `requestAnimationFrame` loop, started in `go()` on entering the screen, cancelled on leaving and on the parent timer expiring | Same lifecycle hooks: `startLiftLoop()` / `stopLiftLoop()` |
-| `onTap()` (pointerdown, movement-tolerant) for every control | Same |
-| Bilingual via the `STR` tables; spoken announcements German-first | Same |
-
-Nothing new enters the codebase except one screen's worth of markup, CSS and
-state. Still one file, still no build step, still no external assets.
-
-### What it deliberately does *not* copy
-
-* **No path maths.** TRAIN's hardest code hangs a rigid drawing on a curved
-  rail. The elevator moves on one axis. A single `translateY` on the scene
-  behind the doors is the entire animation.
-* **No throttle.** A range input was right for a locomotive; an elevator has
-  no speed control. Pressing a floor button *is* the whole input.
-* **No vehicle picker.** TRAIN cycles five trains on tap. Here the variety is
-  the four floors, and you get to them by riding.
+Status: **design only.** `public/index.html` is untouched.
 
 ---
 
-## 2. The building
-
-A composite German main station, the kind Henry actually stands in: U-Bahn
-deep below, the S-Bahn and the main hall at street level, shops above that,
-long-distance platforms up top. Four floors — enough that a ride can be long
-or short, few enough that the panel is four fat buttons.
-
-Panel order is top-down, the way a real panel reads:
+## 1. The building, in one screen
 
 ```
-   ┌──────┐
-   │  2   │   FERNBAHN      ICE under the glass roof, sky behind
-   ├──────┤
-   │  1   │   GESCHÄFTE     bakery awning, pretzel, ice cream, bench
-   ├──────┤
-   │  E   │   S-BAHN        main hall, green S, red/ochre S-Bahn at the platform
-   ├──────┤
-   │  U   │   U-BAHN        tiled tunnel, blue U, yellow BVG train
-   └──────┘
+ ┌──────────────────────────────────────────────────────┐
+ │  ◀ HAUS               AUFZUG!                        │
+ ├──────────┬───────────────────────────────────────────┤
+ │ ╔══════╗ │  ③ AUSGANG · GESCHÄFTE                   │
+ │ ║ ┌──┐ ║ │        🧍②                    ┌─────────┐ │  floor 3
+ │ ║ │██│ ║ │      🧍①  🧍②                 │ ▯ EXIT ▯│ │  street level
+ │ ║ └──┘ ║ │  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ │
+ │ ╠══════╣ │  ② S-BAHN                                │
+ │ ║      ║ │     🧍③                 ┌───────────────┐ │  floor 2
+ │ ║      ║ │                         │▄▄ S-Bahn ▄▄▄▄▄│ │
+ │ ║      ║ │  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ │
+ │ ╠══════╣ │  ① U-BAHN                                │
+ │ ║      ║ │   🧍②  🧍③              ┌───────────────┐ │  floor 1
+ │ ║      ║ │                         │▄▄ U-Bahn ▄▄▄▄▄│ │
+ │ ╚══════╝ │  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ │
+ ├──────────┴───────────────────────────────────────────┤
+ │        ⑴      ⑵      ⑶        ◀▌▐▶   ▶▌▐◀    🔔      │  the console
+ └──────────────────────────────────────────────────────┘
 ```
 
-| Key | Indicator | German | English | Scene behind the doors |
-| --- | --- | --- | --- | --- |
-| `U` | `U` on BVG blue `#0063AF` | Untergeschoss · U-Bahn | Basement · Subway | Dark tiled tunnel wall, tunnel lamp, yellow `#FFD814` train flank with a black window band — the U-Bahn car from TRAIN, seen head-on |
-| `E` | `E` on S-Bahn green `#008D4F` | Erdgeschoss · S-Bahn und Haupthalle | Ground floor · S-Bahn and main hall | Bright hall, green S roundel, red/ochre S-Bahn flank `#C1121F` / `#E8A020`, a departure board with rolling rows |
-| `1` | `1` on cream | Erste Etage · Geschäfte | First floor · Shops | Bakery awning in stripes, pretzel, ice-cream cone, a bench, a potted tree |
-| `2` | `2` on cream | Zweite Etage · Fernbahn | Second floor · Long distance | White ICE nose with the red cheat line (`#F4F4F2` / `#D0021B`, the exact TRAIN colours) under a glass arch, blue sky |
+### The levels are colour-coded, and the colour is the train's
 
-The floor scenes are the reward for pressing a button, so they carry the
-detail. Each is only as wide as the doorway plus a margin — one screen-width
-slab per floor, stacked in a column that slides vertically behind the doors.
+| Floor | Colour | What is there | Where people come from / go |
+| --- | --- | --- | --- |
+| **3** Ausgang · Geschäfte | **blue** `#2D7DD2` | Street entrance on the right — glass doors and a bakery. Sky‑blue walls: the level you walk out into | People **enter** the station here and **leave** here |
+| **2** S-Bahn | **red** `#E33629` | Platform, hazard stripe, the red S‑Bahn pulling in from the right | Trains drop passengers and take them away |
+| **1** U-Bahn | **yellow** `#FFC61A` | Platform, tiled tunnel wall, the BVG‑yellow U‑Bahn | Trains drop passengers and take them away |
+
+Yellow at the bottom because the U‑Bahn is BVG yellow; red in the middle
+because the S‑Bahn is red; blue on top because that is the sky. The level's
+colour comes from the thing that lives there, so it is never arbitrary.
+
+One colour per level, used in exactly four places and nowhere else:
+
+```
+   the floor sign  ─┐
+   the wall itself ─┼─►  one hue per level, so the whole band of screen
+   people's badges ─┤     reads as "this is floor 2" before you read a word
+   its console button ─┘
+```
+
+The walls are that hue knocked back to a pale paper tint (`#EFD79A`,
+`#D9948C`, `#A9CBE8`) so the saturated version — sign, badge, button ring,
+train — stays the thing your eye lands on. Every badge also sits on a cream
+paper mount, which keeps a yellow badge readable against a yellow wall.
+
+The lift shaft is the left ~24 % of the screen, floor to ceiling, with the car
+running in it. The trains keep coming whether or not the lift ever moves — the
+station is alive on its own, and driving it is optional.
+
+> Open question: "schooling center" on the top floor — I've drawn it as the
+> street entrance with shops (`Ausgang · Geschäfte`), which is what a German
+> station has up top. If you actually meant a school / kids' centre, it's a
+> different sign and a different bit of scenery on the right; say the word.
 
 ---
 
-## 3. The car
+## 2. Numbers over people's heads — the thinking
+
+The ask was arrows first, then numbers. Numbers are right, and it's worth
+saying exactly why, because it changes the whole shape of the game.
+
+**An arrow is a call. A number is a destination.** A real lift's up/down button
+says "come get me, I'm going that way", and the car's own panel holds the
+destinations. With three floors, an arrow carries almost no information: from
+floor 1 the only possible arrow is up, from floor 3 the only possible arrow is
+down. Two of the three floors are unambiguous, so on those floors the arrow
+tells you nothing you couldn't see already. Only the middle floor's arrow is a
+real fact — and even there it only narrows it to one of two answers.
+
+**A number is a matching game; an arrow is an inference.** Badge says 3, press
+3. One step, no reasoning, immediately correct or not. An arrow needs a second
+thought ("up from 2 means 3") that a two‑year‑old does not have yet, and which
+would make the game about deduction instead of about driving a lift.
+
+**A number survives the ride.** Once someone is inside the car, an arrow is
+spent — you can no longer tell who should get out where. The badge rides with
+them, so when the doors open at 2 it is visible at a glance which of the three
+passengers is getting off. That is what makes a car with several people in it
+readable instead of confusing.
+
+**It plugs into a game he already has.** COUNT already teaches 1‑2‑3 in both
+languages. Tapping a waiting person says their number out loud — *"Zwei!"* —
+so the lift screen quietly reinforces the counting screen.
+
+**The number comes off when it's delivered.** The instant the doors open on
+the floor a person asked for, their badge pops off in a small puff of paper
+and a *"Danke!"* takes its place for a moment. That single rule does a lot of
+work:
+
+* **Anyone still wearing a number still needs something.** The screen's
+  remaining work is countable at a glance — and countable is the point.
+* **It is the reward.** The badge coming off *is* the "well done", visible
+  from across the room, with no score to read.
+* **It keeps a full car readable.** Three people ride, one gets out at 2, and
+  the two numbers left in the car are exactly the two jobs left.
+* **It stops the screen from lying.** A delivered person walking to the exit
+  is not asking to go anywhere; they should not be holding a request.
+
+**The obvious risk, and the fix.** A toddler who does not yet read numerals
+gets nothing from a "3". So the badge is *double‑coded*, three ways for the
+same fact:
 
 ```
- ┌───────────────────────────────────────────┐
- │  ◀ HAUS            AUFZUG!                │   header, as every screen
- ├───────────────────────────────────────────┤
- │ ┌───────────────────────────────────────┐ │
- │ │  ▲    ┌───┐   Erdgeschoss             │ │   indicator strip:
- │ │       │ E │   S-Bahn                  │ │   arrow · floor tile · name
- │ │  ▼    └───┘                           │ │
- │ ├─────────────────────────────┬─────────┤ │
- │ │                             │  ┌───┐  │ │
- │ │   ░░ scene behind ░░        │  │ 2 │  │ │   wall panel, portrait
- │ │   ░░ the doorway  ░░        │  ├───┤  │ │   version of TRAIN's
- │ │ ┌───────────┬───────────┐   │  │ 1 │  │ │   brushed console
- │ │ │           │           │   │  ├───┤  │ │
- │ │ │   left    │   right   │   │  │ E │  │ │
- │ │ │   leaf    │   leaf    │   │  ├───┤  │ │
- │ │ │           │           │   │  │ U │  │ │
- │ │ └───────────┴───────────┘   │  └───┘  │ │
- │ │                             │ ◀▌▐▶ ▶▌▐◀│ │  door open / close
- │ └─────────────────────────────┴─────────┘ │
- ├───────────────────────────────────────────┤
- │  🔔    ◀▌▐▶   ▶▌▐◀   🚉   ➜   💬          │   sound row (TRAIN's .soundRow)
- └───────────────────────────────────────────┘
+        ┌──────┐
+        │  ③   │   the numeral, big, in Bungee
+        │ ● ● ● │   that many dots underneath
+        └──┬───┘   on that floor's colour  (3 = blue)
+           ▼
+          🧍       and the floor's button is the same colour
 ```
 
-**Doorway.** Two leaves in brushed metal with a rubber edge, meeting in the
-middle, each `translateX`-ing 100 % of its own width to open. Behind them sits
-the floor column. A drop shadow inside the frame keeps the scene reading as
-"out there" rather than wallpaper.
+Match by numeral, by counting the dots, or by colour alone — blue badge,
+blue button. Any one of the
+three gets you to the right button, so the game works before numbers do and
+teaches them on the way.
 
-**Indicator strip.** A dark inset bar across the top: an up arrow and a down
-arrow (the moving one blinks, exactly like TRAIN's reverse notch), the current
-floor as a big tile in that floor's sign colour, and the floor name in Bungee.
-While the car moves the tile flips at each floor it passes, with a soft tick —
-so counting floors is something you can watch and hear.
-
-**Wall panel.** TRAIN's `.controlCard` gradient, border and inset highlight,
-laid out as a portrait column: four round floor buttons stacked 2 / 1 / E / U,
-then the door-open and door-close pair underneath. Buttons are round because
-elevator buttons are round and because it distinguishes them at a glance from
-TRAIN's square console.
-
-**Sound row.** The existing `.soundRow`, six buttons, same lit-for-4s
-behaviour: bell, doors-opening, doors-closing, "next stop", "mind the gap",
-welcome.
-
-**Portrait vs. landscape.** Portrait is the design above. In landscape the
-wall panel moves to the right of a wider doorway and the indicator strip stays
-full-width; both are one flex-direction swap at a media query, no JS.
+**Arrows do not disappear entirely** — they move to where they belong. A
+single up/down indicator sits at the top of the shaft showing which way the
+*car* is going. That's the lift's own state, not a person's request.
 
 ---
 
-## 4. How a ride works
+## 3. What people do
 
-State: `currentFloor`, `targetFloor`, `doorState` (`closed` / `opening` /
-`open` / `closing`), `carState` (`parked` / `moving`).
+Each person is a tiny state machine. There are never more than about eight
+alive at once.
 
-Pressing floor button **F** (or ▲ / ▼, which just compute `F` as one floor up
-or down):
+```
+   spawn ─► walk to the lift ─► wait in the queue ─► board ─► ride
+                                                                │
+   leave ◄── walk to the train / the exit ◄── step out ◄────────┘
+```
 
-1. **Beep + light.** The button lights and stays lit. If `F` is the current
-   floor and the doors are open, they simply re-open — no ride, no error.
-2. **Doors close.** 0.8 s. Motor hiss (`noise()`), then
-   *"Zurückbleiben bitte, die Türen schließen."*
-3. **Travel.** 1.0 s per floor of distance, ease-in-out on the whole trip so
-   it starts and stops softly. The floor column slides; the direction arrow
-   blinks; a low hum plays; the indicator tile flips at each floor passed,
-   with a tick.
-4. **Arrival.** The hum stops, a two-tone gong sounds (the German
-   *ding-dong*, 1046 Hz then 784 Hz), the button unlights.
-5. **Doors open.** 0.9 s, then the floor is announced:
-   *"Erdgeschoss. S-Bahn und Haupthalle."*
+1. **Spawn.** A train pulls in on floor 1 or 2, its doors open, one to three
+   people step out. On floor 3 people walk in through the street entrance
+   instead. A new arrival every four to eight seconds, capped at eight alive.
+2. **Walk to the lift.** Left along the platform, two‑frame stepping legs, the
+   badge bobbing over their head.
+3. **Wait.** They line up beside the shaft door, first in front. The queue is
+   ordered, so who boards next is never a surprise.
+4. **Board.** When the doors are open at their floor, they walk in on their
+   own — no tapping, no aiming. The car holds **three**; a fourth person simply
+   waits for the next trip.
+5. **Ride.** They stand in the car, badges visible.
+6. **Step out.** When the doors open at the floor on their badge, they walk
+   out, do a little hop, and a *"Danke!"* pops over them.
+7. **Leave.** On 1 and 2 they walk right and board the next train; on 3 they
+   walk out through the entrance. Either way they leave the screen.
 
-Rules that keep it toddler-proof:
+**Nothing punishes you.** Nobody gets impatient, nobody leaves in a huff, no
+timer runs out. Miss a train and they wait for the next one — a new one is
+always coming. The only feedback is the happy one.
 
-* Presses during a ride are ignored with a short low buzz and a flash — no
-  queue, no interruption, nothing to get wrong. (A queue is the first thing to
-  add later if he wants it.)
-* ▲ at the top floor and ▼ at the bottom do the same buzz. Nothing is ever
-  disabled-looking; nothing ever fails.
-* Door open / close only respond while parked.
-* `prefers-reduced-motion`: doors and car snap instead of sliding, hum and
-  ticks still play. Same rule TRAIN follows.
+**Optional reward loop.** A row of five little lamps in the top-right corner; each
+delivered passenger fills one; the fifth fires the confetti burst and the row
+resets. A reason to keep going, with nothing to lose. Easy to leave out if it
+clutters the screen.
 
-### Sound
+---
 
-Everything comes from the existing cached synthesis — no new audio code.
+## 4. The console
+
+Classic lift buttons across the bottom, in one brushed panel — the train
+screen's `.controlCard`, reused.
+
+```
+ ┌──────────────────────────────────────────────────────┐
+ │   ╭───╮      ╭───╮      ╭───╮                        │
+ │   │ 1 │      │ 2 │      │ 3 │      ◀▌▐▶    ▶▌▐◀   🔔  │
+ │   ╰───╯      ╰───╯      ╰───╯      öffnen  schließen  │
+ └──────────────────────────────────────────────────────┘
+```
+
+* **Floor buttons 1 / 2 / 3.** Round, ivory, ~60 px, each ringed in its floor's
+  colour so the badge‑to‑button match can be made on colour alone. Pressing one
+  lights it amber; it holds that light for the whole trip and goes out on
+  arrival. Left to right is 1‑2‑3, the same direction he counts in.
+* **Doors open / doors close.** The exact glyphs the train screen already uses:
+  arrows away from the leaves opens, arrows toward them closes.
+* **Bell.** The station gong, purely for fun.
+
+Rules, all of them forgiving:
+
+* Doors **open by themselves** on arrival and close again after four idle
+  seconds — but never while someone is walking through them.
+* Pressing the floor you are already on just re‑opens the doors.
+* Pressing a floor mid‑ride is ignored with a soft low buzz. No queue, nothing
+  silently pending, nothing to get wrong.
+* The car will not move with its doors open; press a floor while they are open
+  and they close first, then it goes.
+* Tapping a **person** says their number aloud. Tapping a **train** sounds its
+  horn. Everything on screen answers to a finger.
+
+---
+
+## 5. Sound and words
+
+Everything routes through the existing pre‑rendered, cached one‑shots — no new
+audio machinery, no live oscillators.
 
 | Event | Sound |
 | --- | --- |
-| Button press | `tone({f:660, dur:.09, type:"square", vol:.18})` |
-| Ignored press | `tone({f:150, dur:.14, type:"square", vol:.16})` |
-| Doors moving | `noise(.5, 0, 900, .18)` |
-| Travel hum | one looping `AudioBufferSourceNode` (a pre-rendered second of low filtered noise, `loop = true`), started on departure, stopped on arrival — a single voice, the same approach the draw pad's sustained tone already uses |
-| Floor passed | `tone({f:880, dur:.05, type:"sine", vol:.1})` |
-| Arrival gong | `tone({f:1046, dur:.5})` then `tone({f:784, at:.22, dur:.6})` |
-| Announcement | existing `stationChime()` + `sayAnnouncement()` |
+| Button press | short square beep, 660 Hz |
+| Ignored press | low buzz, 150 Hz |
+| Doors moving | filtered noise hiss |
+| Car moving | one looping low‑noise buffer, started on departure, stopped on arrival |
+| Arrival | two‑tone gong, 1046 then 784 Hz |
+| Train arriving / leaving | rumble (low noise) + the platform gong |
+| Delivered | rising triangle blip and a *"Danke!"* |
 
-### Words
+Spoken lines, German first, English on the English setting — same
+`sayAnnouncement()` the train screen uses:
 
-German first, English mirror, exactly as TRAIN handles announcements.
-
-| Key | German | English |
+| Moment | German | English |
 | --- | --- | --- |
-| close | Zurückbleiben bitte, die Türen schließen. | Stand back please, the doors are closing. |
-| open | Vorsicht, die Türen öffnen sich. | Please stand clear, the doors are opening. |
-| arrive `U` | Untergeschoss. U-Bahn. | Basement level. Subway. |
-| arrive `E` | Erdgeschoss. S-Bahn und Haupthalle. | Ground floor. S-Bahn and main hall. |
-| arrive `1` | Erste Etage. Geschäfte. | First floor. Shops. |
-| arrive `2` | Zweite Etage. Fernbahn. | Second floor. Long-distance trains. |
-| next | Nächster Halt: … | Next stop: … |
-| gap | Bitte auf die Lücke achten. | Please mind the gap. |
-| welcome | Sehr geehrte Fahrgäste, willkommen im Bahnhof. | Dear passengers, welcome to the station. |
+| Arrive at 1 | Eins. U‑Bahn. | One. Subway. |
+| Arrive at 2 | Zwei. S‑Bahn. | Two. City rail. |
+| Arrive at 3 | Drei. Ausgang und Geschäfte. | Three. Exit and shops. |
+| Doors closing | Zurückbleiben bitte! | Stand back please! |
+| Train arriving | Einfahrt. Bitte zurückbleiben. | Train arriving. Stand back. |
+| Delivered | Danke schön! | Thank you! |
+| Tap a person | Eins / Zwei / Drei | One / Two / Three |
 
 ---
 
-## 5. Where it lands in the code
+## 6. How it looks: paper cutout
 
-One screen's worth of additions to `public/index.html`, nothing else:
+Everything on screen is a piece of cut paper laid on another piece of cut
+paper. It is the same grammar the trains are drawn in, pushed further:
 
-| Where | What |
+* **Hard cast shadows.** Every piece drops a solid `2px 3px` ink shadow with
+  no blur — the shadow a paper shape makes on the sheet under it, not a
+  render.
+* **Layers you can count.** Each room is a coloured sheet, a lighter sheet
+  laid over it and cut slightly short at the top, then the floor slab, then
+  the scenery, then the people. Nothing is a gradient pretending to be depth.
+* **Nothing is quite square.** Signs sit at −1.4°, the awning at +1°, badges
+  at −4°. Hand‑placed, not machine‑aligned.
+* **Fat ink outlines** on every cut edge, and soft corner radii on the things
+  that would be cut with scissors — awnings, tags, shoulders, speech
+  bubbles — while the architecture stays straight.
+* **People are paper dolls**: head, body, two arms, two legs, each its own
+  piece with its own outline and shadow, walking on a hard two‑frame leg
+  swap rather than a smooth tween.
+* **Mounts instead of glows.** A cream paper card behind a badge or a sign is
+  how something gets emphasis here — no bloom, no gradient halos.
+
+## 7. How it gets built
+
+Still one file, no build step, no external assets, same drawing grammar as the
+trains: absolutely‑positioned `div`s, flat fills, thick ink outlines. The DOS
+feeling comes from keeping everything on a coarse grid, using hard two‑frame
+animation instead of smooth easing for the walkers, and letting the whole
+station be visible at once.
+
+| Piece | Approach |
 | --- | --- |
-| Home menu | An eighth tile, `t8`, 🛗, `data-go="lift"`. `t7` loses its `grid-column:1 / -1` so TRAIN and ELEVATOR share the last row |
-| `STR.en` / `STR.de` | `titles.lift` / `tiles.lift` (`ELEVATOR!` / `AUFZUG!`), floor names, announcement table |
-| Markup | `<section class="screen" id="lift">`: header, `.liftStage` (indicator, doorway, panel), `.soundRow` |
-| CSS | `.liftStage`, `.floorCol`, `.floorScene` + per-floor part classes, `.doorLeaf`, `.indicator`, `.liftPanel`, `.floorBtn` — sharing `.controlCard` and `.sndBtn` rather than restyling them |
-| JS | `FLOORS` table, ride state machine, `startLiftLoop()` / `stopLiftLoop()`, hooked into `go()` and into the parent timer's shutdown next to `stopTrainLoop()` |
+| Station | Three floor rooms in a column plus a shaft column, laid out once per resize into a `FLOORS` geometry table (y of each floor's ground line, in stage px) |
+| Car | One `div` in the shaft, `translateY` to the target floor's y, ease‑in‑out; two leaf doors, `translateX` |
+| People | One `div` each — head, body, two legs, badge. Position by `translate`, animation state stepped in the existing rAF loop |
+| Trains | One `div` per platform, sliding in from the right and back out; the U‑Bahn and S‑Bahn liveries lifted from `TRAIN_SETS` |
+| Console | The train screen's `.controlCard`, `.lit` state, and door glyphs |
+| Loop | The same single rAF, started in `go()`, cancelled on leaving the screen and by the parent timer |
 
-Rough size: ~120 lines of CSS, ~180 of JS, in the same style as the rest.
-Estimated effort, one sitting.
+Rough size: ~180 lines of CSS, ~300 of JS. Bigger than the first sketch of this
+screen, because there are now actors in it, but still the smallest kind of
+simulation — a handful of `div`s with a five‑state machine each.
 
-Deployment is unchanged — `npx wrangler deploy`, and the service worker's
-stale-while-revalidate strategy picks the new file up on the next launch with
-no cache bump.
+Home menu gets an eighth tile (`t8`, 🛗, `data-go="lift"`), and TRAIN gives up
+its full‑width row so the two share the last one.
 
 ---
 
-## 6. Deliberately left out
+## 8. Deliberately not in it
 
-Worth saying out loud so nobody has to re-litigate them:
-
-* **Passengers to pick up, a score, "take this person to floor 3".** That is a
-  different, older game. This one is a machine you operate.
-* **A call panel outside the car / waiting on other floors.** Doubles the
-  state machine, adds waiting — the opposite of what a two-year-old wants.
-* **Queued stops.** Real, but it means a press can appear to do nothing for
-  ten seconds. Ignore-with-a-buzz is honest and instant.
-* **Emergency stop / alarm phone.** The bell button covers the fun part of it.
+* **A score, a timer, angry passengers.** Nothing here can be lost.
+* **Real lift logic** — call buttons on each floor, direction commitment,
+  queued stops. Correct, and the opposite of legible for a two‑year‑old.
+* **Walking the people yourself.** They walk on their own; the lift is the only
+  thing you drive, which is what makes the one control scheme enough.
+* **More than three floors.** Three fits the screen at a readable size and
+  keeps the badges to 1, 2, 3.
