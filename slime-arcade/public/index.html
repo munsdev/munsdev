@@ -869,30 +869,27 @@
   .ltunnel{position:absolute;right:0;top:12%;bottom:11px;width:20px;background:#241A2E;
     border-left:3px solid var(--ink);border-radius:9px 0 0 0}
   .lsign{position:absolute;left:7px;top:6px;display:flex;align-items:center;gap:6px;transform:rotate(-1.4deg)}
-  /* A plain, big color chip -- no digit. The color alone is the address. */
-  .lsign i{width:34px;height:34px;border-radius:50%;display:block;
+  /* Real German transit signage: U for U-Bahn, S for S-Bahn, H for
+     Haltestelle (bus stop) -- a letter, not a digit, so it stays clear of
+     "no numbers." */
+  .lsign i{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-size:19px;font-style:normal;color:#fff;
     border:3px solid var(--ink);box-shadow:0 0 0 3px var(--lp),2px 3px 0 rgba(20,16,26,.22)}
   .lsign span{font-family:var(--display);font-size:11px;color:#241A2E;letter-spacing:.04em;
     background:var(--lp);border:2px solid var(--ink);padding:2px 6px}
   .lt1{background:var(--f1);color:#241A2E !important}
   .lt2{background:var(--f2)}
   .lt3{background:var(--f3)}
-  /* street level */
-  .lexit{position:absolute;right:12px;bottom:11px;width:60px;height:76px;background:#DFF1FF;
-    border:3px solid var(--ink);border-radius:6px 6px 0 0;transform:rotate(.5deg)}
-  .lexit i{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--ink)}
-  .lexit b{position:absolute;left:0;right:0;bottom:0;height:12px;background:#9FBED4;border-top:3px solid var(--ink)}
-  .lexitSign{position:absolute;right:12px;bottom:90px;width:60px;height:16px;background:#0F7B3E;
-    border:2px solid var(--ink);box-shadow:0 0 0 3px var(--lp);transform:rotate(-1.6deg);
-    display:flex;align-items:center;justify-content:center;gap:3px}
-  .lexitSign span{font-family:var(--display);font-size:7px;color:#fff;letter-spacing:.06em}
-  .lexitSign i{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #fff}
-  .lawn{position:absolute;right:82px;bottom:36px;width:52px;height:14px;border:3px solid var(--ink);
-    border-radius:3px 3px 8px 8px;transform:rotate(1deg);
-    background:repeating-linear-gradient(90deg,#EF3E36 0 7px,#FFF3D6 7px 14px)}
-  .lcounter{position:absolute;right:82px;bottom:11px;width:52px;height:24px;background:#B4581F;
-    border:3px solid var(--ink);border-radius:4px 4px 2px 2px;transform:rotate(-.6deg)}
-  .lcounter i{position:absolute;left:6px;top:-11px;font-size:11px;font-style:normal}
+  /* street level: a Haltestelle -- road and a bus stop pole. This is
+     already the surface, so there's no stairwell down to anywhere. */
+  .lroad{position:absolute;right:0;bottom:5px;width:72%;height:10px;background:#4A4A52;border-top:3px solid var(--ink)}
+  .lroadline{position:absolute;right:0;bottom:9px;width:72%;height:2px;
+    background:repeating-linear-gradient(90deg,var(--sun) 0 10px,transparent 10px 20px)}
+  .busPole{position:absolute;right:22px;bottom:15px;width:4px;height:28px;background:#6E6656;border:2px solid var(--ink)}
+  .busSign{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:-2px;
+    width:22px;height:22px;background:var(--f3);border:2px solid var(--ink);border-radius:4px;
+    display:flex;align-items:center;justify-content:center;font-style:normal;
+    font-family:var(--display);font-size:13px;color:#fff;box-shadow:0 0 0 3px var(--lp)}
   .pipRow{position:absolute;right:7px;top:6px;display:flex;gap:3px}
   .pipRow i{display:block;width:9px;height:9px;background:rgba(20,16,26,.22);border:2px solid var(--ink)}
   .pipRow i.on{background:var(--sun)}
@@ -925,6 +922,20 @@
   .ltrain .tw.k3{left:72px}
   .ltrain .tw.k4{left:96px}
 
+  /* The bus for the Haltestelle level: same box and travel rig as the
+     trains (same width, same wheels-on-the-ground positioning), just
+     reskinned -- no rail nose, a big windshield up front, road wheels
+     spaced like a real wheelbase instead of a rail bogie. */
+  .ltrain.bus .tbody{background:var(--f3);border-radius:10px 10px 4px 4px}
+  .ltrain.bus .twin{background:#BFE9FF}
+  .ltrain.bus .twin.w1{left:6px;width:22px}
+  .ltrain.bus .twin.w2{left:33px;width:28px}
+  .ltrain.bus .twin.w3{left:66px;width:34px}
+  .ltrain.bus .tdoor.d1{left:22px}
+  .ltrain.bus .tlamp{left:2px;bottom:10px}
+  .ltrain.bus .tw.k1{left:14px}
+  .ltrain.bus .tw.k2{left:96px}
+
   /* ---- paper-doll people ---- */
   /* pointer-events:none so the empty space between people doesn't swallow
      taps meant for the floor underneath -- only re-enabled on a person
@@ -951,17 +962,20 @@
   .ped.walk .leg.b{animation:stepB .46s steps(1,end) infinite}
   @keyframes stepA{0%,49%{height:13px}50%,100%{height:9px}}
   @keyframes stepB{0%,49%{height:9px}50%,100%{height:13px}}
-  /* Big plain color chip, no digit -- the color someone's holding up over
-     their head is exactly the color of the room they want to go to. */
+  /* Same color + letter language as the floor signs -- U/S/H on the color
+     that floor already owns, so a rider's badge reads exactly like the
+     platform they're headed to. */
   .badge{
     position:absolute;left:-4px;top:-36px;width:30px;height:30px;border-radius:50%;
     border:3px solid var(--ink);
     box-shadow:0 0 0 3px var(--lp,#F6EAD0), 2px 3px 0 rgba(20,16,26,.26);
     transform:rotate(-4deg);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-size:15px;font-style:normal;color:#fff;
   }
   .badge::after{content:"";position:absolute;left:50%;margin-left:-4px;bottom:-7px;width:0;height:0;
     border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--ink)}
-  .bg1{background:var(--f1)}
+  .bg1{background:var(--f1);color:#241A2E}
   .bg2{background:var(--f2)}
   .bg3{background:var(--f3)}
   .poof{position:absolute;left:13px;top:-44px;width:24px;height:24px;pointer-events:none}
@@ -1197,16 +1211,15 @@
       </div>
 
       <div class="liftFloors" id="liftFloors">
-        <!-- 3 · street level -->
+        <!-- 3 · Haltestelle (bus) -->
         <div class="lroom r3" data-floor="2">
           <div class="lart">
             <div class="backing"></div>
-            <div class="lsign"><i class="lt3"></i><span data-lname="3"></span></div>
+            <div class="lsign"><i class="lt3">H</i><span data-lname="3"></span></div>
             <div class="pipRow" id="pipRow"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="lawn"></div>
-            <div class="lcounter"><i>&#129384;</i></div>
-            <div class="lexitSign"><span data-lexit></span><i></i></div>
-            <div class="lexit"><i></i><b></b></div>
+            <div class="busPole"><i class="busSign">H</i></div>
+            <div class="lroad"></div>
+            <div class="lroadline"></div>
             <div class="slab"></div>
           </div>
         </div>
@@ -1214,7 +1227,7 @@
         <div class="lroom r2" data-floor="1">
           <div class="lart">
             <div class="backing"></div>
-            <div class="lsign"><i class="lt2"></i><span data-lname="2"></span></div>
+            <div class="lsign"><i class="lt2">S</i><span data-lname="2"></span></div>
             <div class="ltunnel"></div>
             <div class="ltrack"></div>
             <div class="hazard"></div>
@@ -1226,7 +1239,7 @@
           <div class="lart">
             <div class="backing"></div>
             <div class="tiles"></div>
-            <div class="lsign"><i class="lt1"></i><span data-lname="1"></span></div>
+            <div class="lsign"><i class="lt1">U</i><span data-lname="1"></span></div>
             <div class="ltunnel"></div>
             <div class="ltrack"></div>
             <div class="hazard"></div>
@@ -1270,10 +1283,9 @@
       eraseLabel: "ERASE",
       langName: { en:"English", de:"Deutsch" },
       nameTitle: "WHOSE ARCADE IS THIS?",
-      liftNames: ["U-BAHN", "S-BAHN", "STREET"],
-      liftExit: "EXIT",
+      liftNames: ["U-BAHN", "S-BAHN", "BUS"],
       liftThanks: "THANK YOU!",
-      liftSay: ["Subway level.", "City rail level.", "Street level. Exit and shops."],
+      liftSay: ["Subway level.", "City rail level.", "Bus stop. Exit and shops."],
       ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" },
       parent: { title:"PLAY TIME", start:"START", stop:"STOP TIMER", noLimit:"NO LIMIT" }
     },
@@ -1297,10 +1309,9 @@
       eraseLabel: "RÜCK",
       langName: { en:"English", de:"Deutsch" },
       nameTitle: "WESSEN ARCADE IST DAS?",
-      liftNames: ["U-BAHN", "S-BAHN", "STRASSE"],
-      liftExit: "AUSGANG",
+      liftNames: ["U-BAHN", "S-BAHN", "BUS"],
       liftThanks: "DANKE!",
-      liftSay: ["U-Bahn-Ebene.", "S-Bahn-Ebene.", "Straßenebene. Ausgang und Geschäfte."],
+      liftSay: ["U-Bahn-Ebene.", "S-Bahn-Ebene.", "Bushaltestelle. Ausgang und Geschäfte."],
       ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" },
       parent: { title:"SPIELZEIT", start:"START", stop:"TIMER STOPPEN", noLimit:"KEIN LIMIT" }
     }
@@ -2580,6 +2591,7 @@
         liftDot = $("#liftDot"), liftUp = $("#liftUp"), liftDn = $("#liftDn"), pipRow = $("#pipRow");
   const FLOOR_COLOR_VAR = ["--f1", "--f2", "--f3"];
   const FLOOR_COLOR_KEY = ["yellow", "red", "blue"];
+  const FLOOR_LETTER = ["U", "S", "H"];
 
   const PED_W = 22, PED_H = 44, SLAB = 11, TRAIN_W = 116, TRAIN_H = 52;
   const CAR_CAP = 3, MAX_PEOPLE = 8, PIPS = 5;
@@ -2650,7 +2662,7 @@
 
   /* ---- people ---- */
   function pedHtml(dest){
-    return '<i class="badge bg' + (dest + 1) + '"></i>' +
+    return '<i class="badge bg' + (dest + 1) + '">' + FLOOR_LETTER[dest] + '</i>' +
       '<i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i>' +
       '<i class="leg a"></i><i class="leg b"></i>';
   }
@@ -2748,20 +2760,33 @@
   /* ---- trains ---- */
   function buildTrains(){
     if(trainList.length) return;
-    for(let f = 0; f < 2; f++){
+    // f: 0 = U-Bahn, 1 = S-Bahn, 2 = the bus at the Haltestelle. All three
+    // share the same travel rig (stopX/awayX, ease-in/out, ground line) --
+    // only the art differs.
+    for(let f = 0; f < 3; f++){
       const el = document.createElement("div");
-      el.className = "ltrain " + (f === 0 ? "u" : "s");
-      el.innerHTML = '<div class="tnose"></div><div class="tlamp"></div><div class="tbody"></div>' +
-        (f === 1 ? '<div class="ttop"></div>' : "") +
-        '<div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>' +
-        '<div class="tdoor d1"></div><div class="tdoor d2"></div>' +
-        '<i class="tw k1"></i><i class="tw k2"></i><i class="tw k3"></i><i class="tw k4"></i>';
+      const isBus = f === 2;
+      el.className = "ltrain " + (isBus ? "bus" : (f === 0 ? "u" : "s"));
+      el.innerHTML = isBus
+        ? '<div class="tlamp"></div><div class="tbody"></div>' +
+          '<div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>' +
+          '<div class="tdoor d1"></div>' +
+          '<i class="tw k1"></i><i class="tw k2"></i>'
+        : '<div class="tnose"></div><div class="tlamp"></div><div class="tbody"></div>' +
+          (f === 1 ? '<div class="ttop"></div>' : "") +
+          '<div class="twin w1"></div><div class="twin w2"></div><div class="twin w3"></div>' +
+          '<div class="tdoor d1"></div><div class="tdoor d2"></div>' +
+          '<i class="tw k1"></i><i class="tw k2"></i><i class="tw k3"></i><i class="tw k4"></i>';
       liftTrainLayer.appendChild(el);
       const tr = { el: el, f: f, state: "away", t: 2.5 + f * 2.5, x: 0, p: 0 };
       onTap(el, function(e){
         e.stopPropagation();
-        tone({ f: 330, dur: .5, type: "sawtooth", vol: .2 });
-        tone({ f: 392, dur: .5, type: "sawtooth", vol: .16 });
+        if(isBus){
+          tone({ f: 220, dur: .4, type: "square", vol: .18 });
+        } else {
+          tone({ f: 330, dur: .5, type: "sawtooth", vol: .2 });
+          tone({ f: 392, dur: .5, type: "sawtooth", vol: .16 });
+        }
       });
       trainList.push(tr);
     }
@@ -3097,7 +3122,6 @@
     document.querySelectorAll("[data-parent]").forEach(el => el.textContent = d.parent[el.dataset.parent]);
     document.querySelectorAll("[data-ctrl]").forEach(el => el.textContent = d.ctrl[el.dataset.ctrl]);
     document.querySelectorAll("[data-lname]").forEach(el => el.textContent = d.liftNames[parseInt(el.dataset.lname, 10) - 1]);
-    document.querySelectorAll("[data-lexit]").forEach(el => el.textContent = d.liftExit);
     shapeBtns.forEach(o => o.btn.setAttribute("aria-label", d.shapeNames[o.key]));
     colorBtns.forEach(o => o.btn.setAttribute("aria-label", d.colorNames[o.key]));
     document.querySelectorAll(".langSwitch button").forEach(btn => {
