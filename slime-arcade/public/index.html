@@ -132,6 +132,11 @@
     padding:.4em .9em;cursor:pointer;
   }
   .chip.selected{background:var(--sun);color:var(--ink);box-shadow:0 0 0 3px var(--ink) inset}
+  .nameInput{
+    font-family:var(--display);font-size:clamp(20px,6vw,30px);text-align:center;
+    text-transform:uppercase;color:var(--ink);background:#fff;
+    border:5px solid var(--ink);border-radius:16px;padding:.35em .5em;
+  }
   .parentStart, .parentStop{
     font-family:var(--display);font-size:clamp(15px,4vw,20px);
     border:5px solid var(--ink);border-radius:18px;
@@ -226,7 +231,7 @@
     transition:transform .1s;
     min-height:0;
   }
-  .tile .ico{font-size:clamp(32px,10vmin,78px);line-height:1;margin-bottom:.08em;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.3))}
+  .tile .ico{font-size:clamp(46px,14vmin,108px);line-height:1;margin-bottom:.08em;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.3))}
   .tile:active{transform:translateY(10px) scale(.97);box-shadow:0 2px 0 var(--ink)}
   .tile.t1{background:var(--pink);transform:rotate(-2deg)}
   .tile.t2{background:var(--cyan);transform:rotate(2deg)}
@@ -340,7 +345,7 @@
 
   /* ---------- sounds ---------- */
   #sounds .pad-grid{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(4,1fr)}
-  #sounds .pad{font-size:clamp(34px,11vmin,70px);text-shadow:none}
+  #sounds .pad{font-size:clamp(48px,15vmin,96px);text-shadow:none}
 
   /* ---------- letters ---------- */
   #letters .pad-grid{
@@ -395,7 +400,7 @@
     transition:transform .08s;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15em;
   }
-  .letterTools button i{font-size:1.6em;line-height:1;font-style:normal}
+  .letterTools button i{font-size:2.3em;line-height:1;font-style:normal}
   .letterTools button:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
   .spacebarIco{width:1.9em;height:.45em;background:currentColor;border-radius:.22em;display:inline-block}
   #btnSpeak{background:var(--sun);color:var(--ink)}
@@ -452,7 +457,9 @@
     box-shadow:0 6px 0 var(--ink);
     cursor:pointer;white-space:nowrap;
     transition:transform .08s;
+    display:flex;align-items:center;justify-content:center;gap:.25em;
   }
+  .clearBtn i, .saveBtn i{font-size:1.8em;line-height:1;font-style:normal}
   .clearBtn{background:var(--pink)}
   .saveBtn{background:var(--sun);color:var(--ink)}
   .saveBtn.cooling{background:var(--slime);color:#fff;opacity:.85}
@@ -781,9 +788,9 @@
      positioned in real pixels by JS and scaled by the same --k. */
   #lift{
     --lp:#F6EAD0;      /* paper */
-    --f1:#FFC61A;      /* 1 · U-Bahn · yellow */
-    --f2:#E33629;      /* 2 · S-Bahn · red    */
-    --f3:#2D7DD2;      /* 3 · street  · blue  */
+    --f1:#FFCC00;      /* U-Bahn · yellow */
+    --f2:#E8291A;      /* S-Bahn · red    */
+    --f3:#1565E0;      /* street  · blue  */
   }
   .liftStage{
     flex:1 1 auto;min-height:0;position:relative;z-index:3;
@@ -799,11 +806,12 @@
   .liftShaft .srail.b{right:11%}
   .liftCable{position:absolute;left:50%;top:0;width:3px;margin-left:-1.5px;background:#39404C;z-index:1}
   .liftReadout{
-    position:absolute;left:5%;right:5%;top:4px;height:20px;z-index:6;
+    position:absolute;left:5%;right:5%;top:4px;height:22px;z-index:6;
     background:#171A1F;border:2px solid #2A2F38;border-radius:3px;
-    display:flex;align-items:center;justify-content:center;gap:5px;
+    display:flex;align-items:center;justify-content:center;gap:6px;
   }
-  .liftReadout .num{font-family:var(--display);font-size:13px;color:var(--sun);line-height:1}
+  .liftReadout .dot{width:14px;height:14px;border-radius:50%;background:var(--f1);
+    border:2px solid rgba(255,255,255,.5);box-shadow:0 0 6px 1px currentColor}
   .liftReadout .ar{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;opacity:.18}
   .liftReadout .ar.up{border-bottom:7px solid var(--sun)}
   .liftReadout .ar.dn{border-top:7px solid var(--sun)}
@@ -817,19 +825,28 @@
     overflow:hidden;z-index:5;
   }
   .liftCar .cfloor{position:absolute;left:0;right:0;bottom:0;background:#8E8163;border-top:2px solid var(--ink)}
+  /* Glass doors: always see-through, so there's nothing to open or close --
+     the frame just sits there and Henry can see everyone riding inside. */
   .liftCar .leaf{
-    position:absolute;top:0;bottom:0;width:50.5%;background:#B9BFC7;
-    box-shadow:inset -3px 0 0 rgba(255,255,255,.4);
+    position:absolute;top:0;bottom:0;width:50%;
+    background:linear-gradient(160deg, rgba(255,255,255,.55), rgba(190,225,245,.28) 55%, rgba(255,255,255,.4));
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.5);
   }
-  .liftCar .leaf.l{left:0;border-right:2px solid #2C3138}
-  .liftCar .leaf.r{right:0;border-left:2px solid #2C3138}
+  .liftCar .leaf.l{left:0;border-right:3px solid var(--ink)}
+  .liftCar .leaf.r{right:0;border-left:3px solid var(--ink)}
 
   .liftFloors{flex:1 1 auto;min-width:0;position:relative;display:flex;flex-direction:column}
-  .lroom{position:relative;flex:1 1 0;overflow:hidden;border-bottom:3px solid var(--ink)}
+  /* Tap any floor to call the car there -- no numbers to read, the floor's
+     own color is the whole address. Rooms are bolder, higher-contrast tints
+     of that floor's color now that color is doing all the identifying work
+     numbers used to share. */
+  .lroom{position:relative;flex:1 1 0;overflow:hidden;border-bottom:3px solid var(--ink);cursor:pointer}
   .lroom:last-child{border-bottom:0}
-  .lroom.r3{background:#A9CBE8}
-  .lroom.r2{background:#D9948C}
-  .lroom.r1{background:#EFD79A}
+  .lroom.r3{background:#7FB4E8}
+  .lroom.r2{background:#E8988C}
+  .lroom.r1{background:#F5D25C}
+  .lroom.tapped{animation:roomTap .3s ease-out}
+  @keyframes roomTap{0%{filter:brightness(1.35)}100%{filter:brightness(1)}}
   /* the art box: art units across the full room, scaled by --k */
   .lart{
     position:absolute;left:0;bottom:0;height:145px;
@@ -851,11 +868,12 @@
   .ltrack{position:absolute;right:0;bottom:5px;width:66%;height:4px;background:#6E6656;border-radius:2px}
   .ltunnel{position:absolute;right:0;top:12%;bottom:11px;width:20px;background:#241A2E;
     border-left:3px solid var(--ink);border-radius:9px 0 0 0}
-  .lsign{position:absolute;left:7px;top:6px;display:flex;align-items:center;gap:5px;transform:rotate(-1.4deg)}
-  .lsign i{width:19px;height:19px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);font-size:11px;color:#fff;border:2px solid var(--ink);box-shadow:0 0 0 3px var(--lp)}
-  .lsign span{font-family:var(--display);font-size:9px;color:#241A2E;letter-spacing:.04em;
-    background:var(--lp);border:2px solid var(--ink);padding:2px 5px}
+  .lsign{position:absolute;left:7px;top:6px;display:flex;align-items:center;gap:6px;transform:rotate(-1.4deg)}
+  /* A plain, big color chip -- no digit. The color alone is the address. */
+  .lsign i{width:34px;height:34px;border-radius:50%;display:block;
+    border:3px solid var(--ink);box-shadow:0 0 0 3px var(--lp),2px 3px 0 rgba(20,16,26,.22)}
+  .lsign span{font-family:var(--display);font-size:11px;color:#241A2E;letter-spacing:.04em;
+    background:var(--lp);border:2px solid var(--ink);padding:2px 6px}
   .lt1{background:var(--f1);color:#241A2E !important}
   .lt2{background:var(--f2)}
   .lt3{background:var(--f3)}
@@ -908,10 +926,13 @@
   .ltrain .tw.k4{left:96px}
 
   /* ---- paper-doll people ---- */
-  .lpedLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;z-index:3}
+  /* pointer-events:none so the empty space between people doesn't swallow
+     taps meant for the floor underneath -- only re-enabled on a person
+     themselves, same as the train layer already does. */
+  .lpedLayer{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;z-index:3;pointer-events:none}
   .ped{
     position:absolute;left:0;top:0;width:22px;height:44px;
-    transform-origin:0 0;cursor:pointer;
+    transform-origin:0 0;cursor:pointer;pointer-events:auto;
     filter:drop-shadow(2px 3px 0 rgba(20,16,26,.26));
   }
   .ped .head{position:absolute;left:4px;top:0;width:14px;height:14px;background:var(--skin,#E8B98A);
@@ -930,20 +951,17 @@
   .ped.walk .leg.b{animation:stepB .46s steps(1,end) infinite}
   @keyframes stepA{0%,49%{height:13px}50%,100%{height:9px}}
   @keyframes stepB{0%,49%{height:9px}50%,100%{height:13px}}
+  /* Big plain color chip, no digit -- the color someone's holding up over
+     their head is exactly the color of the room they want to go to. */
   .badge{
-    position:absolute;left:0;top:-29px;width:22px;height:23px;border:2px solid var(--ink);
+    position:absolute;left:-4px;top:-36px;width:30px;height:30px;border-radius:50%;
+    border:3px solid var(--ink);
     box-shadow:0 0 0 3px var(--lp,#F6EAD0), 2px 3px 0 rgba(20,16,26,.26);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
     transform:rotate(-4deg);
   }
-  .badge::after{content:"";position:absolute;left:50%;margin-left:-4px;bottom:-6px;width:0;height:0;
+  .badge::after{content:"";position:absolute;left:50%;margin-left:-4px;bottom:-7px;width:0;height:0;
     border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--ink)}
-  .badge b{font-family:var(--display);font-size:11px;color:#fff;line-height:1}
-  .badge s{display:flex;gap:3px;text-decoration:none}
-  .badge u{display:block;width:3px;height:3px;background:#fff;text-decoration:none}
   .bg1{background:var(--f1)}
-  .bg1 b{color:#241A2E}
-  .bg1 u{background:#241A2E}
   .bg2{background:var(--f2)}
   .bg3{background:var(--f3)}
   .poof{position:absolute;left:13px;top:-44px;width:24px;height:24px;pointer-events:none}
@@ -957,74 +975,8 @@
     transform:rotate(-3deg);box-shadow:2px 3px 0 rgba(20,16,26,.26);border-radius:5px 5px 5px 1px;
   }
 
-  /* ---- console ---- */
-  .liftConsole{
-    flex:0 0 auto;
-    background:linear-gradient(#454B54,#2E333A 60%,#262A30);
-    border:5px solid var(--ink);border-radius:18px;
-    box-shadow:0 7px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.16);
-    padding:clamp(7px,1.5vh,11px);
-    display:flex;flex-direction:column;gap:clamp(6px,1.2vh,10px);
-    /* keep clear of the fixed parent-lock button in the corner */
-    padding-right:clamp(38px,10vw,52px);
-  }
-  .floorRow{display:flex;gap:clamp(10px,4vw,22px);justify-content:center}
-  .floorBtn{
-    width:clamp(44px,15vw,66px);aspect-ratio:1;border-radius:50%;
-    background:radial-gradient(circle at 34% 30%,#F6F3E8,#CAC4B5 62%,#9D988B);
-    border:3px solid var(--ink);position:relative;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);font-size:clamp(16px,5vw,24px);color:#241A2E;
-    box-shadow:inset 0 -3px 0 rgba(0,0,0,.28), 0 3px 0 rgba(0,0,0,.45);
-    transition:transform .08s;
-  }
-  .floorBtn::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--ring,#666)}
-  .floorBtn.k1{--ring:var(--f1)}
-  .floorBtn.k2{--ring:var(--f2)}
-  .floorBtn.k3{--ring:var(--f3)}
-  .floorBtn:active{transform:translateY(3px)}
-  .floorBtn.lit{
-    background:radial-gradient(circle at 34% 30%,#FFF3B8,#FFD23F 58%,#E0A400);
-    box-shadow:0 0 15px 3px rgba(255,210,63,.75), inset 0 -3px 0 rgba(0,0,0,.2), 0 3px 0 rgba(0,0,0,.45);
-  }
-  .doorRow{display:flex;gap:clamp(6px,2vw,10px)}
-  .liftPill{
-    flex:1 1 0;height:clamp(34px,7vh,46px);border:3px solid var(--ink);border-radius:12px;
-    display:flex;align-items:center;justify-content:center;gap:3px;cursor:pointer;
-    box-shadow:0 4px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.3);
-    filter:saturate(.8) brightness(.88);transition:transform .08s, filter .12s, box-shadow .12s;
-  }
-  .liftPill:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
-  .liftPill.o{background:linear-gradient(#7BD97B,#2F9E44)}
-  .liftPill.c{background:linear-gradient(#F4845F,#C0392B)}
-  .liftPill.bell{background:linear-gradient(#FFDE6B,#E8A41C);flex:0 0 clamp(52px,16vw,74px)}
-  .liftPill.lit{filter:saturate(1.35) brightness(1.22);
-    box-shadow:0 0 0 3px var(--sun),0 0 13px 3px rgba(255,210,63,.6),0 4px 0 var(--ink)}
-  .liftPill .tri{width:8px;height:14px;background:#fff;flex:0 0 auto}
-  .liftPill .tri.r{clip-path:polygon(0 0,100% 50%,0 100%)}
-  .liftPill .tri.l{clip-path:polygon(100% 0,0 50%,100% 100%)}
-  .liftPill .lf{display:block;width:4px;height:18px;background:#fff;border-radius:1px;flex:0 0 auto}
-  .liftPill .glBell{display:block;width:18px;height:18px;background:#fff;
-    clip-path:polygon(50% 0,66% 8%,78% 26%,80% 62%,92% 76%,8% 76%,20% 62%,22% 26%,34% 8%)}
-
-  /* Landscape on a phone: three floors in a short screen only work if the
-     console gets out of the way, so it folds into one row and hands the
-     height back to the station. */
-  @media (orientation:landscape) and (max-height:600px){
-    #lift{padding:6px;gap:5px}
-    #lift header{gap:6px}
-    .liftConsole{
-      flex-direction:row;align-items:center;justify-content:center;
-      gap:clamp(8px,2vw,18px);padding:6px 8px;padding-right:clamp(34px,6vw,46px);
-      border-width:4px;border-radius:14px;box-shadow:0 5px 0 var(--ink), inset 0 2px 0 rgba(255,255,255,.16);
-    }
-    .floorRow{gap:clamp(8px,2vw,16px)}
-    .floorBtn{width:clamp(36px,11vh,54px);font-size:clamp(14px,4.5vh,20px)}
-    .floorBtn::before{inset:-4px}
-    .doorRow{flex:0 1 auto;gap:8px}
-    .liftPill{flex:0 0 clamp(56px,14vw,92px);height:clamp(30px,10vh,44px)}
-    .liftPill.bell{flex:0 0 clamp(44px,8vw,64px)}
-  }
+  /* The bottom console is gone -- floors are called by tapping the room
+     itself, so there's nothing left to fold away in landscape either. */
 
   /* ---------- particles ---------- */
   .bit{position:fixed;pointer-events:none;z-index:99;border-radius:50% 45% 55% 42%/50% 55% 45% 50%;border:3px solid var(--ink)}
@@ -1065,12 +1017,21 @@
   </div>
 </div>
 
+<div class="parentModal" id="nameModal">
+  <div class="parentCard">
+    <h2 data-nametitle></h2>
+    <input type="text" id="nameInput" class="nameInput" maxlength="12" autocomplete="off" spellcheck="false">
+    <button class="parentStart" id="nameSave" data-save></button>
+    <button class="parentClose" id="nameClose" aria-label="Close">&#10005;</button>
+  </div>
+</div>
+
 <div id="app">
   <!-- ============ HOME ============ -->
   <section class="screen on" id="home" style="background:var(--orange)">
     <div class="splats" data-splats></div>
     <div class="logo">
-      <span class="blob"><h1>HENRY'S<br>ARCADE</h1></span>
+      <span class="blob" id="logoBlob"><h1 id="logoH1">HENRY'S<br>ARCADE</h1></span>
       <p data-tagline></p>
     </div>
     <div class="menu">
@@ -1170,8 +1131,8 @@
       <div class="swatchRow" id="swatchRow"></div>
       <canvas id="drawCanvas"></canvas>
       <div class="toolRow">
-        <button class="clearBtn" id="clearDraw">&#129529; <span data-clear></span></button>
-        <button class="saveBtn" id="saveDraw">&#128247; <span data-save></span></button>
+        <button class="clearBtn" id="clearDraw"><i>&#129529;</i> <span data-clear></span></button>
+        <button class="saveBtn" id="saveDraw"><i>&#128247;</i> <span data-save></span></button>
       </div>
     </div>
   </section>
@@ -1225,7 +1186,7 @@
         <div class="liftCable" id="liftCable"></div>
         <div class="liftReadout" id="liftReadout">
           <i class="ar up" id="liftUp"></i>
-          <span class="num" id="liftNum">1</span>
+          <i class="dot" id="liftDot"></i>
           <i class="ar dn" id="liftDn"></i>
         </div>
         <div class="liftCar" id="liftCar">
@@ -1237,10 +1198,10 @@
 
       <div class="liftFloors" id="liftFloors">
         <!-- 3 · street level -->
-        <div class="lroom r3">
+        <div class="lroom r3" data-floor="2">
           <div class="lart">
             <div class="backing"></div>
-            <div class="lsign"><i class="lt3">3</i><span data-lname="3"></span></div>
+            <div class="lsign"><i class="lt3"></i><span data-lname="3"></span></div>
             <div class="pipRow" id="pipRow"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="lawn"></div>
             <div class="lcounter"><i>&#129384;</i></div>
@@ -1250,10 +1211,10 @@
           </div>
         </div>
         <!-- 2 · S-Bahn -->
-        <div class="lroom r2">
+        <div class="lroom r2" data-floor="1">
           <div class="lart">
             <div class="backing"></div>
-            <div class="lsign"><i class="lt2">2</i><span data-lname="2"></span></div>
+            <div class="lsign"><i class="lt2"></i><span data-lname="2"></span></div>
             <div class="ltunnel"></div>
             <div class="ltrack"></div>
             <div class="hazard"></div>
@@ -1261,11 +1222,11 @@
           </div>
         </div>
         <!-- 1 · U-Bahn -->
-        <div class="lroom r1">
+        <div class="lroom r1" data-floor="0">
           <div class="lart">
             <div class="backing"></div>
             <div class="tiles"></div>
-            <div class="lsign"><i class="lt1">1</i><span data-lname="1"></span></div>
+            <div class="lsign"><i class="lt1"></i><span data-lname="1"></span></div>
             <div class="ltunnel"></div>
             <div class="ltrack"></div>
             <div class="hazard"></div>
@@ -1276,23 +1237,6 @@
 
       <div class="ltrainLayer" id="liftTrains"></div>
       <div class="lpedLayer" id="liftPeds"></div>
-    </div>
-
-    <div class="liftConsole">
-      <div class="floorRow">
-        <button class="floorBtn k1" data-floor="0" aria-label="1">1</button>
-        <button class="floorBtn k2" data-floor="1" aria-label="2">2</button>
-        <button class="floorBtn k3" data-floor="2" aria-label="3">3</button>
-      </div>
-      <div class="doorRow">
-        <button class="liftPill o" id="liftOpen" aria-label="Doors open">
-          <i class="tri l"></i><i class="lf"></i><i class="lf"></i><i class="tri r"></i>
-        </button>
-        <button class="liftPill c" id="liftClose" aria-label="Doors close">
-          <i class="tri r"></i><i class="lf"></i><i class="lf"></i><i class="tri l"></i>
-        </button>
-        <button class="liftPill bell" id="liftBell" aria-label="Bell"><i class="glBell"></i></button>
-      </div>
     </div>
   </section>
 </div>
@@ -1325,10 +1269,11 @@
       spaceLabel: "SPACE",
       eraseLabel: "ERASE",
       langName: { en:"English", de:"Deutsch" },
+      nameTitle: "WHOSE ARCADE IS THIS?",
       liftNames: ["U-BAHN", "S-BAHN", "STREET"],
       liftExit: "EXIT",
       liftThanks: "THANK YOU!",
-      liftSay: ["One. Subway.", "Two. City rail.", "Three. Exit and shops."],
+      liftSay: ["Subway level.", "City rail level.", "Street level. Exit and shops."],
       ctrl: { back:"BACK", stop:"STOP", fwd:"GO", whistle:"WHISTLE!" },
       parent: { title:"PLAY TIME", start:"START", stop:"STOP TIMER", noLimit:"NO LIMIT" }
     },
@@ -1351,10 +1296,11 @@
       spaceLabel: "LEER",
       eraseLabel: "RÜCK",
       langName: { en:"English", de:"Deutsch" },
+      nameTitle: "WESSEN ARCADE IST DAS?",
       liftNames: ["U-BAHN", "S-BAHN", "STRASSE"],
       liftExit: "AUSGANG",
       liftThanks: "DANKE!",
-      liftSay: ["Eins. U-Bahn.", "Zwei. S-Bahn.", "Drei. Ausgang und Geschäfte."],
+      liftSay: ["U-Bahn-Ebene.", "S-Bahn-Ebene.", "Straßenebene. Ausgang und Geschäfte."],
       ctrl: { back:"ZURÜCK", stop:"STOPP", fwd:"LOS", whistle:"PFEIFE!" },
       parent: { title:"SPIELZEIT", start:"START", stop:"TIMER STOPPEN", noLimit:"KEIN LIMIT" }
     }
@@ -2631,7 +2577,9 @@
      same factor, so one drawing serves every screen size. */
   const liftStage = $("#liftStage"), liftShaft = $("#liftShaft"), liftCar = $("#liftCar"),
         liftPeds = $("#liftPeds"), liftTrainLayer = $("#liftTrains"), liftCable = $("#liftCable"),
-        liftNum = $("#liftNum"), liftUp = $("#liftUp"), liftDn = $("#liftDn"), pipRow = $("#pipRow");
+        liftDot = $("#liftDot"), liftUp = $("#liftUp"), liftDn = $("#liftDn"), pipRow = $("#pipRow");
+  const FLOOR_COLOR_VAR = ["--f1", "--f2", "--f3"];
+  const FLOOR_COLOR_KEY = ["yellow", "red", "blue"];
 
   const PED_W = 22, PED_H = 44, SLAB = 11, TRAIN_W = 116, TRAIN_H = 52;
   const CAR_CAP = 3, MAX_PEOPLE = 8, PIPS = 5;
@@ -2642,7 +2590,6 @@
   const groundY = [0, 0, 0];             // real px of each floor's ground line
   let carFloor = 0, carY = 0, carFrom = 0, carTo = 0, carT = 0, carDur = 1;
   let carMoving = false, carGoingTo = 0, shownFloor = 0;
-  let doorPos = 0, doorState = "shut", doorHold = 0, pending = -1;
   let people = [], riders = [], trainList = [];
   let streetTimer = 5, motorAcc = 0, delivered = 0;
   let liftRaf = null, liftLastTs = null, liftReady = false, liftSeeded = false;
@@ -2670,6 +2617,7 @@
     liftCar.style.left = Math.round((shaftW - carW) / 2 - 2) + "px";
     liftCar.querySelector(".cfloor").style.height = Math.max(3, 7 * LK) + "px";
     if(!carMoving) carY = groundY[carFloor] - carH;
+    setDot(shownFloor);
     liftReady = true;
     buildTrains();
     riders.forEach(function(p, i){ p.slot = i; p.x = slotX(i); });
@@ -2686,9 +2634,6 @@
   function applyCar(){
     liftCar.style.transform = "translateY(" + carY + "px)";
     liftCable.style.height = Math.max(0, carY) + "px";
-    const l = liftCar.querySelector(".leaf.l"), r = liftCar.querySelector(".leaf.r");
-    l.style.transform = "translateX(" + (-100 * doorPos) + "%)";
-    r.style.transform = "translateX(" + (100 * doorPos) + "%)";
   }
 
   function setArrows(){
@@ -2696,12 +2641,16 @@
     liftUp.classList.toggle("on", up);
     liftDn.classList.toggle("on", dn);
   }
+  // The readout is a plain color dot instead of a floor digit -- same color
+  // language as the room itself, the sign, and the badges people hold up.
+  function setDot(i){
+    liftDot.style.color = "var(" + FLOOR_COLOR_VAR[i] + ")";
+    liftDot.style.background = "var(" + FLOOR_COLOR_VAR[i] + ")";
+  }
 
   /* ---- people ---- */
   function pedHtml(dest){
-    let dots = "";
-    for(let i = 0; i <= dest; i++) dots += "<u></u>";
-    return '<i class="badge bg' + (dest + 1) + '"><b>' + (dest + 1) + '</b><s>' + dots + '</s></i>' +
+    return '<i class="badge bg' + (dest + 1) + '"></i>' +
       '<i class="head"></i><i class="torso"></i><i class="arm a"></i><i class="arm b"></i>' +
       '<i class="leg a"></i><i class="leg b"></i>';
   }
@@ -2720,8 +2669,9 @@
     const p = { el: el, floor: floor, dest: dest, x: x, tx: x, state: "toLift",
                 inCar: false, slot: 0, dead: false, spd: 0.9 + Math.random() * 0.3 };
     people.push(p);
-    onTap(el, function(){
-      say(t().numWords[p.dest]);
+    onTap(el, function(e){
+      e.stopPropagation(); // don't also trigger the floor they're standing on
+      say(t().colorNames[FLOOR_COLOR_KEY[p.dest]]);
       const c = centerOf(el); burst(c.x, c.y, ["#fff", "#FFD23F"], 8);
     });
     requeue(floor);
@@ -2808,7 +2758,8 @@
         '<i class="tw k1"></i><i class="tw k2"></i><i class="tw k3"></i><i class="tw k4"></i>';
       liftTrainLayer.appendChild(el);
       const tr = { el: el, f: f, state: "away", t: 2.5 + f * 2.5, x: 0, p: 0 };
-      onTap(el, function(){
+      onTap(el, function(e){
+        e.stopPropagation();
         tone({ f: 330, dur: .5, type: "sawtooth", vol: .2 });
         tone({ f: 392, dur: .5, type: "sawtooth", vol: .16 });
       });
@@ -2850,50 +2801,26 @@
     });
   }
 
-  /* ---- doors ---- */
-  function openDoors(){
-    if(carMoving) return;
-    if(doorState === "open"){ doorHold = 4; return; }
-    doorState = "opening";
-    noise(.45, 0, 900, .14);
-    $("#liftOpen").classList.add("lit");
-    setTimeout(function(){ $("#liftOpen").classList.remove("lit"); }, 700);
-  }
-  function closeDoors(){
-    if(doorState === "shut" || doorState === "shutting") return;
-    doorState = "shutting";
-    noise(.45, 0, 900, .14);
-    $("#liftClose").classList.add("lit");
-    setTimeout(function(){ $("#liftClose").classList.remove("lit"); }, 700);
-  }
-  function stepDoors(dt){
-    const SPD = 1 / 0.7;
-    if(doorState === "opening"){
-      doorPos = Math.min(1, doorPos + dt * SPD);
-      if(doorPos >= 1){ doorState = "open"; doorHold = 4; }
-      applyCar();
-    } else if(doorState === "shutting"){
-      doorPos = Math.max(0, doorPos - dt * SPD);
-      if(doorPos <= 0){
-        doorState = "shut";
-        if(pending >= 0 && pending !== carFloor) startTravel(pending);
-        else pending = -1;
-      }
-      applyCar();
-    } else if(doorState === "open"){
-      doorHold -= dt;
-      if(boarding()) doorHold = Math.max(doorHold, 1.4);
-      if(doorHold <= 0) closeDoors();
-    }
-  }
-
-  /* ---- the ride ---- */
+  /* ---- the ride ----
+     No doors to open or close: the leaves are glass, always see-through, so
+     there was never a reason to make the car wait on them. A floor tap
+     retargets the car immediately, whether it's parked or already mid-ride
+     -- carFrom is always the car's live position, so redirecting mid-flight
+     just bends the trip toward the new floor instead of finishing the old
+     one first. */
   function startTravel(i){
-    pending = -1;
+    if(i === carGoingTo && carMoving) return;
+    // Anyone still walking toward the door doesn't get to board a car
+    // that's about to leave -- send them back to the queue.
+    people.forEach(function(p){
+      if(p.state === "board"){ p.state = "wait"; }
+    });
+    requeue(carFloor);
     carGoingTo = i;
     carFrom = carY;
     carTo = groundY[i] - carH;
-    carDur = 0.85 * Math.max(1, Math.abs(i - carFloor));
+    const perFloor = Math.max(1, floorH) / 0.85; // px/sec, matches the old one-floor pace
+    carDur = Math.max(0.35, Math.abs(carTo - carFrom) / perFloor);
     carT = 0;
     carMoving = true;
     setArrows();
@@ -2911,7 +2838,7 @@
     }
     if(near !== shownFloor){
       shownFloor = near;
-      liftNum.textContent = String(near + 1);
+      setDot(near);
       tone({ f: 880, dur: .05, type: "sine", vol: .09 });
     }
     motorAcc += dt;
@@ -2921,19 +2848,19 @@
       carMoving = false;
       carFloor = carGoingTo;
       shownFloor = carFloor;
-      liftNum.textContent = String(carFloor + 1);
+      setDot(carFloor);
       setArrows();
-      document.querySelectorAll(".floorBtn").forEach(function(b){ b.classList.remove("lit"); });
       tone({ f: 1046, dur: .45, type: "sine", vol: .2 });
       tone({ f: 784, at: .22, dur: .55, type: "sine", vol: .18 });
       say(t().liftSay[carFloor]);
-      openDoors();
     }
   }
 
-  /* ---- who gets on and off ---- */
+  /* ---- who gets on and off ----
+     The car services its current floor continuously while parked -- no
+     door-open window to squeeze into, people just walk on and off. */
   function service(){
-    if(doorState !== "open" || carMoving || boarding()) return;
+    if(carMoving || boarding()) return;
     const out = riders.find(function(r){ return r.dest === carFloor; });
     if(out){ startUnload(out); return; }
     if(riders.length < CAR_CAP){
@@ -2946,7 +2873,6 @@
       if(next && next.state === "wait"){
         next.state = "board";
         next.tx = shaftW / 2 - PED_W * LK / 2;
-        doorHold = Math.max(doorHold, 2);
       }
     }
   }
@@ -2988,7 +2914,6 @@
     const dt = Math.min(0.05, (ts - liftLastTs) / 1000);
     liftLastTs = ts;
     stepCar(dt);
-    stepDoors(dt);
     stepTrains(dt);
     stepPeople(dt);
     stepSpawns(dt);
@@ -3003,31 +2928,18 @@
     if(liftRaf != null){ cancelAnimationFrame(liftRaf); liftRaf = null; }
   }
 
-  /* ---- console ---- */
-  document.querySelectorAll(".floorBtn").forEach(function(btn){
-    onTap(btn, function(){
-      const i = parseInt(btn.dataset.floor, 10);
-      if(carMoving){
-        tone({ f: 150, dur: .14, type: "square", vol: .16 });
+  /* ---- calling the car: tap the floor itself ---- */
+  document.querySelectorAll(".lroom").forEach(function(room){
+    const i = parseInt(room.dataset.floor, 10);
+    onTap(room, function(){
+      room.classList.remove("tapped"); void room.offsetWidth; room.classList.add("tapped");
+      if(i === carFloor && !carMoving){
+        tone({ f: 660, dur: .09, type: "square", vol: .12 });
         return;
       }
       tone({ f: 660, dur: .09, type: "square", vol: .18 });
-      const c = centerOf(btn); burst(c.x, c.y, ["#FFD23F", "#fff"], 8);
-      if(i === carFloor){ openDoors(); return; }
-      pending = i;
-      document.querySelectorAll(".floorBtn").forEach(function(b){ b.classList.remove("lit"); });
-      btn.classList.add("lit");
-      if(doorState === "shut") startTravel(i);
-      else closeDoors();
+      startTravel(i);
     });
-  });
-  onTap($("#liftOpen"), function(){ if(!carMoving) openDoors(); else tone({ f: 150, dur: .14, type: "square", vol: .16 }); });
-  onTap($("#liftClose"), function(){ if(!carMoving && !boarding()) closeDoors(); });
-  onTap($("#liftBell"), function(){
-    const b = $("#liftBell");
-    b.classList.add("lit");
-    setTimeout(function(){ b.classList.remove("lit"); }, 900);
-    stationChime();
   });
 
   /* ---------------- PARENT MODE ---------------- */
@@ -3113,11 +3025,61 @@
     parentLock.addEventListener(evt, function(){ clearTimeout(lockPressTimer); });
   });
 
+  /* ---------------- child's name ----------------
+     The logo is the app's name, so renaming it lives right there: hold it
+     down for ten seconds (long enough that a toddler bouncing on it won't
+     trigger it by accident) and a modal offers to rename the whole arcade.
+     Only the on-screen title and browser tab change -- the home-screen
+     icon is a baked PWA asset and can't be renamed at runtime. */
+  let childName = (localStorage.getItem("slimeName") || "Henry").trim().slice(0, 12) || "Henry";
+  const logoBlob = $("#logoBlob"), logoH1 = $("#logoH1");
+  const nameModal = $("#nameModal"), nameInput = $("#nameInput");
+  function applyName(){
+    logoH1.textContent = "";
+    logoH1.appendChild(document.createTextNode(childName.toUpperCase() + "'S"));
+    logoH1.appendChild(document.createElement("br"));
+    logoH1.appendChild(document.createTextNode("ARCADE"));
+    document.title = childName + "'s Arcade";
+  }
+  function setChildName(n){
+    n = (n || "").trim().slice(0, 12);
+    if(!n) return;
+    childName = n;
+    localStorage.setItem("slimeName", childName);
+    applyName();
+  }
+  function openNameModal(){
+    nameInput.value = childName;
+    nameModal.classList.add("on");
+    tone({f:520, to:700, dur:.18, type:"sine", vol:.18});
+    setTimeout(function(){ nameInput.focus(); nameInput.select(); }, 50);
+  }
+  function closeNameModal(){ nameModal.classList.remove("on"); }
+  onTap($("#nameClose"), closeNameModal);
+  onTap($("#nameSave"), function(){
+    setChildName(nameInput.value);
+    closeNameModal();
+    tone({f:660, to:990, dur:.25, type:"triangle", vol:.2});
+  });
+  document.addEventListener("pointerdown", function(e){
+    if(e.target === nameModal) closeNameModal();
+  });
+  let logoPressTimer = null;
+  logoBlob.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    clearTimeout(logoPressTimer);
+    logoPressTimer = setTimeout(openNameModal, 10000);
+  }, {passive:false});
+  ["pointerup","pointercancel","pointerleave"].forEach(function(evt){
+    logoBlob.addEventListener(evt, function(){ clearTimeout(logoPressTimer); });
+  });
+
   /* ---------------- language ---------------- */
   function applyLang(){
     const d = t();
     document.documentElement.lang = lang;
-    document.title = d.docTitle;
+    applyName();
+    document.querySelectorAll("[data-nametitle]").forEach(el => el.textContent = d.nameTitle);
     document.querySelectorAll("[data-tagline]").forEach(el => el.textContent = d.tagline);
     document.querySelectorAll("[data-home]").forEach(el => el.textContent = d.home);
     document.querySelectorAll("[data-title]").forEach(el => el.textContent = d.titles[el.dataset.title]);
