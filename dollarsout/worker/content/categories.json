@@ -1,0 +1,82 @@
+[
+  {
+    "id": "everyday-spending",
+    "webflowItemId": "6a8578266d00107b3bf3f481",
+    "name": "Everyday Spending",
+    "tagline": "Groceries, brands, leaving Amazon",
+    "shortDescription": "Groceries, household goods, and retail — learn who actually owns the brands in your basket, then redirect that spending one aisle at a time.",
+    "disclaimer": null,
+    "colorKey": "c1",
+    "sortOrder": 1
+  },
+  {
+    "id": "subscriptions",
+    "webflowItemId": "6a8578266d00107b3bf3f483",
+    "name": "Subscriptions",
+    "tagline": "What's quietly billing you monthly",
+    "shortDescription": "Recurring digital revenue is what moves valuations. Audit every subscription you pay, cancel what you can, and move the rest to providers outside the target set.",
+    "disclaimer": null,
+    "colorKey": "c2",
+    "sortOrder": 2
+  },
+  {
+    "id": "money-banking",
+    "webflowItemId": "6a8578266d00107b3bf3f485",
+    "name": "Money & Banking",
+    "tagline": "Where your money sleeps at night",
+    "shortDescription": "Your deposits are working capital that your bank lends and invests. Move them to member-owned institutions and pay on rails that don't route a fee to a US network.",
+    "disclaimer": null,
+    "colorKey": "c3",
+    "sortOrder": 3
+  },
+  {
+    "id": "investments",
+    "webflowItemId": "6a8578266d00107b3bf3f487",
+    "name": "Investments",
+    "tagline": "You may own what you're boycotting",
+    "shortDescription": "You are probably already funding what you're boycotting. Find out what your pension holds, then decide whether to move it, vote it, or organise around it.",
+    "disclaimer": "Nothing in this category is financial advice. None of these actions names a security to buy — they are about finding out what you already own and who votes it. Decisions about your own money are yours, and worth taking to a regulated adviser.",
+    "colorKey": "c1",
+    "sortOrder": 4
+  },
+  {
+    "id": "travel",
+    "webflowItemId": "6a85786ec61c6c719566ef1c",
+    "name": "Travel",
+    "tagline": "The one with a public scoreboard",
+    "shortDescription": "The only category with a public scoreboard — inbound tourism figures are published monthly. Skip the trip, take the train, and tell the operator why.",
+    "disclaimer": null,
+    "colorKey": "c2",
+    "sortOrder": 5
+  },
+  {
+    "id": "institutions",
+    "webflowItemId": "6a85786ec61c6c719566ef1e",
+    "name": "Institutions",
+    "tagline": "Highest impact, most effort",
+    "shortDescription": "One organisation switching outweighs a thousand individual consumers. Your employer, council, union, club and congregation all sign contracts — and someone has to raise it.",
+    "disclaimer": null,
+    "colorKey": "c3",
+    "sortOrder": 6
+  },
+  {
+    "id": "attention",
+    "webflowItemId": "6a85786ec61c6c719566ef20",
+    "name": "Attention",
+    "tagline": "You're the inventory. Stop supplying it.",
+    "shortDescription": "Your attention, your posts and your data are the product these platforms sell. Withdraw the supply, block the ads, and fund the alternative with what you save.",
+    "disclaimer": null,
+    "colorKey": "c1",
+    "sortOrder": 7
+  },
+  {
+    "id": "data-rights",
+    "webflowItemId": null,
+    "name": "Data & Digital Rights",
+    "tagline": "Rights you already have, unused",
+    "shortDescription": "The GDPR and the DMA give you enforceable rights over data that has already been collected — deletion, access, objection, portability. Most people never use them. Each one costs an email and creates a record.",
+    "disclaimer": "These actions describe rights in EU law and point to the published guidance of noyb and your national data protection authority. They are not legal advice, and this app does not draft your request for you — use the wording your DPA or noyb publishes.",
+    "colorKey": "c2",
+    "sortOrder": 8
+  }
+]

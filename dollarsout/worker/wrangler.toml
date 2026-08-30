@@ -1,0 +1,49 @@
+name = "dollarsout-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+d1_databases = [
+  { binding = "DB", database_name = "dollarsout-db", database_id = "e684a7e6-5097-4bdd-a2e5-2209a3672391" }
+]
+
+kv_namespaces = [
+  { binding = "SESSIONS", id = "a09385441fbe481085c66721f9e22065" },
+  { binding = "COUNTERS", id = "631f6b0e948f4b889266f1a95437ab53" }
+]
+
+# Serves ../web directly from this same Worker -- one deploy, one domain, no separate static
+# hosting to set up. Cloudflare serves matching files straight from this manifest before the
+# Worker even runs; index.ts's ASSETS.fetch fallback only covers the rest.
+[assets]
+directory = "../web"
+binding = "ASSETS"
+
+
+[vars]
+# Frontend and API are now the same origin (this Worker serves both), so this is mostly a
+# same-origin no-op -- kept for the fetch() calls that still pass credentials: 'include'.
+ALLOWED_ORIGIN = "https://dollarsout.1stand.org"
+SESSION_COOKIE_DOMAIN = "dollarsout.1stand.org"
+
+# --- Disposable-email blocklist (spec S7.2) ---
+# A maintained, plain-text, newline-separated list of domains. Swappable without a redeploy.
+DISPOSABLE_DOMAIN_BLOCKLIST_URL = "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf"
+
+# --- Secrets -- set with `wrangler secret put <NAME>`, never here: ---
+#   TURNSTILE_SITE_KEY    Cloudflare Turnstile site key (public, kept as a secret for convenience)
+#   TURNSTILE_SECRET_KEY  Cloudflare Turnstile secret key
+#   OTP_EMAIL_API_KEY     Transactional email vendor API key (see auth.ts sendOtpEmail --
+#                          vendor still needs confirming against the 1STAND Mobilizon setup)
+#   OTP_EMAIL_FROM        Verified "From" address for OTP mail, e.g. "DollarsOut <noreply@1stand.org>"
+
+# 1stand.org is already a Cloudflare-managed zone (see the existing reverse-proxy Worker routing
+# the apex to Webflow). custom_domain = true makes wrangler auto-create the DNS record + cert on
+# deploy, straight onto this subdomain -- no separate api. subdomain needed anymore.
+[[routes]]
+pattern = "dollarsout.1stand.org"
+custom_domain = true
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true

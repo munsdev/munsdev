@@ -1,0 +1,35 @@
+{
+  "name": "DollarsOut",
+  "short_name": "DollarsOut",
+  "description": "Real-world economic actions, tracked. Cancel a subscription, switch banks, leave Amazon — and watch the collective count grow.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFD426",
+  "theme_color": "#C93E0B",
+  "categories": ["lifestyle", "finance", "social"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

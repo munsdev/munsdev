@@ -1,0 +1,257 @@
+[
+  {
+    "id": "badge-prime-cut",
+    "name": "Prime Cut",
+    "description": "Cancelled Amazon Prime.",
+    "icon": "📦",
+    "kind": "one_shot",
+    "actionId": "everyday-cancel-amazon-prime",
+    "sortOrder": 1
+  },
+  {
+    "id": "badge-cancelled",
+    "name": "Cancelled",
+    "description": "Cancelled Netflix.",
+    "icon": "✂️",
+    "kind": "one_shot",
+    "actionId": "subs-cancel-netflix",
+    "sortOrder": 2
+  },
+  {
+    "id": "badge-blocked",
+    "name": "Blocked",
+    "description": "Installed uBlock Origin.",
+    "icon": "🛡️",
+    "kind": "one_shot",
+    "actionId": "attn-install-ublock-origin",
+    "sortOrder": 3
+  },
+  {
+    "id": "badge-bank-job",
+    "name": "Bank Job",
+    "description": "Moved your primary current account.",
+    "icon": "🏦",
+    "kind": "one_shot",
+    "actionId": "banking-move-primary-account",
+    "sortOrder": 4
+  },
+  {
+    "id": "badge-ghosted",
+    "name": "Ghosted",
+    "description": "Deleted your X account.",
+    "icon": "👻",
+    "kind": "one_shot",
+    "actionId": "attn-delete-x-account",
+    "sortOrder": 5
+  },
+  {
+    "id": "badge-off-the-ride",
+    "name": "Off the Ride",
+    "description": "Deactivated Instagram or Facebook.",
+    "icon": "🎢",
+    "kind": "one_shot",
+    "actionId": "attn-deactivate-meta",
+    "sortOrder": 6
+  },
+  {
+    "id": "badge-mail-drop",
+    "name": "Mail Drop",
+    "description": "Moved your email off Gmail or Outlook.",
+    "icon": "📮",
+    "kind": "one_shot",
+    "actionId": "subs-move-email",
+    "sortOrder": 7
+  },
+  {
+    "id": "badge-escalated",
+    "name": "Escalated",
+    "description": "Filed a complaint with a data protection authority.",
+    "icon": "⚖️",
+    "kind": "one_shot",
+    "actionId": "data-complaint-to-dpa",
+    "sortOrder": 8
+  },
+  {
+    "id": "badge-paper-trail",
+    "name": "Paper Trail",
+    "description": "Got your pension's holdings list.",
+    "icon": "📄",
+    "kind": "one_shot",
+    "actionId": "invest-get-pension-holdings",
+    "sortOrder": 9
+  },
+  {
+    "id": "badge-proxy",
+    "name": "Proxy",
+    "description": "Voted your proxy.",
+    "icon": "🗳️",
+    "kind": "one_shot",
+    "actionId": "invest-vote-proxy",
+    "sortOrder": 10
+  },
+  {
+    "id": "badge-sleeper",
+    "name": "Sleeper",
+    "description": "Booked a night train.",
+    "icon": "🌙",
+    "kind": "one_shot",
+    "actionId": "travel-night-train",
+    "sortOrder": 11
+  },
+  {
+    "id": "badge-tabled",
+    "name": "Tabled",
+    "description": "Put a procurement change in writing.",
+    "icon": "📋",
+    "kind": "one_shot",
+    "actionId": "inst-propose-procurement-change",
+    "sortOrder": 12
+  },
+  {
+    "id": "badge-own-rails",
+    "name": "Own Rails",
+    "description": "Made your domestic payment scheme the default.",
+    "icon": "🛤️",
+    "kind": "one_shot",
+    "actionId": "banking-domestic-payment-scheme",
+    "sortOrder": 13
+  },
+  {
+    "id": "badge-signed-off",
+    "name": "Signed Off",
+    "description": "Replaced your US office suite.",
+    "icon": "📝",
+    "kind": "one_shot",
+    "actionId": "subs-replace-office-suite",
+    "sortOrder": 14
+  },
+
+  {
+    "id": "badge-milestone-5",
+    "name": "Five Down",
+    "description": "Five actions logged.",
+    "icon": "5️⃣",
+    "kind": "milestone",
+    "scope": "total",
+    "threshold": 5,
+    "sortOrder": 20
+  },
+  {
+    "id": "badge-milestone-10",
+    "name": "Double Figures",
+    "description": "Ten actions logged.",
+    "icon": "🔟",
+    "kind": "milestone",
+    "scope": "total",
+    "threshold": 10,
+    "sortOrder": 21
+  },
+  {
+    "id": "badge-milestone-25",
+    "name": "Quarter Century",
+    "description": "Twenty-five actions logged.",
+    "icon": "🥉",
+    "kind": "milestone",
+    "scope": "total",
+    "threshold": 25,
+    "sortOrder": 22
+  },
+  {
+    "id": "badge-milestone-50",
+    "name": "Half Way",
+    "description": "Fifty actions logged.",
+    "icon": "🥈",
+    "kind": "milestone",
+    "scope": "total",
+    "threshold": 50,
+    "sortOrder": 23
+  },
+  {
+    "id": "badge-milestone-100",
+    "name": "The Hundred",
+    "description": "One hundred actions logged.",
+    "icon": "🥇",
+    "kind": "milestone",
+    "scope": "total",
+    "threshold": 100,
+    "sortOrder": 24
+  },
+
+  {
+    "id": "badge-still-going",
+    "name": "Still Going",
+    "description": "Held something for three months.",
+    "icon": "⏳",
+    "kind": "time_served",
+    "scope": "checkin:3mo",
+    "threshold": 1,
+    "sortOrder": 30
+  },
+  {
+    "id": "badge-long-haul",
+    "name": "The Long Haul",
+    "description": "Held something for six months.",
+    "icon": "🗓️",
+    "kind": "time_served",
+    "scope": "checkin:6mo",
+    "threshold": 1,
+    "sortOrder": 31
+  },
+
+  {
+    "id": "badge-meta-grand-slam",
+    "name": "Grand Slam",
+    "description": "At least one action logged in every category.",
+    "icon": "🎯",
+    "kind": "meta",
+    "scope": "meta:all_categories",
+    "sortOrder": 40
+  },
+  {
+    "id": "badge-meta-completionist",
+    "name": "Completionist",
+    "description": "Every action in a single category, logged.",
+    "icon": "🧩",
+    "kind": "meta",
+    "scope": "meta:category_sweep",
+    "sortOrder": 41
+  },
+  {
+    "id": "badge-meta-polyglot",
+    "name": "Polyglot",
+    "description": "Started eight different badge chains.",
+    "icon": "🌍",
+    "kind": "meta",
+    "scope": "meta:chains_started",
+    "threshold": 8,
+    "sortOrder": 42
+  },
+  {
+    "id": "badge-meta-full-sovereign",
+    "name": "Full Sovereign",
+    "description": "Reached the fourth tier of any chain.",
+    "icon": "👑",
+    "kind": "meta",
+    "scope": "meta:chain_tier4",
+    "sortOrder": 43
+  },
+  {
+    "id": "badge-meta-rare-bird",
+    "name": "Rare Bird",
+    "description": "Earned something fewer than one in twenty people have.",
+    "icon": "🦤",
+    "kind": "meta",
+    "scope": "meta:rare_badge",
+    "sortOrder": 44
+  },
+  {
+    "id": "badge-meta-founder",
+    "name": "Founder",
+    "description": "One of the first hundred people here. Not awarded after that.",
+    "icon": "🕯️",
+    "kind": "meta",
+    "scope": "meta:founder",
+    "threshold": 100,
+    "sortOrder": 45
+  }
+]

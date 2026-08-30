@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DollarsOut — mockup v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFD426;
+  --ink:#14130F;
+  --cream:#FFF6D6;
+  --white:#FFFFFF;
+
+  /* accessible pairs: solid = white-text safe. bright = black-text fill only */
+  --grn-solid:#00873E;   --grn-bright:#3ED17C;
+  --pur-solid:#5B2FB3;   --pur-bright:#B79CFF;
+  --orn-solid:#C93E0B;   --orn-bright:#FF8A5B;
+
+  --line:4px;
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Archivo,system-ui,sans-serif;background:var(--ink);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;padding:20px 12px;min-height:100vh;
+}
+.display{font-family:'Archivo Black',Archivo,sans-serif;letter-spacing:-.02em}
+button,input{font-family:inherit}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+/* ---- device frame ---- */
+.phone{
+  width:100%;max-width:412px;background:var(--bg);
+  border:var(--line) solid var(--ink);border-radius:28px;
+  box-shadow:10px 10px 0 var(--pur-solid);overflow:hidden;
+  display:flex;flex-direction:column;height:min(880px,95vh);position:relative;
+}
+
+/* ---- top bar ---- */
+.topbar{flex:0 0 auto;background:var(--orn-solid);border-bottom:var(--line) solid var(--ink);
+  padding:12px 14px;display:flex;flex-direction:column;gap:8px;color:#fff}
+.topbar-row{display:flex;align-items:center;justify-content:space-between}
+.wordmark{font-size:19px;text-transform:uppercase;line-height:1}
+.pill{background:var(--ink);color:var(--bg);font-weight:800;font-size:11px;padding:5px 10px;
+  border-radius:99px;text-transform:uppercase;letter-spacing:.03em;border:none;cursor:pointer}
+.pill.ghostpill{background:#fff;color:var(--ink)}
+
+/* level strip — replaces the old competing tube meter */
+.lvlstrip{display:flex;align-items:center;gap:8px}
+.lvlname{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.segbar{flex:1;height:12px;border:3px solid var(--ink);border-radius:99px;background:#fff;
+  overflow:hidden;position:relative}
+.segbar i{display:block;height:100%;background:var(--grn-bright)}
+.lvlnext{font-size:9.5px;font-weight:700;opacity:.85;white-space:nowrap}
+
+/* signed-out banner */
+.guestbar{background:var(--ink);color:var(--bg);font-size:10.5px;font-weight:700;
+  padding:6px 14px;text-align:center;flex:0 0 auto}
+.guestbar b{text-decoration:underline;cursor:pointer}
+
+/* ---- scroll body ---- */
+.body{flex:1 1 auto;overflow-y:auto;padding:14px 14px 90px;-webkit-overflow-scrolling:touch;position:relative}
+.screen[hidden]{display:none}
+
+/* search */
+.searchbar{display:flex;gap:8px;margin-bottom:10px}
+.searchbar input{
+  flex:1;border:3px solid var(--ink);border-radius:12px;padding:11px 12px;font-size:14px;
+  font-weight:600;background:#fff;
+}
+.searchbar input::placeholder{color:#8a8674}
+.filterbtn{
+  flex:0 0 auto;width:44px;border:3px solid var(--ink);border-radius:12px;background:var(--pur-solid);
+  color:#fff;font-size:17px;cursor:pointer;
+}
+.chiprow{display:flex;gap:7px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px}
+.chip{
+  flex:0 0 auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;
+  border:3px solid var(--ink);border-radius:99px;padding:6px 12px;background:#fff;cursor:pointer;
+  white-space:nowrap;
+}
+.chip[aria-pressed="true"]{background:var(--grn-bright)}
+.chip.surprise{background:var(--orn-bright)}
+
+/* the dial — collective only, honest denominator */
+.meterwrap{
+  background:var(--cream);border:var(--line) solid var(--ink);border-radius:20px;
+  box-shadow:6px 6px 0 var(--ink);padding:14px 14px 12px;margin-bottom:16px;
+}
+.meter-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;text-align:center;margin-bottom:2px}
+.meter-goal{font-size:10px;font-weight:700;text-align:center;opacity:.65;margin-bottom:6px}
+.gauge{position:relative;width:100%;aspect-ratio:2/1.16;margin:0 auto}
+.gauge svg{width:100%;height:100%;display:block;overflow:visible}
+.needle{transform-origin:150px 130px;transition:transform 1.8s cubic-bezier(.25,1.2,.3,1)}
+.readout{text-align:center;margin-top:2px}
+.readout .big{font-family:'Archivo Black';font-size:32px;line-height:1;letter-spacing:-.03em}
+.readout .sub{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.7;margin-top:3px}
+
+/* section headers */
+.h2{font-family:'Archivo Black';font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 9px}
+.h2:first-child{margin-top:0}
+.h2 .cnt{font-family:Archivo;font-weight:700;font-size:11px;text-transform:none;opacity:.6}
+
+/* category cards — fixed color per category (not arbitrary) */
+.cat{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  color:#fff;border:var(--line) solid var(--ink);border-radius:var(--radius);
+  box-shadow:5px 5px 0 var(--ink);padding:13px 14px;margin-bottom:11px;
+  transition:transform .08s,box-shadow .08s;
+}
+.cat:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.cat.c1{background:var(--grn-solid)} .cat.c2{background:var(--pur-solid)} .cat.c3{background:var(--orn-solid)}
+.cat .num{
+  font-family:'Archivo Black';font-size:17px;background:#fff;color:var(--ink);
+  min-width:44px;height:44px;border:3px solid var(--ink);border-radius:11px;
+  display:grid;place-items:center;line-height:1.1;flex:0 0 auto;text-align:center;padding:2px;
+}
+.cat .num small{display:block;font-family:Archivo;font-weight:800;font-size:8px}
+.cat .txt{flex:1}
+.cat .txt b{display:block;font-family:'Archivo Black';font-size:15px;line-height:1.15}
+.cat .txt span{font-size:11.5px;font-weight:600;opacity:.94}
+.cat .go{font-family:'Archivo Black';font-size:20px}
+
+/* collective stats block, folded into home (not a separate nav item) */
+.statrow{display:flex;gap:9px;margin-bottom:11px}
+.stat{flex:1;border:3px solid var(--ink);border-radius:14px;padding:11px 9px;
+  box-shadow:4px 4px 0 var(--ink);text-align:center;color:#fff}
+.stat.g{background:var(--grn-solid)} .stat.o{background:var(--orn-solid)} .stat.p{background:var(--pur-solid)}
+.stat b{display:block;font-family:'Archivo Black';font-size:22px;line-height:1}
+.stat span{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;display:block;margin-top:4px;line-height:1.2}
+.goal{height:24px;border:3px solid var(--ink);border-radius:99px;background:#fff;overflow:hidden;margin:7px 0 4px}
+.goal i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--orn-bright) 0 9px,var(--orn-solid) 9px 18px)}
+.mini{font-size:11px;font-weight:700}
+
+/* action cards */
+.card{background:#fff;border:var(--line) solid var(--ink);border-radius:var(--radius);
+  box-shadow:5px 5px 0 var(--ink);padding:13px 14px;margin-bottom:11px}
+.act{display:flex;gap:11px;align-items:flex-start}
+.box{flex:0 0 auto;width:32px;height:32px;border:3px solid var(--ink);border-radius:9px;
+  background:#fff;display:grid;place-items:center;font-family:'Archivo Black';font-size:16px}
+.act.done .box{background:var(--grn-bright)}
+.act.na .box{background:#EDE9DA}
+.act h3{font-family:'Archivo Black';font-size:14.5px;line-height:1.2;margin-bottom:3px;cursor:pointer}
+.act p{font-size:12px;font-weight:500;line-height:1.4;opacity:.82}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+  border:2px solid var(--ink);border-radius:99px;padding:2.5px 7px;background:var(--bg)}
+.tag.p{background:var(--pur-bright)} .tag.o{background:var(--orn-bright)}
+.actbtns{display:flex;gap:8px;margin-top:11px;align-items:center}
+.naLink{background:none;border:none;font-size:11px;font-weight:800;text-decoration:underline;
+  cursor:pointer;text-transform:uppercase;opacity:.65}
+.act.na p.nastate{font-size:11px;font-weight:800;text-transform:uppercase;color:#8a8674}
+
+/* claim mini-form (expands in place) */
+.claimform{display:none;margin-top:11px;border-top:3px dashed var(--ink);padding-top:11px}
+.claimform.open{display:block}
+.claimlabel{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;display:block}
+.moneychips{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap}
+.mchip{border:3px solid var(--ink);border-radius:10px;background:#fff;padding:7px 11px;
+  font-weight:800;font-size:12.5px;cursor:pointer}
+.mchip[aria-pressed="true"]{background:var(--grn-bright)}
+.claimform input[type=text]{width:100%;border:3px solid var(--ink);border-radius:10px;
+  padding:9px 10px;font-size:12.5px;font-weight:600;margin-bottom:11px}
+
+/* buttons */
+.btn{display:block;width:100%;font-family:'Archivo Black';font-size:15.5px;text-transform:uppercase;
+  letter-spacing:.02em;padding:14px;border:var(--line) solid var(--ink);border-radius:14px;
+  background:var(--grn-solid);color:#fff;box-shadow:5px 5px 0 var(--ink);cursor:pointer;
+  transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.btn.ghost{background:#fff;color:var(--ink)}
+.btn.orn{background:var(--orn-solid)}
+.btn.sm{font-size:12px;padding:10px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.back{background:none;border:none;font-family:'Archivo Black';font-size:12px;text-transform:uppercase;
+  cursor:pointer;margin-bottom:12px;letter-spacing:.04em}
+
+/* badges */
+.laddercard{background:var(--cream);border:var(--line) solid var(--ink);border-radius:16px;
+  box-shadow:5px 5px 0 var(--ink);padding:13px 14px;margin-bottom:16px}
+.badgegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.badge{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:10px 5px;text-align:center;
+  box-shadow:3px 3px 0 var(--ink);min-height:44px}
+.badge .ico{font-size:26px;line-height:1.1}
+.badge .nm{font-family:'Archivo Black';font-size:9.5px;text-transform:uppercase;margin-top:4px;line-height:1.15}
+.badge .st{font-size:8.5px;font-weight:700;opacity:.65;margin-top:2px}
+.badge.locked{background:#EDE9DA;box-shadow:3px 3px 0 rgba(0,0,0,.25)}
+.badge.locked .ico{filter:grayscale(1);opacity:.55}
+.badge.newb{background:var(--grn-bright)}
+
+/* empty states */
+.empty{background:var(--cream);border:var(--line) dashed var(--ink);border-radius:18px;
+  padding:26px 18px;text-align:center;margin-bottom:16px}
+.empty .ico{font-size:38px;margin-bottom:8px}
+.empty h3{font-family:'Archivo Black';font-size:16px;margin-bottom:6px}
+.empty p{font-size:12.5px;font-weight:600;opacity:.8;margin-bottom:14px;line-height:1.5}
+
+/* receipt / ledger */
+.receipt{background:#fff;border:3px dashed var(--ink);border-radius:10px;padding:11px;
+  text-align:left;font-size:11px;font-weight:700;margin-bottom:13px;line-height:1.7}
+.receipt .r{display:flex;justify-content:space-between;gap:8px}
+.receipt .r small{font-weight:600;opacity:.65;display:block;font-size:9.5px}
+.linkish{background:none;border:none;font-weight:800;font-size:11.5px;text-decoration:underline;
+  cursor:pointer;text-transform:uppercase}
+
+/* nav — 4 items, no overlap */
+.nav{position:absolute;left:0;right:0;bottom:0;display:flex;border-top:var(--line) solid var(--ink);
+  background:var(--cream);z-index:15}
+.nav button{flex:1;background:none;border:none;padding:9px 2px 10px;cursor:pointer;
+  border-right:3px solid var(--ink)}
+.nav button:last-child{border-right:none}
+.nav .i{font-size:19px;line-height:1.1;display:block}
+.nav .l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;margin-top:2px;display:block}
+.nav button[aria-current="true"]{background:var(--grn-solid)}
+.nav button[aria-current="true"] .l,.nav button[aria-current="true"] .i{color:#fff;filter:none}
+
+/* overlays */
+.pop{position:absolute;inset:0;background:rgba(20,19,15,.72);display:none;
+  align-items:center;justify-content:center;padding:22px;z-index:30}
+.pop.on{display:flex;animation:fade .18s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.popcard{background:var(--bg);border:var(--line) solid var(--ink);border-radius:20px;
+  box-shadow:8px 8px 0 var(--pur-solid);padding:20px 17px;text-align:center;width:100%;
+  animation:pop .34s cubic-bezier(.2,1.5,.4,1);max-height:88%;overflow-y:auto}
+@keyframes pop{from{transform:scale(.82) rotate(-3deg)}to{transform:scale(1) rotate(0)}}
+.stamp{display:inline-block;border:5px solid var(--orn-solid);color:var(--orn-solid);border-radius:12px;
+  font-family:'Archivo Black';font-size:18px;text-transform:uppercase;padding:6px 13px;
+  transform:rotate(-8deg);margin-bottom:12px;letter-spacing:.03em}
+.popcard h3{font-family:'Archivo Black';font-size:20px;line-height:1.15;margin-bottom:7px}
+.popcard p{font-size:12.5px;font-weight:600;margin-bottom:14px;line-height:1.45}
+.shares{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+.shares button{border:3px solid var(--ink);border-radius:11px;background:#fff;padding:9px 3px;
+  font-size:11px;font-weight:800;text-transform:uppercase;cursor:pointer;box-shadow:3px 3px 0 var(--ink);
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+.shares button .ic{font-size:16px}
+
+/* toast + undo */
+.toast{position:absolute;left:14px;right:14px;bottom:78px;background:var(--ink);color:var(--bg);
+  border-radius:14px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;
+  gap:10px;z-index:25;box-shadow:4px 4px 0 rgba(0,0,0,.35);transform:translateY(120%);
+  transition:transform .28s ease}
+.toast.on{transform:translateY(0)}
+.toast span{font-size:12.5px;font-weight:700}
+.toast button{background:var(--orn-bright);color:var(--ink);border:none;border-radius:8px;
+  padding:6px 11px;font-weight:800;font-size:11px;text-transform:uppercase;cursor:pointer;flex:0 0 auto}
+
+/* filter sheet */
+.sheet{position:absolute;inset:0;background:rgba(20,19,15,.5);display:none;align-items:flex-end;z-index:28}
+.sheet.on{display:flex;animation:fade .15s}
+.sheetcard{width:100%;background:var(--bg);border:var(--line) solid var(--ink);border-radius:22px 22px 0 0;
+  box-shadow:0 -6px 0 var(--ink);padding:18px 16px 20px;max-height:80%;overflow-y:auto;
+  animation:slideup .24s cubic-bezier(.2,.9,.3,1)}
+@keyframes slideup{from{transform:translateY(30px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.sheettitle{font-family:'Archivo Black';font-size:16px;text-transform:uppercase;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center}
+.sheetclose{background:none;border:3px solid var(--ink);border-radius:10px;width:32px;height:32px;
+  font-size:15px;cursor:pointer}
+.fgroup{margin-bottom:14px}
+.fgroup .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;display:block}
+
+/* auth sheet */
+.authstep{display:none}
+.authstep.on{display:block}
+.otpboxes{display:flex;gap:7px;justify-content:center;margin:14px 0}
+.otpboxes input{width:38px;height:46px;text-align:center;font-family:'Archivo Black';font-size:18px;
+  border:3px solid var(--ink);border-radius:10px}
+.privline{font-size:10.5px;font-weight:600;opacity:.7;line-height:1.5;margin-top:10px}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="topbar">
+    <div class="topbar-row">
+      <div class="wordmark display">DollarsOut</div>
+      <button class="pill ghostpill" id="authToggle" onclick="toggleAuthDemo()">Demo: Guest</button>
+    </div>
+    <div class="lvlstrip" id="lvlstrip" hidden>
+      <span class="lvlname">Lv4 Switcher</span>
+      <div class="segbar"><i style="width:58%"></i></div>
+      <span class="lvlnext">4 to Lv5</span>
+    </div>
+  </div>
+
+  <div class="guestbar" id="guestbar">
+    Browsing as guest — nothing is tracked. <b onclick="openAuth()">Save my progress →</b>
+  </div>
+
+  <div class="body">
+
+    <!-- ============ HOME ============ -->
+    <main class="screen" id="s-home">
+      <div class="searchbar">
+        <input type="text" placeholder="Search actions… “bank”, “5 minutes”, “Amazon”" oninput="filterActions(this.value)">
+        <button class="filterbtn" onclick="openFilters()" aria-label="Filters">⚙</button>
+      </div>
+      <div class="chiprow">
+        <button class="chip surprise" onclick="surpriseMe()">🎲 Surprise me</button>
+        <button class="chip" aria-pressed="false">Under 5 min</button>
+        <button class="chip" aria-pressed="false">Easy only</button>
+        <button class="chip" aria-pressed="false">Anywhere</button>
+      </div>
+
+      <div class="meterwrap">
+        <div class="meter-title">All of us, this month</div>
+        <div class="meter-goal">Goal: 50,000 actions · resets in 11 days</div>
+        <div class="gauge">
+          <svg viewBox="0 0 300 176" role="img" aria-label="Collective progress toward this month's goal">
+            <path d="M20 130 A130 130 0 0 1 280 130" fill="none" stroke="#14130F" stroke-width="30" stroke-linecap="round"/>
+            <path d="M20 130 A130 130 0 0 1 150 4"   fill="none" stroke="#EDE9DA" stroke-width="22" stroke-linecap="round"/>
+            <path d="M20 130 A130 130 0 0 1 96.5 24.7" fill="none" stroke="#00873E" stroke-width="22" stroke-linecap="round"/>
+            <g id="needle" class="needle" transform="rotate(-90 150 130)">
+              <path d="M150 130 L143 122 L150 34 L157 122 Z" fill="#14130F"/>
+            </g>
+            <circle cx="150" cy="130" r="15" fill="#14130F"/>
+            <circle cx="150" cy="130" r="6" fill="#FFD426"/>
+          </svg>
+        </div>
+        <div class="readout">
+          <div class="big" id="tick">0</div>
+          <div class="sub">of 50,000 logged so far</div>
+        </div>
+      </div>
+
+      <div class="h2">Pick your battle <span class="cnt">7 categories</span></div>
+      <button class="cat c1" onclick="go('cat')"><span class="num">3<small>OF 8</small></span><span class="txt"><b>Everyday Spending</b><span>Groceries, brands, leaving Amazon</span></span><span class="go">›</span></button>
+      <button class="cat c2" onclick="go('cat')"><span class="num">6<small>OF 10</small></span><span class="txt"><b>Subscriptions</b><span>What's quietly billing you monthly</span></span><span class="go">›</span></button>
+      <button class="cat c3" onclick="go('cat')"><span class="num">2<small>OF 5</small></span><span class="txt"><b>Money &amp; Banking</b><span>Where your money sleeps at night</span></span><span class="go">›</span></button>
+      <button class="cat c1" onclick="go('cat')"><span class="num">0<small>OF 5</small></span><span class="txt"><b>Investments</b><span>You may own what you're boycotting</span></span><span class="go">›</span></button>
+      <button class="cat c2" onclick="go('cat')"><span class="num">1<small>OF 4</small></span><span class="txt"><b>Travel</b><span>The one with a public scoreboard</span></span><span class="go">›</span></button>
+      <button class="cat c3" onclick="go('cat')"><span class="num">0<small>OF 3</small></span><span class="txt"><b>Institutions</b><span>Highest impact, most effort</span></span><span class="go">›</span></button>
+      <button class="cat c1" onclick="go('cat')"><span class="num">2<small>OF 6</small></span><span class="txt"><b>Attention</b><span>You're the inventory. Stop supplying it.</span></span><span class="go">›</span></button>
+
+      <div class="h2" style="margin-top:22px">All of us <span class="cnt">public, always</span></div>
+      <div class="statrow">
+        <div class="stat o"><b>48,102</b><span>Actions logged</span></div>
+        <div class="stat p"><b>9,340</b><span>People, verified</span></div>
+      </div>
+      <div class="card">
+        <div style="font-family:'Archivo Black';font-size:12.5px;text-transform:uppercase;letter-spacing:.04em">Community goal: 10,000 bank switches</div>
+        <div class="goal"><i style="width:71%"></i></div>
+        <div class="mini">7,104 so far · 2,896 to go</div>
+      </div>
+    </main>
+
+    <!-- ============ CATEGORY / ACTION LIST ============ -->
+    <main class="screen" id="s-cat" hidden>
+      <button class="back" onclick="go('home')">‹ All categories</button>
+      <div class="h2">Everyday Spending <span class="cnt">3 of 8 done</span></div>
+
+      <div class="card"><div class="act done"><span class="box">✓</span><div>
+        <h3 onclick="go('detail')">Cancel Amazon Prime</h3>
+        <p>One account, six companies. Logged 12 Jun.</p>
+        <div class="tags"><span class="tag">Withdraw</span><span class="tag p">€70/yr</span><span class="tag">Anywhere</span></div>
+      </div></div></div>
+
+      <div class="card"><div class="act done"><span class="box">✓</span><div>
+        <h3 onclick="go('detail')">Swap the household aisle</h3>
+        <p>Detergent, toothpaste, razors. Done once, done forever.</p>
+        <div class="tags"><span class="tag">Substitute</span><span class="tag">Anywhere</span></div>
+      </div></div></div>
+
+      <!-- expandable claim example -->
+      <div class="card" id="claimCard">
+        <div class="act" id="claimRow"><span class="box"></span><div>
+          <h3 onclick="go('detail')">Learn who owns your brands</h3>
+          <p>Twenty minutes on the ten things you buy most. Then you never look it up again.</p>
+          <div class="tags"><span class="tag">Withdraw</span><span class="tag o">20 min</span><span class="tag">Anywhere</span></div>
+          <div class="actbtns">
+            <button class="btn sm" style="flex:1" onclick="toggleClaim()">I did this</button>
+            <button class="naLink" onclick="markNA(this)">Doesn't apply</button>
+          </div>
+          <div class="claimform" id="claimForm">
+            <span class="claimlabel">Roughly how much did this move? (optional)</span>
+            <div class="moneychips">
+              <button class="mchip" onclick="pickChip(this)">€0</button>
+              <button class="mchip" onclick="pickChip(this)" aria-pressed="true">€50</button>
+              <button class="mchip" onclick="pickChip(this)">€100</button>
+              <button class="mchip" onclick="pickChip(this)">Custom</button>
+            </div>
+            <span class="claimlabel">What broke? (optional — honest answers spread further)</span>
+            <input type="text" placeholder="Nothing. Just annoying.">
+            <button class="btn" onclick="confirmClaim()">Log it</button>
+          </div>
+        </div></div>
+      </div>
+
+      <div class="card"><div class="act na" id="naExample"><span class="box">–</span><div>
+        <h3>Ask what your pension holds</h3>
+        <p class="nastate">Marked doesn't apply · <button class="linkish" onclick="undoNA()" style="font-size:10px">undo</button></p>
+      </div></div></div>
+    </main>
+
+    <!-- ============ ACTION DETAIL ============ -->
+    <main class="screen" id="s-detail" hidden>
+      <button class="back" onclick="go('cat')">‹ Everyday Spending</button>
+      <div class="card">
+        <div class="tags" style="margin-bottom:10px"><span class="tag">Withdraw</span><span class="tag o">20 min</span><span class="tag">Easy</span><span class="tag">Anywhere</span></div>
+        <h3 style="font-size:19px;margin-bottom:9px">Learn who owns your brands</h3>
+        <p style="font-size:13px;line-height:1.55;margin-bottom:12px">A dozen conglomerates own most of what's on a supermarket shelf. Angel Soft is Koch. Oreo and Philadelphia are Mondelez. Oral-B and Gillette are Procter &amp; Gamble. Spend twenty minutes learning the ownership tree for the ten things you buy most — after that you stop needing to check, and you can explain it to other people.</p>
+        <div class="h2" style="margin-top:16px">Helpful links</div>
+        <p style="font-size:12.5px;line-height:1.8">
+          <a href="#" style="text-decoration:underline;font-weight:700">Goods Unite Us →</a><br>
+          <a href="#" style="text-decoration:underline;font-weight:700">Ethical Consumer →</a>
+        </p>
+        <button class="btn" style="margin-top:16px" onclick="claim()">I did this</button>
+        <button class="btn ghost sm" style="margin-top:9px" onclick="alert('Removed from your list — won\'t count toward this category.')">Doesn't apply to me</button>
+      </div>
+    </main>
+
+    <!-- ============ SHELF (signed in) ============ -->
+    <main class="screen" id="s-shelf" hidden>
+      <div class="laddercard">
+        <div class="h2" style="margin-top:0">Your level</div>
+        <div class="lvlstrip"><span class="lvlname">Lv4 Switcher</span><div class="segbar"><i style="width:58%"></i></div><span class="lvlnext">4 to Lv5</span></div>
+        <p style="font-size:10.5px;font-weight:700;opacity:.7;margin-top:8px">Rookie → Starter → Mover → Switcher → Divester → Legend → Untouchable</p>
+      </div>
+
+      <div class="h2">Your shelf <span class="cnt">14 of 60</span></div>
+      <div class="badgegrid">
+        <div class="badge newb"><div class="ico">📦</div><div class="nm">Prime Cut</div><div class="st">NEW!</div></div>
+        <div class="badge"><div class="ico">🧼</div><div class="nm">Aisle Be Damned</div><div class="st">12 Jun</div></div>
+        <div class="badge"><div class="ico">👻</div><div class="nm">Ghosted</div><div class="st">3 Jun</div></div>
+        <div class="badge"><div class="ico">🏦</div><div class="nm">Bank Job</div><div class="st">28 May</div></div>
+        <div class="badge"><div class="ico">📺</div><div class="nm">Cord Cutter ×3</div><div class="st">3 of 3</div></div>
+        <div class="badge locked"><div class="ico">⏳</div><div class="nm">The Long Haul</div><div class="st">2 of 6 mo</div></div>
+        <div class="badge locked"><div class="ico">🗳️</div><div class="nm">Registered</div><div class="st">Locked</div></div>
+        <div class="badge locked"><div class="ico">📊</div><div class="nm">Follow the Money</div><div class="st">Locked</div></div>
+        <div class="badge locked"><div class="ico">🏛️</div><div class="nm">Meeting Goer</div><div class="st">Locked</div></div>
+      </div>
+
+      <div class="h2">Still holding?</div>
+      <div class="card" style="background:var(--cream)">
+        <h3 style="font-family:'Archivo Black';font-size:15px;margin-bottom:5px">6 months ago you left Gmail.</h3>
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:11px">Still off it? This is the only number here nobody else has — answer honestly.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn sm" onclick="badgePop('The Long Haul','Six months, verified. That\'s the badge nobody can fake.')">Still off it</button>
+          <button class="btn sm ghost" onclick="this.closest('.card').innerHTML='&lt;p style=&quot;font-size:12.5px;font-weight:700&quot;&gt;No judgment. Logged — try again anytime.&lt;/p&gt;'">Went back</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============ SHELF (signed-out empty state) ============ -->
+    <main class="screen" id="s-shelf-empty" hidden>
+      <div class="empty">
+        <div class="ico">🏅</div>
+        <h3>Nothing on the shelf yet</h3>
+        <p>Badges save to your account so they survive a lost phone. Sign in with just your email — no password, one code, thirty seconds.</p>
+        <button class="btn" onclick="openAuth()">Save my progress</button>
+      </div>
+    </main>
+
+    <!-- ============ YOU (signed in) ============ -->
+    <main class="screen" id="s-you" hidden>
+      <div class="h2">Your ledger</div>
+      <div class="statrow">
+        <div class="stat g"><b>14</b><span>Actions taken</span></div>
+        <div class="stat p"><b>€612</b><span>Redirected / yr</span></div>
+      </div>
+      <div class="statrow">
+        <div class="stat o"><b>9</b><span>Badges earned</span></div>
+        <div class="stat g"><b>4</b><span>Still holding</span></div>
+      </div>
+
+      <div class="card">
+        <div class="h2" style="margin-top:0">Where it went</div>
+        <div class="receipt">
+          <div class="r"><span>Amazon Prime</span><b>€70</b></div>
+          <div class="r"><span>Streaming ×3</span><b>€312</b></div>
+          <div class="r"><span>Cloud storage</span><b>€110</b></div>
+          <div class="r"><span>Bank fees</span><b>€120</b></div>
+          <div class="r" style="border-top:2px solid var(--ink);margin-top:5px;padding-top:5px"><span><b>PER YEAR</b></span><b>€612</b></div>
+        </div>
+        <p style="font-size:11px;font-weight:600;opacity:.75">This is what you redirected — not a guess at what it cost them. Nobody can compute that honestly, and made-up numbers are how you lose an argument.</p>
+      </div>
+
+      <button class="btn orn" onclick="claim()">Share your ledger</button>
+      <div style="text-align:center;margin-top:14px">
+        <button class="linkish" onclick="alert('Downloads a JSON file, then deletes your account. No questions asked.')">Export or delete my data</button>
+      </div>
+    </main>
+
+    <!-- ============ YOU (signed-out empty state) ============ -->
+    <main class="screen" id="s-you-empty" hidden>
+      <div class="empty">
+        <div class="ico">🧾</div>
+        <h3>No ledger yet</h3>
+        <p>Take one action and we'll start one. It's just your email and a one-time code — nothing else, ever.</p>
+        <button class="btn" onclick="openAuth()">Save my progress</button>
+      </div>
+      <div class="card" style="background:var(--cream)">
+        <p style="font-size:11.5px;font-weight:600;line-height:1.6">Prefer to stay anonymous? The whole action list still works — nothing here requires an account. You just won't keep your badges if you lose this device.</p>
+      </div>
+    </main>
+
+  </div>
+
+  <nav class="nav">
+    <button aria-current="true" onclick="go('home',this)"><span class="i">🎯</span><span class="l">Home</span></button>
+    <button onclick="go('cat',this)"><span class="i">🔍</span><span class="l">Explore</span></button>
+    <button onclick="goShelf(this)"><span class="i">🏅</span><span class="l">Shelf</span></button>
+    <button onclick="goYou(this)"><span class="i">🧾</span><span class="l">You</span></button>
+  </nav>
+
+  <!-- toast -->
+  <div class="toast" id="toast">
+    <span id="toastMsg">Logged: Learn who owns your brands</span>
+    <button onclick="undoClaim()">Undo</button>
+  </div>
+
+  <!-- claim / badge popup -->
+  <div class="pop" id="pop">
+    <div class="popcard">
+      <div class="stamp" id="popStamp">Logged!</div>
+      <h3 id="popTitle">Badge unlocked:<br>Follow the Money</h3>
+      <p id="popBody">That's 15 actions and €662 a year going somewhere else.</p>
+      <div class="receipt">
+        <div class="r"><span>Action</span><b>Learn who owns your brands</b></div>
+        <div class="r"><span>Took</span><b>20 minutes</b></div>
+        <div class="r"><span>What broke</span><b>Nothing. Just annoying.</b></div>
+      </div>
+      <div class="shares">
+        <button><span class="ic">📷</span>Instagram</button>
+        <button><span class="ic">🎵</span>TikTok</button>
+        <button><span class="ic">🦋</span>Bluesky</button>
+        <button><span class="ic">💬</span>WhatsApp</button>
+        <button><span class="ic">📤</span>More</button>
+        <button><span class="ic">🔗</span>Copy link</button>
+      </div>
+      <button class="btn sm ghost" onclick="closePop()">Close</button>
+    </div>
+  </div>
+
+  <!-- filter sheet -->
+  <div class="sheet" id="filterSheet">
+    <div class="sheetcard">
+      <div class="sheettitle">Filter actions <button class="sheetclose" onclick="closeFilters()">✕</button></div>
+      <div class="fgroup"><span class="lbl">Time it takes</span>
+        <div class="chiprow" style="margin:0"><button class="chip" aria-pressed="false">5 min</button><button class="chip" aria-pressed="false">10–30 min</button><button class="chip" aria-pressed="false">1hr+</button><button class="chip" aria-pressed="false">Ongoing</button></div>
+      </div>
+      <div class="fgroup"><span class="lbl">Effort</span>
+        <div class="chiprow" style="margin:0"><button class="chip" aria-pressed="true">Easy</button><button class="chip" aria-pressed="false">Moderate</button><button class="chip" aria-pressed="false">Advanced</button></div>
+      </div>
+      <div class="fgroup"><span class="lbl">Where you live</span>
+        <div class="chiprow" style="margin:0"><button class="chip" aria-pressed="true">Anywhere</button><button class="chip" aria-pressed="false">Outside US</button><button class="chip" aria-pressed="false">US only</button></div>
+      </div>
+      <div class="fgroup"><span class="lbl">Status</span>
+        <div class="chiprow" style="margin:0"><button class="chip" aria-pressed="false">Not done yet</button><button class="chip" aria-pressed="false">Done</button></div>
+      </div>
+      <button class="btn" onclick="closeFilters()">Show results</button>
+    </div>
+  </div>
+
+  <!-- auth sheet: email → OTP, two steps -->
+  <div class="sheet" id="authSheet">
+    <div class="sheetcard">
+      <div class="sheettitle">Save your progress <button class="sheetclose" onclick="closeAuth()">✕</button></div>
+
+      <div class="authstep on" id="authStep1">
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:12px;line-height:1.5">Just an email. No password, ever — we'll send you a one-time code instead.</p>
+        <input type="email" placeholder="you@example.com" style="width:100%;border:3px solid var(--ink);border-radius:12px;padding:12px;font-size:14px;font-weight:600;margin-bottom:12px">
+        <button class="btn" onclick="showStep(2)">Send my code</button>
+        <p class="privline">We never sell this. Delete it in one tap, anytime, from Your ledger. Your actions are never linked to your name publicly.</p>
+      </div>
+
+      <div class="authstep" id="authStep2">
+        <p style="font-size:12.5px;font-weight:600;margin-bottom:6px">Enter the 6-digit code we just sent.</p>
+        <div class="otpboxes">
+          <input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1">
+        </div>
+        <button class="btn" onclick="finishAuth()">Confirm</button>
+        <p class="privline" style="text-align:center">Didn't get it? <button class="linkish" style="font-size:10.5px">Resend</button></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const screens=['home','cat','detail','shelf','shelf-empty','you','you-empty'];
+function go(id,el){
+  screens.forEach(s=>document.getElementById('s-'+s).hidden=(s!==id));
+  document.querySelectorAll('.nav button').forEach(b=>b.setAttribute('aria-current','false'));
+  if(el)el.setAttribute('aria-current','true');
+  document.querySelector('.body').scrollTop=0;
+}
+let signedIn=false;
+function goShelf(el){ go(signedIn?'shelf':'shelf-empty', el); }
+function goYou(el){ go(signedIn?'you':'you-empty', el); }
+
+function toggleAuthDemo(){
+  signedIn=!signedIn;
+  document.getElementById('authToggle').textContent = signedIn?'Demo: Signed in':'Demo: Guest';
+  document.getElementById('lvlstrip').hidden = !signedIn;
+  document.getElementById('guestbar').style.display = signedIn?'none':'block';
+}
+
+function toggleClaim(){ document.getElementById('claimForm').classList.toggle('open'); }
+function pickChip(el){
+  el.parentElement.querySelectorAll('.mchip').forEach(c=>c.setAttribute('aria-pressed','false'));
+  el.setAttribute('aria-pressed','true');
+}
+function markNA(btn){
+  alert('Marked "doesn\'t apply" — it drops out of your denominator, not your history. Undo anytime.');
+}
+function undoNA(){ alert('Restored to your active list.'); }
+
+let toastTimer;
+function confirmClaim(){
+  toggleClaim();
+  showToast('Logged: Learn who owns your brands');
+  setTimeout(()=>badgePop('Follow the Money','That\'s 15 actions and €662 a year going somewhere else.'),650);
+}
+function claim(){ showToast('Logged: action saved'); setTimeout(()=>badgePop('Nice one','Logged to your ledger.'),500); }
+function showToast(msg){
+  document.getElementById('toastMsg').textContent=msg;
+  const t=document.getElementById('toast'); t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('on'),5000);
+}
+function undoClaim(){
+  document.getElementById('toast').classList.remove('on');
+  clearTimeout(toastTimer);
+}
+function badgePop(title,body){
+  document.getElementById('popTitle').innerHTML='Badge unlocked:<br>'+title;
+  document.getElementById('popBody').textContent=body;
+  document.getElementById('pop').classList.add('on');
+}
+function closePop(){ document.getElementById('pop').classList.remove('on'); }
+
+function openFilters(){ document.getElementById('filterSheet').classList.add('on'); }
+function closeFilters(){ document.getElementById('filterSheet').classList.remove('on'); }
+function openAuth(){ document.getElementById('authSheet').classList.add('on'); showStep(1); }
+function closeAuth(){ document.getElementById('authSheet').classList.remove('on'); }
+function showStep(n){
+  document.getElementById('authStep1').classList.toggle('on',n===1);
+  document.getElementById('authStep2').classList.toggle('on',n===2);
+}
+function finishAuth(){
+  closeAuth(); signedIn=true;
+  document.getElementById('authToggle').textContent='Demo: Signed in';
+  document.getElementById('lvlstrip').hidden=false;
+  document.getElementById('guestbar').style.display='none';
+  showToast('Signed in — your progress now syncs.');
+}
+function surpriseMe(){ go('detail'); }
+function filterActions(v){ /* mockup: visual only */ }
+
+window.addEventListener('load',()=>{
+  const pct=.60;
+  document.getElementById('needle').setAttribute('transform','rotate('+(-90+pct*180)+' 150 130)');
+  let target=48102,t0=performance.now();
+  const el=document.getElementById('tick');
+  (function step(now){
+    const p=Math.min((now-t0)/1600,1);
+    el.textContent=Math.floor(target*(1-Math.pow(1-p,3))).toLocaleString();
+    if(p<1)requestAnimationFrame(step);
+  })(t0);
+});
+</script>
+</body>
+</html>

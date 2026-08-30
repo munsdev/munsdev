@@ -1,0 +1,306 @@
+[
+  {
+    "id": "banking-open-ethical-account",
+    "name": "Open an account at a cooperative or ethical bank",
+    "shortDescription": "Opening it is the fast part. Deciding to is the slow part.",
+    "longDescription": "Cooperative and ethical banks are member-owned or mission-constrained, and most publish what they will and won't lend to. Opening an account is usually online and takes under half an hour — you don't have to move anything into it on day one.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_moved"
+    ],
+    "targets": {
+      "default": [
+        "a cooperative or ethical bank"
+      ],
+      "de": [
+        "GLS Bank",
+        "Umweltbank",
+        "EthikBank",
+        "Triodos",
+        "your local Volksbank or Sparkasse"
+      ],
+      "at": [
+        "Bank für Gemeinwohl",
+        "Raiffeisen"
+      ],
+      "nl": [
+        "Triodos",
+        "ASN Bank",
+        "Rabobank"
+      ],
+      "fr": [
+        "Crédit Coopératif",
+        "La Nef",
+        "Crédit Mutuel"
+      ],
+      "it": [
+        "Banca Etica"
+      ],
+      "es": [
+        "Fiare Banca Etica",
+        "Caja Laboral"
+      ],
+      "se": [
+        "Ekobanken"
+      ],
+      "dk": [
+        "Merkur Andelskasse"
+      ],
+      "no": [
+        "Cultura Bank"
+      ],
+      "uk": [
+        "Nationwide",
+        "Co-operative Bank",
+        "Triodos UK",
+        "your local credit union"
+      ],
+      "us": [
+        "a local credit union"
+      ]
+    },
+    "helpfulLinks": [
+      {
+        "label": "BankTrack",
+        "url": "https://www.banktrack.org/"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-move-primary-account",
+    "name": "Move your primary current account",
+    "shortDescription": "Your everyday balance is working capital your bank lends out.",
+    "longDescription": "This is the one that actually moves money rather than opening an option. Salary, direct debits and standing orders all have to follow — most European countries mandate a switching service that does this within days and forwards anything missed. Worth checking in on, because the old account tends to linger.",
+    "points": 100,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_moved"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "BankTrack",
+        "url": "https://www.banktrack.org/"
+      }
+    ],
+    "effort": "Advanced",
+    "timeEstimate": "1-2 Hours"
+  },
+  {
+    "id": "banking-move-savings",
+    "name": "Move your savings to an ethical bank",
+    "shortDescription": "Savings are the easiest balance to move — nothing is attached to them.",
+    "longDescription": "Unlike a current account, savings have no direct debits or salary to redirect, so moving them is a transfer and nothing else. It's the largest amount most people can redirect in a single afternoon.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_moved"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-leave-detention-fossil-financier",
+    "name": "Move your money out of a detention or fossil financier",
+    "shortDescription": "Check the lists first, then decide whether your bank is on one.",
+    "longDescription": "BankTrack and Urgewald publish researched, sourced lists of which banks finance fossil expansion, arms and private detention. Look your bank up. If it's there, moving is a concrete response — and telling them why is the next action.",
+    "points": 75,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_moved"
+    ],
+    "helpfulLinks": [
+      {
+        "label": "BankTrack",
+        "url": "https://www.banktrack.org/"
+      },
+      {
+        "label": "Urgewald",
+        "url": "https://www.urgewald.org/en"
+      },
+      {
+        "label": "Prison Free Funds",
+        "url": "https://prisonfreefunds.org"
+      }
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-non-us-card-issuer",
+    "name": "Switch your card to a non-US-linked issuer",
+    "shortDescription": "Every card transaction routes a fee to a network.",
+    "longDescription": "Visa and Mastercard take an interchange fee on essentially every card payment in Europe. A domestic debit scheme or a card issued on a European network keeps that fee inside the local system.",
+    "points": 50,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "non_us_payments"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-domestic-payment-scheme",
+    "name": "Pay by Wero, girocard, Bizum or your domestic scheme",
+    "shortDescription": "Most European countries have their own rails. Use them.",
+    "longDescription": "Domestic account-to-account schemes settle directly between banks and don't route a fee through a US card network. Making one your default for everyday payments is a per-transaction redirect that adds up faster than any single switch.",
+    "points": 50,
+    "recurrence": "sustained",
+    "checkinDays": 90,
+    "scopeRegion": "eu",
+    "counters": [
+      "non_us_payments"
+    ],
+    "targets": {
+      "default": [
+        "your domestic account-to-account scheme"
+      ],
+      "de": [
+        "Wero",
+        "girocard"
+      ],
+      "fr": [
+        "Wero",
+        "Cartes Bancaires"
+      ],
+      "be": [
+        "Wero",
+        "Bancontact"
+      ],
+      "nl": [
+        "iDEAL",
+        "Wero"
+      ],
+      "es": [
+        "Bizum"
+      ],
+      "pt": [
+        "MB Way"
+      ],
+      "it": [
+        "Bancomat Pay"
+      ],
+      "pl": [
+        "BLIK"
+      ],
+      "se": [
+        "Swish"
+      ],
+      "dk": [
+        "MobilePay"
+      ],
+      "fi": [
+        "MobilePay"
+      ]
+    },
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-sepa-direct-transfer",
+    "name": "Move one recurring bill to SEPA direct transfer",
+    "shortDescription": "Same bill, no card network in the middle.",
+    "longDescription": "Most utilities, insurers and telecoms accept SEPA direct debit or standing order as an alternative to paying by card. Switching one recurring bill removes a card fee permanently.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "eu",
+    "counters": [
+      "non_us_payments"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-stop-paypal-recurring",
+    "name": "Stop using PayPal for one recurring payment",
+    "shortDescription": "An extra US intermediary on a payment that doesn't need one.",
+    "longDescription": "PayPal sits between you and the merchant and takes a cut of each transaction. Most merchants accept SEPA direct debit or a domestic scheme instead — changing the payment method on one recurring charge takes a couple of minutes.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "non_us_payments"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "banking-remove-apple-google-pay",
+    "name": "Remove Apple Pay or Google Pay as your default",
+    "shortDescription": "A wallet layer on top of the card fee you're already paying.",
+    "longDescription": "Tokenised wallets add a platform fee on top of card interchange and give the platform a view of your purchase history. Removing the default takes one settings change; your physical card and domestic scheme still work.",
+    "points": 10,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "non_us_payments"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "5 Minutes"
+  },
+  {
+    "id": "banking-cancel-us-credit-card",
+    "name": "Cancel a US-issued credit card",
+    "shortDescription": "Close the line, not just the habit.",
+    "longDescription": "An unused card still represents a lending relationship and often an annual fee. Clear the balance, redirect anything recurring on it first, then close it in writing so there's a record.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "accounts_closed"
+    ],
+    "effort": "Moderate",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-pay-cash-week",
+    "name": "Pay cash for a week",
+    "shortDescription": "No interchange, no data, no intermediary.",
+    "longDescription": "Cash is the only payment method that routes nothing to anyone. A week of it also makes visible how many small transactions were going through a card network without you noticing.",
+    "points": 10,
+    "recurrence": "repeatable",
+    "cooldownDays": 7,
+    "scopeRegion": "global",
+    "counters": [
+      "non_us_payments"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "Ongoing"
+  },
+  {
+    "id": "banking-tell-bank-why",
+    "name": "Tell your bank why you left, in writing",
+    "shortDescription": "A closed account is a number. A letter is a reason.",
+    "longDescription": "Banks track attrition but not motive unless you supply it. A short written note at closure — naming what you objected to — puts a reason on the file that retention teams actually read and report upward.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "comments_filed"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  },
+  {
+    "id": "banking-ask-club-congregation",
+    "name": "Ask your club or congregation which bank it uses",
+    "shortDescription": "Organisations hold larger balances than any of their members.",
+    "longDescription": "A sports club, choir, Verein or congregation has a treasurer, a bank account and usually nobody who has ever asked about it. The question alone often starts the first review that account has had in a decade.",
+    "points": 25,
+    "recurrence": "once",
+    "scopeRegion": "global",
+    "counters": [
+      "institutional_actions"
+    ],
+    "effort": "Easy",
+    "timeEstimate": "10-30 Minutes"
+  }
+]

@@ -1,0 +1,380 @@
+/* DollarsOut -- locked brand palette, set in Rubik (900 for every display/heading role, 400-600
+   for running text). Hard outlines, solid offset shadows, no gradients except the meter dial. Rebuilt (not copied) from the mockup with the
+   accessibility floor from spec §5 baked in: min 16px body text, min 14px any text, 44x44 tap
+   targets everywhere, icon+label always, color never the only status signal. */
+
+:root {
+  --bg: #ffd426;
+  --ink: #14130f;
+  --cream: #fff6d6;
+  --white: #ffffff;
+
+  --grn-solid: #00873e;
+  --grn-bright: #3ed17c;
+  --pur-solid: #5b2fb3;
+  --pur-bright: #b79cff;
+  --orn-solid: #c93e0b;
+  --orn-bright: #ff8a5b;
+
+  --line: 4px;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+/* Author styles that set their own `display` (.btn, .tile, .badge, ...) otherwise beat the
+   user-agent's default `[hidden] { display: none }` at equal specificity, since author rules
+   always outrank UA rules regardless of specificity -- so a `hidden`-toggled button stayed
+   visible unless something re-asserted `display: none` for it explicitly. One global rule here
+   is simpler than chasing every class that happens to set `display`. */
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  font-family: Rubik, system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 12px;
+  /* vh first as a fallback for browsers that don't parse dvh (pre-15.4 Safari): an unsupported
+     value is dropped at parse time, not substituted, so without this line those browsers would
+     fall through to no min-height rule for body at all rather than a merely-imprecise one. */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.display { font-weight: 900; letter-spacing: -0.02em; }
+button, input { font-family: inherit; font-size: 16px; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+.app {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg);
+  border: var(--line) solid var(--ink);
+  border-radius: 28px;
+  box-shadow: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: min(920px, 95vh);
+  position: relative;
+}
+
+/* On phone-sized viewports the "device in a browser" card look just wastes screen and pushes the
+   bottom nav away from the real edge of the screen -- go edge-to-edge there instead, and keep the
+   card presentation only where there's room for it to read as a deliberate choice. This block MUST
+   come after the base .app rule above: at equal specificity (both are just `.app`), CSS resolves
+   ties by source order, not by whether one is inside a @media block -- with this after the base
+   rule, an override that matches wins regardless of position; before it (as this was originally),
+   the base rule always won and the "edge-to-edge" branch silently never took effect, on any device,
+   at any width.
+   600px (not 460px's own width) gives real phones margin -- some larger/foldable Android phones
+   report a logical width past 480px, which would otherwise leave the "card" treatment on an actual
+   phone instead of only on desktop where it was meant for.
+   display-mode:standalone is the installed-as-an-app case (manifest.webmanifest, sw.js): once
+   installed there is no "browser" for the card metaphor to sit inside, so it goes edge-to-edge
+   unconditionally, regardless of how wide that device's viewport happens to be. */
+@media (max-width: 600px), (display-mode: standalone) {
+  /* Percentage heights, not viewport units, and no document scroll.
+     `height: 100dvh` here sized the shell off the *dynamic viewport*, which on Android Chrome in a
+     standalone PWA with viewport-fit=cover resolves to include the strip behind the system bars --
+     taller than the actually-visible window. Nothing stopped the document from scrolling, so the
+     shell overflowed by that difference and the whole thing (top bar and nav together) slid up and
+     down as one unit: scrolled up, the nav sat below the fold; scrolled down, the top bar went
+     above it. Neither was "stuck" to anything.
+     A 100% chain from html instead resolves against the initial containing block -- the real
+     visible viewport -- with no vh/dvh/safe-area ambiguity, and overflow:hidden makes page-level
+     scrolling impossible, so .body's own overflow-y is the only thing that can move. The top bar
+     and nav are then pinned by construction rather than by arithmetic that has to come out right. */
+  html, body { height: 100%; overflow: hidden; }
+  body { padding: 0; align-items: stretch; min-height: 0; }
+  .app {
+    max-width: 100%;
+    height: 100%;
+    border-width: 0;
+    border-radius: 0;
+  }
+}
+
+/* ---- top bar ---- */
+/* Installed as a standalone app the page owns the whole screen, so the top bar has to hold its
+   own status-bar clearance and the nav has to clear the home indicator. env() resolves to 0 in a
+   browser tab, so the same rules are correct in both contexts. */
+.topbar { flex: 0 0 auto; background: var(--orn-solid); border-bottom: var(--line) solid var(--ink);
+  padding: calc(14px + env(safe-area-inset-top)) 16px 14px; display: flex; flex-direction: column;
+  gap: 10px; color: #fff; }
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wordmark { font-size: 21px; text-transform: uppercase; line-height: 1; }
+.pill { background: var(--ink); color: var(--bg); font-weight: 800; font-size: 14px; padding: 8px 14px;
+  border-radius: 99px; text-transform: uppercase; letter-spacing: 0.02em; border: none; cursor: pointer;
+  min-height: 44px; }
+.pill.ghostpill { background: #fff; color: var(--ink); }
+.iconbtn { background: none; border: 2px solid #fff; color: #fff; border-radius: 10px;
+  width: 44px; min-height: 44px; display: grid; place-items: center; cursor: pointer; padding: 0; }
+
+.lvlstrip { display: flex; flex-direction: column; gap: 6px; }
+.lvlstrip-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lvlname { font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+.lvlnext { font-size: 13px; font-weight: 700; opacity: 0.85; white-space: nowrap; }
+.segbar { height: 10px; border: 3px solid var(--ink); border-radius: 99px; background: rgba(255, 255, 255, 0.55); overflow: hidden; }
+.segbar i { display: block; height: 100%; background: var(--ink); border-radius: 99px; transition: width 0.4s ease; }
+.lvlstrip-static .segbar { background: #fff; }
+.lvlstrip-static .segbar i { background: var(--grn-solid); }
+
+/* ---- scroll body ---- */
+.body { flex: 1 1 auto; overflow-y: auto; padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; position: relative; }
+
+/* search */
+.searchbar { display: flex; gap: 8px; margin-bottom: 12px; }
+.searchbar input { flex: 1; border: 3px solid var(--ink); border-radius: 12px; padding: 12px; font-size: 16px;
+  font-weight: 500; background: #fff; min-height: 44px; }
+.searchbar input::placeholder { color: #6b6754; }
+.filterbtn { flex: 0 0 auto; width: 48px; min-height: 44px; border: 3px solid var(--ink); border-radius: 12px;
+  background: var(--pur-solid); color: #fff; font-size: 18px; cursor: pointer; }
+.chiprow { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 4px; }
+.chip { flex: 0 0 auto; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em;
+  border: 3px solid var(--ink); border-radius: 99px; padding: 10px 14px; background: #fff; cursor: pointer;
+  white-space: nowrap; min-height: 44px; }
+.chip[aria-pressed="true"] { background: var(--grn-bright); }
+.chip.surprise { background: var(--orn-bright); }
+
+/* Actions-screen entry tiles. "All actions" spans the full row -- it's the way in to the whole
+   catalogue, the others are shortcuts into a slice of it. */
+.tilegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px;
+  border: var(--line) solid var(--ink); border-radius: var(--radius); box-shadow: 5px 5px 0 var(--ink);
+  padding: 14px 12px; min-height: 92px; cursor: pointer; text-align: left; background: #fff;
+  transition: transform 0.08s, box-shadow 0.08s; }
+.tile:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+.tile .ic { font-size: 24px; line-height: 1; }
+.tile .lb { font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.01em; line-height: 1.15; }
+.tile.t-all { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 12px;
+  min-height: 68px; background: var(--grn-solid); color: #fff; }
+.tile.t-all .ic { font-size: 26px; }
+.tile.t-all .lb { font-size: 18px; }
+.tile.t-surprise { background: var(--orn-bright); }
+.tile.t-quick { background: var(--bg); }
+.tile.t-easy { background: var(--grn-bright); }
+.tile.t-any { background: var(--pur-bright); }
+
+.intro { font-weight: 800; font-size: 17px; line-height: 1.35; text-align: center;
+  margin-bottom: 16px; }
+
+/* the dial */
+.meterwrap { background: var(--cream); border: var(--line) solid var(--ink); border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--ink); padding: 16px 14px 14px; margin-bottom: 16px; }
+/* Game-show nameplate: oversized Rubik 900 with a hard offset shadow, sized down with the
+   viewport via clamp() so the long word never wraps mid-hyphen on a narrow phone. */
+.meter-title { font-weight: 900; font-size: clamp(22px, 7.2vw, 32px);
+  line-height: 0.94; text-transform: uppercase; letter-spacing: -0.02em; text-align: center;
+  color: var(--ink); text-shadow: 2px 2px 0 var(--orn-solid); margin-bottom: 10px; }
+.gauge { position: relative; width: 100%; aspect-ratio: 336 / 200; margin: 0 auto; }
+.scalenums text { font-weight: 900; font-size: 14px; fill: var(--ink); }
+.gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* No transform-origin here on purpose: the needle's rotate(angle, 150, 130) is set as an SVG
+   presentation attribute in JS, which already carries its own explicit pivot point. A CSS
+   transform-origin on an SVG element is relative to the element's own bounding box in some
+   browsers and the SVG viewport in others -- on this needle's tiny bbox that mismatch sent the
+   whole needle swinging around a point far outside the gauge instead of its center. */
+.needle { transition: transform 1.8s cubic-bezier(0.25, 1.2, 0.3, 1); }
+.readout { text-align: center; margin-top: 2px; }
+.readout .big { font-weight: 900; font-size: 42px; line-height: 1; letter-spacing: -0.02em; }
+.readout .cap { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+  opacity: 0.7; margin-top: 4px; }
+
+.h2 { font-weight: 900; font-size: 15px; text-transform: uppercase; letter-spacing: 0.04em; margin: 20px 0 10px; }
+.h2:first-child { margin-top: 0; }
+.h2 .cnt {  font-weight: 700; font-size: 14px; text-transform: none; opacity: 0.7; }
+
+/* category cards */
+.cat { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+  color: #fff; border: var(--line) solid var(--ink); border-radius: var(--radius);
+  box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin-bottom: 12px; min-height: 44px;
+  transition: transform 0.08s, box-shadow 0.08s; }
+.cat:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+.cat.c1 { background: var(--grn-solid); } .cat.c2 { background: var(--pur-solid); } .cat.c3 { background: var(--orn-solid); }
+.cat .num { font-weight: 900; font-size: 17px; background: #fff; color: var(--ink);
+  min-width: 48px; height: 48px; border: 3px solid var(--ink); border-radius: 11px;
+  display: grid; place-items: center; line-height: 1.15; flex: 0 0 auto; text-align: center; padding: 2px; }
+.cat .num small { display: block;  font-weight: 800; font-size: 11px; }
+.cat .txt { flex: 1; }
+.cat .txt b { display: block; font-weight: 900; font-size: 16px; line-height: 1.2; }
+.cat .txt span { font-size: 14px; font-weight: 450; opacity: 0.96; }
+.cat .go { font-weight: 900; font-size: 22px; flex: 0 0 auto; }
+
+.goal { height: 26px; border: 3px solid var(--ink); border-radius: 99px; background: #fff; overflow: hidden; margin: 8px 0 6px; }
+.goal i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--orn-bright) 0 9px, var(--orn-solid) 9px 18px); }
+.mini { font-size: 14px; font-weight: 700; }
+
+/* action cards */
+.card { background: #fff; border: var(--line) solid var(--ink); border-radius: var(--radius);
+  box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin-bottom: 12px; }
+.prose { font-size: 15px; font-weight: 400; line-height: 1.6; }
+.prose + .prose { margin-top: 10px; }
+.cardhead { font-weight: 900; font-size: 15px; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 10px; }
+/* Actions list: a compact row per action -- full description, tags and the claim/remove control
+   live only in the detail screen now (openDetail), reached by tapping the row. Modeled on .cat's
+   row shape, but plain (not category-colored) since these rows already sit inside a colored or
+   filtered context. */
+.actrow { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+  background: #fff; border: 3px solid var(--ink); border-radius: var(--radius);
+  box-shadow: 4px 4px 0 var(--ink); padding: 12px 14px; margin-bottom: 10px; min-height: 44px;
+  transition: transform 0.08s, box-shadow 0.08s; }
+.actrow:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.actrow .box { flex: 0 0 auto; width: 32px; height: 32px; border: 3px solid var(--ink); border-radius: 8px;
+  background: #fff; display: grid; place-items: center; font-weight: 900; font-size: 15px; }
+.actrow.done .box { background: var(--grn-bright); }
+.actrow .nm { flex: 1; font-weight: 800; font-size: 15px; line-height: 1.3; }
+.actrow .go { flex: 0 0 auto; font-weight: 900; font-size: 20px; opacity: 0.5; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em;
+  border: 2px solid var(--ink); border-radius: 99px; padding: 4px 10px; background: var(--bg); }
+.tag.p { background: var(--pur-bright); } .tag.o { background: var(--orn-bright); }
+
+/* Withdrawing a claim is always available, so it needs a permanent home on the card -- kept
+   quiet rather than a second primary button, since it is the rarer of the two actions. */
+.removeLink { background: none; border: none; margin-top: 10px; padding: 6px 0; min-height: 44px;
+  font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.02em;
+  text-decoration: underline; cursor: pointer; opacity: 0.7; color: var(--ink); }
+.removeLink:hover { opacity: 1; }
+.doneRow { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin-top: 18px; }
+.doneMark { font-weight: 900; font-size: 15px; text-transform: uppercase; color: var(--grn-solid); }
+
+.btn { display: block; width: 100%; font-weight: 900; font-size: 16px; text-transform: uppercase;
+  letter-spacing: 0.01em; padding: 15px; border: var(--line) solid var(--ink); border-radius: 14px;
+  background: var(--grn-solid); color: #fff; box-shadow: 5px 5px 0 var(--ink); cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s; min-height: 48px; }
+.btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+.btn.ghost { background: #fff; color: var(--ink); }
+.btn.orn { background: var(--orn-solid); }
+.btn.sm { font-size: 14px; padding: 12px; }
+.btn.big { font-size: 20px; padding: 20px 14px; border-radius: 16px; box-shadow: 6px 6px 0 var(--ink);
+  margin-bottom: 20px; letter-spacing: 0.01em; }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.back { background: none; border: none; font-weight: 900; font-size: 14px; text-transform: uppercase;
+  cursor: pointer; margin-bottom: 14px; letter-spacing: 0.02em; min-height: 44px; padding: 4px 0; }
+
+.laddercard { background: var(--cream); border: var(--line) solid var(--ink); border-radius: 16px;
+  box-shadow: 5px 5px 0 var(--ink); padding: 14px; margin-bottom: 18px; }
+.badgegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.badge { background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 12px 6px; text-align: center;
+  box-shadow: 3px 3px 0 var(--ink); min-height: 96px; width: 100%; display: flex; flex-direction: column;
+  justify-content: center; gap: 4px; cursor: pointer; transition: transform 0.08s, box-shadow 0.08s; }
+.badge:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.badge .ico { font-size: 30px; line-height: 1.1; }
+.badge .nm { font-weight: 900; font-size: 12px; text-transform: uppercase; line-height: 1.25; }
+.badge .st { font-size: 12px; font-weight: 700; opacity: 0.75; }
+.badge.locked { background: #ede9da; box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25); }
+.badge.locked .ico { filter: grayscale(1); opacity: 0.55; }
+.badge.newb { background: var(--grn-bright); }
+.badge .minibar { height: 6px; border: 2px solid var(--ink); border-radius: 99px; background: #fff; overflow: hidden; margin: 2px 4px 0; }
+.badge .minibar i { display: block; height: 100%; background: var(--grn-solid); }
+
+/* achievement detail sheet */
+.badgeDetail { text-align: center; }
+.badgeDetail .ico2 { font-size: 52px; line-height: 1; margin-bottom: 6px; }
+.badgeStatus { font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em;
+  opacity: 0.7; margin-bottom: 10px; }
+.badgeStatus.unlocked { color: var(--grn-solid); opacity: 1; }
+.badgeDetail .prose { text-align: left; margin-bottom: 4px; }
+.badgeDetail .btn { margin-top: 16px; }
+
+.empty { background: var(--cream); border: var(--line) dashed var(--ink); border-radius: 18px;
+  padding: 28px 18px; text-align: center; margin-bottom: 18px; }
+.empty .ico { font-size: 40px; margin-bottom: 10px; }
+.empty h3 { font-weight: 900; font-size: 18px; margin-bottom: 8px; }
+.empty p { font-size: 15px; font-weight: 450; opacity: 0.85; margin-bottom: 16px; line-height: 1.55; }
+
+.receipt { background: #fff; border: 3px dashed var(--ink); border-radius: 10px; padding: 12px;
+  text-align: left; font-size: 14px; font-weight: 700; margin-bottom: 14px; line-height: 1.8; }
+.receipt .r { display: flex; justify-content: space-between; gap: 8px; }
+.linkish { background: none; border: none; font-weight: 800; font-size: 14px; text-decoration: underline;
+  cursor: pointer; text-transform: uppercase; min-height: 44px; padding: 4px; }
+
+.nav { position: absolute; left: 0; right: 0; bottom: 0; display: flex; border-top: var(--line) solid var(--ink);
+  background: var(--cream); z-index: 15; padding-bottom: env(safe-area-inset-bottom); }
+.nav button { flex: 1; background: none; border: none; padding: 10px 2px 12px; cursor: pointer;
+  border-right: 3px solid var(--ink); min-height: 56px; }
+.nav button:last-child { border-right: none; }
+.nav .i { font-size: 20px; line-height: 1.1; display: block; }
+.nav .l { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.01em; margin-top: 3px; display: block; }
+.nav button[aria-current="true"] { background: var(--grn-solid); }
+.nav button[aria-current="true"] .l, .nav button[aria-current="true"] .i { color: #fff; }
+
+.pop { position: absolute; inset: 0; background: rgba(20, 19, 15, 0.75); display: none;
+  align-items: center; justify-content: center; padding: 22px; z-index: 30; }
+.pop.on { display: flex; animation: fade 0.18s; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.popcard { background: var(--bg); border: var(--line) solid var(--ink); border-radius: 20px;
+  box-shadow: 8px 8px 0 var(--pur-solid); padding: 22px 18px; text-align: center; width: 100%;
+  animation: pop 0.34s cubic-bezier(0.2, 1.5, 0.4, 1); max-height: 88%; overflow-y: auto; }
+@keyframes pop { from { transform: scale(0.85) rotate(-2deg); } to { transform: scale(1) rotate(0); } }
+.stamp { display: inline-block; border: 5px solid var(--orn-solid); color: var(--orn-solid); border-radius: 12px;
+  font-weight: 900; font-size: 19px; text-transform: uppercase; padding: 8px 14px;
+  transform: rotate(-6deg); margin-bottom: 14px; letter-spacing: 0.02em; }
+.popcard h3 { font-weight: 900; font-size: 21px; line-height: 1.2; margin-bottom: 8px; }
+.popcard p { font-size: 15px; font-weight: 450; margin-bottom: 16px; line-height: 1.5; }
+.shares { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.shares button { border: 3px solid var(--ink); border-radius: 11px; background: #fff; padding: 10px 4px;
+  font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 3px 3px 0 var(--ink);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; }
+.shares button .ic { font-size: 18px; }
+
+.toast { position: absolute; left: 16px; right: 16px; bottom: -120px; opacity: 0; pointer-events: none;
+  background: var(--ink); color: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex;
+  align-items: center; justify-content: space-between; gap: 10px; z-index: 25;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35); transition: bottom 0.28s ease, opacity 0.28s ease; }
+.toast.on { bottom: calc(84px + env(safe-area-inset-bottom)); opacity: 1; pointer-events: auto; }
+.toast span { font-size: 14px; font-weight: 700; }
+.toast button { background: var(--orn-bright); color: var(--ink); border: none; border-radius: 8px;
+  padding: 8px 14px; font-weight: 800; font-size: 13px; text-transform: uppercase; cursor: pointer; flex: 0 0 auto; min-height: 44px; }
+
+.sheet { position: absolute; inset: 0; background: rgba(20, 19, 15, 0.5); display: none; align-items: flex-end; z-index: 28; }
+.sheet.on { display: flex; animation: fade 0.15s; }
+.sheetcard { width: 100%; background: var(--bg); border: var(--line) solid var(--ink); border-radius: 22px 22px 0 0;
+  box-shadow: 0 -6px 0 var(--ink); padding: 20px 16px 22px; max-height: 85%; overflow-y: auto;
+  animation: slideup 0.24s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes slideup { from { transform: translateY(30px); opacity: 0.4; } to { transform: translateY(0); opacity: 1; } }
+.sheettitle { font-weight: 900; font-size: 17px; text-transform: uppercase; margin-bottom: 14px;
+  display: flex; justify-content: space-between; align-items: center; }
+.sheetclose { background: none; border: 3px solid var(--ink); border-radius: 10px; width: 44px; height: 44px;
+  font-size: 16px; cursor: pointer; }
+.fgroup { margin-bottom: 16px; }
+.fgroup .lbl { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 8px; display: block; }
+
+.authstep { display: none; }
+.authstep.on { display: block; }
+.otpboxes { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+.otpboxes input { width: 44px; height: 52px; text-align: center; font-weight: 900; font-size: 20px;
+  border: 3px solid var(--ink); border-radius: 10px; }
+.privline { font-size: 13px; font-weight: 400; opacity: 0.75; line-height: 1.55; margin-top: 12px; }
+.formError { color: var(--orn-solid); font-weight: 700; font-size: 14px; margin-top: 8px; min-height: 20px; }
+
+.ledgerRow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  padding: 9px 0; border-bottom: 2px solid #ede9da; font-size: 14px; }
+.ledgerRow:last-child { border-bottom: none; }
+.ledgerRow .name { font-weight: 700; }
+.ledgerRow .ts { font-weight: 700; opacity: 0.6; white-space: nowrap; flex: 0 0 auto; font-size: 13px; }
+.ledgerEmpty { font-size: 14px; font-weight: 700; opacity: 0.7; padding: 4px 0; }
+
+.setrow { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px;
+  border: 3px solid var(--ink); border-radius: 12px; padding: 14px; background: #fff; cursor: pointer;
+  min-height: 52px; }
+.setrow .lb { font-weight: 800; font-size: 15px; }
+.setrow .val { font-weight: 700; font-size: 14px; opacity: 0.7; }
+
+.langOption { display: flex; width: 100%; align-items: center; justify-content: space-between;
+  border: 3px solid var(--ink); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+  background: #fff; font-weight: 800; font-size: 15px; cursor: pointer; min-height: 48px; }
+.langOption[aria-pressed="true"] { background: var(--grn-bright); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
