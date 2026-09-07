@@ -1,0 +1,324 @@
+<title>Paper Rails Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Karla:wght@400;700&display=swap">
+<style>
+  :root{
+    --board:#C9A876;
+    --paper:#FFFDF7;
+    --ink:#241A2E;
+    --brass:#C9A24A;
+    --steam:#22222A;
+    --steam-lt:#3C3C46;
+    --cab:#8E2420;
+    --cab-dk:#6E1B18;
+    --cab-lt:#A63A32;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--board);
+    background-image:radial-gradient(circle at 20% 25%, rgba(0,0,0,.05) 0, transparent 42%),
+                     radial-gradient(circle at 80% 72%, rgba(0,0,0,.05) 0, transparent 45%);
+    font-family:"Karla",system-ui,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;padding:24px 18px 40px;
+  }
+  .phone{
+    width:min(92vw,330px);height:min(64vh,620px);
+    background:#17171B;border-radius:34px;padding:12px 9px;
+    box-shadow:0 14px 0 rgba(0,0,0,.16), 0 26px 40px -18px rgba(0,0,0,.5);
+    flex:0 0 auto;
+  }
+  .screen{position:relative;width:100%;height:100%;background:#8B5A2B;border-radius:22px;overflow:hidden}
+  .screen::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.06) 0, transparent 55%);
+  }
+  svg.track{position:absolute;inset:0;width:100%;height:100%}
+
+  /* ---------- sprite rig ---------- */
+  .sprite{
+    position:absolute;top:0;left:0;height:150px;
+    transform-origin:0 0;
+    will-change:transform;
+  }
+  .sprite .art{
+    position:relative;width:100%;height:100%;
+    filter:drop-shadow(0 4px 0 rgba(0,0,0,.15)) drop-shadow(0 7px 9px rgba(0,0,0,.22));
+  }
+  .p{position:absolute}
+
+  /* ---------- shared wheels ---------- */
+  .w{border-radius:50%;background:#191920;border:3px solid var(--brass);overflow:hidden}
+  .w::after{content:"";position:absolute;left:50%;top:50%;width:26%;height:26%;
+    transform:translate(-50%,-50%);background:var(--brass);border-radius:50%;z-index:2}
+  .spin{position:absolute;inset:0;animation:roll .9s linear infinite}
+  .spin i{position:absolute;left:50%;top:8%;width:2px;height:84%;background:#4A4A56;transform:translateX(-50%)}
+  .spin i.b{transform:translateX(-50%) rotate(60deg)}
+  .spin i.c{transform:translateX(-50%) rotate(120deg)}
+  @keyframes roll{to{transform:rotate(360deg)}}
+
+  /* ---------- locomotive (240x150, rail line y=126) ---------- */
+  .loco{width:240px}
+  .l-frame{left:26px;top:96px;width:190px;height:11px;background:#2A2A31;border-radius:2px}
+  .l-frame2{left:30px;top:105px;width:180px;height:5px;background:#17171B}
+  .l-cab{left:30px;top:38px;width:62px;height:58px;background:var(--cab);border-radius:5px 3px 0 0}
+  .l-cab-roof{left:22px;top:28px;width:80px;height:12px;background:var(--cab-dk);border-radius:4px}
+  .l-cab-roof2{left:22px;top:26px;width:80px;height:5px;background:var(--cab-lt);border-radius:4px 4px 0 0}
+  .l-cab-win{left:44px;top:50px;width:30px;height:26px;background:#BFE9FF;border:3px solid #17171B;border-radius:3px}
+  .l-cab-win::after{content:"";position:absolute;left:0;top:9px;width:100%;height:3px;background:#17171B;opacity:.45}
+  .l-boiler{left:88px;top:56px;width:112px;height:44px;background:var(--steam);border-radius:4px 20px 20px 4px/4px 22px 22px 4px}
+  .l-boiler-hi{left:92px;top:60px;width:104px;height:7px;background:var(--steam-lt);border-radius:4px}
+  .l-band1{left:118px;top:56px;width:7px;height:44px;background:var(--brass)}
+  .l-band2{left:152px;top:56px;width:7px;height:44px;background:var(--brass)}
+  .l-smokebox{left:186px;top:54px;width:20px;height:48px;background:#2E2E38;border-radius:6px 12px 12px 6px}
+  .l-smokebox-ring{left:196px;top:60px;width:9px;height:36px;background:#4A4A56;border-radius:0 8px 8px 0}
+  .l-dome{left:124px;top:40px;width:22px;height:18px;background:var(--steam);border-radius:11px 11px 2px 2px}
+  .l-dome-cap{left:122px;top:37px;width:26px;height:7px;background:var(--brass);border-radius:4px}
+  .l-sand{left:156px;top:44px;width:17px;height:14px;background:var(--steam);border-radius:9px 9px 2px 2px}
+  .l-stack{left:176px;top:22px;width:18px;height:36px;background:var(--steam)}
+  .l-stack-flare{left:170px;top:14px;width:30px;height:13px;background:#2E2E38;border-radius:5px}
+  .l-stack-lip{left:170px;top:12px;width:30px;height:5px;background:#4A4A56;border-radius:4px}
+  /* headlamp now sits nestled on the smokebox with a bracket, not floating */
+  .l-lamp-bracket{left:198px;top:50px;width:8px;height:10px;background:#2A2A31}
+  .l-lamp{left:192px;top:34px;width:20px;height:18px;background:#F0C03A;border:3px solid #17171B;border-radius:3px}
+  .l-lamp::after{content:"";position:absolute;left:3px;top:3px;right:3px;bottom:3px;background:#FFF0B8;border-radius:2px}
+  .l-beam{left:204px;top:88px;width:12px;height:22px;background:var(--cab);border-radius:2px}
+  .l-catcher{left:206px;top:96px;width:32px;height:30px;background:#2A2A31;clip-path:polygon(0 0, 100% 62%, 100% 100%, 0 100%)}
+  .l-rod{left:70px;top:112px;width:98px;height:5px;background:var(--brass);border-radius:3px}
+  .l-d1{left:56px;top:90px;width:36px;height:36px}
+  .l-d2{left:100px;top:90px;width:36px;height:36px}
+  .l-d3{left:144px;top:90px;width:36px;height:36px}
+  .l-lead{left:190px;top:104px;width:22px;height:22px}
+
+  /* ---------- tender (128x150) ---------- */
+  .tender{width:128px}
+  .t-frame{left:10px;top:96px;width:108px;height:11px;background:#2A2A31;border-radius:2px}
+  .t-body{left:16px;top:56px;width:96px;height:42px;background:var(--cab);border-radius:3px}
+  .t-body-hi{left:16px;top:56px;width:96px;height:6px;background:var(--cab-lt)}
+  .t-lip{left:12px;top:50px;width:104px;height:8px;background:var(--cab-dk);border-radius:3px}
+  .t-coal{left:24px;top:38px;width:80px;height:16px;background:#141418;border-radius:40% 30% 0 0/70% 60% 0 0}
+  .t-coal2{left:38px;top:33px;width:34px;height:12px;background:#232329;border-radius:50% 50% 0 0}
+  .t-w1{left:26px;top:104px;width:22px;height:22px}
+  .t-w2{left:80px;top:104px;width:22px;height:22px}
+
+  /* ---------- coach (150x150) ---------- */
+  .coach{width:150px}
+  .c-frame{left:8px;top:96px;width:134px;height:11px;background:#2A2A31;border-radius:2px}
+  .c-body{left:12px;top:46px;width:126px;height:52px;background:var(--car);border-radius:4px}
+  .c-stripe{left:12px;top:76px;width:126px;height:6px;background:rgba(0,0,0,.22)}
+  .c-roof{left:6px;top:36px;width:138px;height:13px;background:#E8E4D8;border-radius:6px 6px 2px 2px}
+  .c-roof-hi{left:6px;top:34px;width:138px;height:5px;background:#FFFDF5;border-radius:5px 5px 0 0}
+  .c-win{top:54px;width:22px;height:18px;background:#BFE9FF;border:2px solid #17171B;border-radius:2px}
+  .cw1{left:24px}.cw2{left:54px}.cw3{left:84px}.cw4{left:114px}
+  .c-door{left:70px;top:54px;width:12px;height:42px;background:rgba(0,0,0,.18);border-radius:2px}
+  .c-wh1{left:28px;top:104px;width:22px;height:22px}
+  .c-wh2{left:100px;top:104px;width:22px;height:22px}
+
+  /* ---------- smoke ---------- */
+  .puff{position:absolute;border-radius:50%;background:#EFE9DC;pointer-events:none;z-index:6}
+
+  /* ---------- caption ---------- */
+  .cap{max-width:340px;text-align:center}
+  .cap h1{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:21px;margin:0 0 6px}
+  .cap p{font-size:13.5px;line-height:1.58;opacity:.85;margin:0 0 8px}
+  .cap .ask{
+    font-size:13px;line-height:1.55;background:#2E2438;color:var(--paper);
+    border-radius:9px;padding:11px 13px;text-align:left;margin-top:4px;
+  }
+  .cap .ask b{color:#FFD23F}
+  @media (prefers-reduced-motion:reduce){ .spin{animation:none} }
+</style>
+
+<div class="phone"><div class="screen" id="screen">
+  <svg class="track" id="track"></svg>
+</div></div>
+
+<div class="cap">
+  <h1>One drawing, rolling the whole loop</h1>
+  <p>One drawing, just rotating — no swapped poses, no flip. The engine
+  stays tangent to the rail the whole way round, so its wheels sit
+  <em>on</em> the line at every point, including through the corners. The
+  train, tender and coaches are redrawn with real detail, coupled tight, and
+  the track inset is computed from the sprite's own size so nothing crosses
+  the frame edge.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var screenEl = document.getElementById('screen');
+  var trackSvg = document.getElementById('track');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Art constants, measured from the drawings above.
+     RAIL_Y is the exact pixel row where every wheel bottoms out, so anchoring
+     the sprite there is what puts the wheels on the rail instead of the body
+     centre floating over it. */
+  var ART_H = 150, RAIL_Y = 126, ART_TOP = 12;
+  var ANCHOR_Y_PCT = (RAIL_Y / ART_H) * 100;         // 84%
+  var PERP_ABOVE   = RAIL_Y - ART_TOP;               // 114px of body above the rail
+
+  /* axleA / axleB are the centres of the outermost wheels, in art px. The
+     sprite is hung between those two points on the rail, so a curve makes the
+     body chord across it the way a real rigid wagon does — instead of pivoting
+     on one point and lifting its end wheels off the track. */
+  var VEHICLES = [
+    { cls:'loco',   w:240, anchorX:130, back:22, front:238, axleA:74, axleB:162 },
+    { cls:'tender', w:128, anchorX:64,  back:10, front:118, axleA:37, axleB:91  },
+    { cls:'coach',  w:150, anchorX:75,  back:6,  front:144, axleA:39, axleB:111, car:'#2E7DB8' },
+    { cls:'coach',  w:150, anchorX:75,  back:6,  front:144, axleA:39, axleB:111, car:'#3F8F4E' }
+  ];
+  var COUPLING = 7; // art-px between vehicles
+
+  function wheel(cls, spokes){
+    return '<div class="p w '+cls+'">' + (spokes ?
+      '<div class="spin"><i></i><i class="b"></i><i class="c"></i></div>' : '') + '</div>';
+  }
+  function artFor(v){
+    if(v.cls === 'loco'){
+      return '<div class="p l-frame"></div><div class="p l-frame2"></div>'+
+        '<div class="p l-cab"></div><div class="p l-cab-roof"></div><div class="p l-cab-roof2"></div>'+
+        '<div class="p l-boiler"></div><div class="p l-boiler-hi"></div>'+
+        '<div class="p l-band1"></div><div class="p l-band2"></div>'+
+        '<div class="p l-smokebox"></div><div class="p l-smokebox-ring"></div>'+
+        '<div class="p l-dome"></div><div class="p l-dome-cap"></div><div class="p l-sand"></div>'+
+        '<div class="p l-stack"></div><div class="p l-stack-flare"></div><div class="p l-stack-lip"></div>'+
+        '<div class="p l-lamp-bracket"></div><div class="p l-lamp"></div>'+
+        '<div class="p l-beam"></div><div class="p l-catcher"></div>'+
+        '<div class="p l-rod"></div>'+
+        wheel('l-d1',1)+wheel('l-d2',1)+wheel('l-d3',1)+wheel('l-lead',1)+
+        '<div class="p l-cab-win"></div>';
+    }
+    if(v.cls === 'tender'){
+      return '<div class="p t-frame"></div><div class="p t-coal"></div><div class="p t-coal2"></div>'+
+        '<div class="p t-body"></div><div class="p t-body-hi"></div><div class="p t-lip"></div>'+
+        wheel('t-w1',1)+wheel('t-w2',1);
+    }
+    return '<div class="p c-frame"></div><div class="p c-body"></div><div class="p c-stripe"></div>'+
+      '<div class="p c-win cw1"></div><div class="p c-win cw2"></div>'+
+      '<div class="p c-win cw3"></div><div class="p c-win cw4"></div>'+
+      '<div class="p c-door"></div><div class="p c-roof"></div><div class="p c-roof-hi"></div>'+
+      wheel('c-wh1',1)+wheel('c-wh2',1);
+  }
+
+  var sprites = VEHICLES.map(function(v){
+    var el = document.createElement('div');
+    el.className = 'sprite';
+    el.style.width = v.w + 'px';
+    if(v.car) el.style.setProperty('--car', v.car);
+    el.innerHTML = '<div class="art ' + v.cls + '">' + artFor(v) + '</div>';
+    screenEl.appendChild(el);
+    return { el:el, v:v, offsetPx:0 };
+  });
+
+  // Spacing measured in real pixels: rear edge of the vehicle ahead to the
+  // front edge of this one. This is what keeps the cars coupled tight instead
+  // of drifting apart the way a guessed percentage gap did.
+  (function computeGaps(){
+    var acc = 0;
+    for(var i = 1; i < sprites.length; i++){
+      var ahead = sprites[i-1].v, self = sprites[i].v;
+      acc += (ahead.anchorX - ahead.back) + COUPLING + (self.front - self.anchorX);
+      sprites[i].offsetPx = acc;
+    }
+  })();
+
+  var pathEl = null, pathLen = 0, scale = 1;
+
+  function layout(){
+    var w = screenEl.clientWidth, h = screenEl.clientHeight;
+    if(w < 20 || h < 20) return;
+
+    scale = Math.max(0.30, Math.min(0.46, Math.min(w, h) / 720));
+    // Inset must clear the body standing off the rail, or the engine would
+    // hang outside the screen on the straights.
+    var inset = Math.max(PERP_ABOVE * scale + 24, Math.min(w, h) * 0.18);
+    var x0 = inset, y0 = inset, x1 = w - inset, y1 = h - inset;
+    // Generous corners: a rigid wagon chords across a curve, so a tight radius
+    // is what lifts wheels off the rail. Wide corners + stretched straights.
+    var r = Math.min(92, (x1 - x0) / 2, (y1 - y0) / 2);
+    var d = 'M ' + (x0+r) + ' ' + y0 +
+      ' L ' + (x1-r) + ' ' + y0 + ' Q ' + x1 + ' ' + y0 + ' ' + x1 + ' ' + (y0+r) +
+      ' L ' + x1 + ' ' + (y1-r) + ' Q ' + x1 + ' ' + y1 + ' ' + (x1-r) + ' ' + y1 +
+      ' L ' + (x0+r) + ' ' + y1 + ' Q ' + x0 + ' ' + y1 + ' ' + x0 + ' ' + (y1-r) +
+      ' L ' + x0 + ' ' + (y0+r) + ' Q ' + x0 + ' ' + y0 + ' ' + (x0+r) + ' ' + y0 + ' Z';
+
+    trackSvg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    trackSvg.innerHTML =
+      '<path d="'+d+'" fill="none" stroke="#241A2E" stroke-width="'+(15*scale/0.42)+'" stroke-linecap="round"/>'+
+      '<path id="rail" d="'+d+'" fill="none" stroke="#FFF3D6" stroke-width="3.5" stroke-dasharray="11 11"/>';
+    pathEl = trackSvg.querySelector('#rail');
+    pathLen = pathEl.getTotalLength();
+
+  }
+
+  /* Placement is computed here rather than handed to CSS offset-path, because
+     the sprite also has to be scaled to the screen, and composing that with
+     the path's own transform is what kept knocking the wheels off the rail.
+     Doing the matrix by hand keeps the anchor exact:
+       translate(point) → rotate(tangent) → scale(fit) → translate(-anchor)
+     so the wheel line lands precisely on the path point at every position,
+     and the sprite just turns a full 360 as it goes around -- no flip. */
+  function at(len){ return pathEl.getPointAtLength(((len % pathLen) + pathLen) % pathLen); }
+
+  function place(s, lenAt){
+    var v = s.v;
+    var pA = at(lenAt + (v.axleA - v.anchorX) * scale);
+    var pB = at(lenAt + (v.axleB - v.anchorX) * scale);
+    var deg = Math.atan2(pB.y - pA.y, pB.x - pA.x) * 180 / Math.PI;
+    var mx  = (v.axleA + v.axleB) / 2;
+    s.el.style.transform =
+      'translate(' + ((pA.x + pB.x) / 2) + 'px,' + ((pA.y + pB.y) / 2) + 'px) ' +
+      'rotate(' + deg + 'deg) ' +
+      'scale(' + scale + ') ' +
+      'translate(' + (-mx) + 'px,' + (-RAIL_Y) + 'px)';
+  }
+
+  var headLen = 0, lastTs = null;
+  var SPEED_PX = 78; // px along the rail per second
+
+  function frame(ts){
+    if(!pathEl){ requestAnimationFrame(frame); return; }
+    if(lastTs === null) lastTs = ts;
+    var dt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    headLen = (headLen + SPEED_PX * dt) % pathLen;
+
+    sprites.forEach(function(s){
+      place(s, (headLen - s.offsetPx * scale + pathLen * 4) % pathLen);
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  /* soft smoke from the stack */
+  function puff(){
+    if(reduced || !pathEl) return;
+    var loco = sprites[0];
+    var stack = loco.el.querySelector('.l-stack-flare');
+    if(stack){
+      var r = stack.getBoundingClientRect();
+      var sr = screenEl.getBoundingClientRect();
+      var el = document.createElement('div');
+      el.className = 'puff';
+      var size = (9 + Math.random()*7) * scale * 2;
+      el.style.cssText = 'width:'+size+'px;height:'+size+'px;left:'+
+        (r.left + r.width/2 - sr.left - size/2)+'px;top:'+(r.top + r.height/2 - sr.top - size/2)+'px;opacity:.75';
+      screenEl.appendChild(el);
+      el.animate([
+        {transform:'translate(0,0) scale(.6)', opacity:.7},
+        {transform:'translate('+(Math.random()*16-8)+'px,'+(-26 - Math.random()*18)+'px) scale(1.7)', opacity:0}
+      ], {duration:1500 + Math.random()*700, easing:'ease-out'}).onfinish = function(){ el.remove(); };
+    }
+    setTimeout(puff, 260);
+  }
+
+  layout();
+  requestAnimationFrame(frame);
+  setTimeout(puff, 400);
+  window.addEventListener('resize', layout);
+})();
+</script>
