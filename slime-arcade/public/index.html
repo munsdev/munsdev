@@ -5471,16 +5471,12 @@ function initSbahnChaos(){
 
   var CROWD = [
     { x: 45,  y: 196 }, { x: 150, y: 200 }, { x: 100, y: 218 }, { x: 175, y: 186 },
-    { x: 30,  y: 190 }, { x: 70,  y: 190 }, { x: 160, y: 215 }, { x: 52,  y: 222 },
-    { x: 140, y: 224 }, { x: 96,  y: 196 }, { x: 112, y: 196 }, { x: 40,  y: 160 },
-    { x: 155, y: 165 }, { x: 80,  y: 170 }, { x: 60,  y: 276 }, { x: 150, y: 276 },
+    { x: 70,  y: 190 }, { x: 52,  y: 222 }, { x: 140, y: 224 },
     // the ones who need the lift
     { x: 62,  y: 212, head: "#dcdcdc", hat: "#4a4a4a", liftPrefers: true, speedMul: 0.62 },
     { x: 130, y: 212, head: "#dcdcdc", hair: "#bfbfbf", liftPrefers: true, speedMul: 0.6 },
-    { x: 168, y: 200, head: "#dcdcdc", hat: "#6b5a4a", liftPrefers: true, speedMul: 0.65 },
     { x: 88,  y: 214, wheels: true, liftOnly: true, speedMul: 0.85 },
-    { x: 118, y: 216, hair: "#5a3921", pram: true, liftOnly: true, speedMul: 0.8 },
-    { x: 100, y: 280, pram: true, liftOnly: true, speedMul: 0.82 }
+    { x: 118, y: 216, hair: "#5a3921", pram: true, liftOnly: true, speedMul: 0.8 }
   ];
   var crowd = CROWD.map(function (c, i) {
     c.body = c.body || COATS[i % COATS.length];
@@ -5929,6 +5925,7 @@ function initSbahnChaos(){
   // Vehicles arrive on the timetable, but they do not leave until you send them.
   // When the stop time is up they flash, and a tap dispatches them.
   var FLASH_HZ = 3;
+  var BLINK_DELAY = 3000;                 // grace period before the sign starts blinking
 
   SERVICES.forEach(function (s) {
     s.state = "away";
@@ -5968,7 +5965,7 @@ function initSbahnChaos(){
           if (s.t <= 0) { s.state = "dwell"; s.t = s.dwell; loadService(s); }
           break;
         case "dwell":
-          if (s.t <= 0) { s.state = "ready"; boardWaiting(s); HA.stationChime(); }
+          if (s.t <= 0) { s.state = "ready"; s.readyAt = now; boardWaiting(s); HA.stationChime(); }
           break;
         case "ready":
           break;                            // waiting for you
@@ -5996,8 +5993,9 @@ function initSbahnChaos(){
         s.at(1, false);                            // standing at the stop
       }
 
-      if (s.hitEl) {                        // the badge blinks when it is due out
-        if (s.state === "ready") {
+      // it sits there for a moment before it starts nagging
+      if (s.hitEl) {
+        if (s.state === "ready" && now - s.readyAt > BLINK_DELAY) {
           var on = Math.floor(now / (1000 / FLASH_HZ / 2)) % 2 === 0;
           s.hitEl.style.opacity = on ? "1" : "0.35";
         } else if (s.hitEl.style.opacity) {
@@ -6005,13 +6003,19 @@ function initSbahnChaos(){
         }
       }
 
-      var left = s.state === "away" ? Math.max(0, s.next - now) : 0;
+      // the clock counts down to when it is due out, not when it turns up
+      var left;
+      if (s.state === "away")          left = Math.max(0, s.next - now) + ARRIVE_MS + s.dwell;
+      else if (s.state === "arriving") left = Math.max(0, s.t) + s.dwell;
+      else if (s.state === "dwell")    left = Math.max(0, s.t);
+      else                             left = 0;
+
       if (s.textEl) {
         var label = s.state === "ready" ? "GO" : String(Math.ceil(left / 1000));
         if (s.textEl.textContent !== label) s.textEl.textContent = label;
       }
       if (s.pieEl) {
-        var frac = s.state === "away" ? left / s.period : (s.state === "ready" ? 1 : 0);
+        var frac = s.state === "ready" ? 1 : Math.min(1, left / s.period);
         s.pieEl.setAttribute("d", wedge(s.cx, s.cy, s.r, frac));
       }
     }
@@ -6295,8 +6299,26 @@ function initSbahnChaos(){
     return true;
   }
 
+  // Whatever brought him in there, being inside a stall cleans that side.
+  function wcTick(ms) {
+    for (var i = 0; i < STALLS.length; i++) {
+      var stall = STALLS[i];
+      if (stall.dirt <= 0 || !stall.inside) { stall.dwell = 0; continue; }
+      var near = player.level === "surface" &&
+                 Math.hypot(player.x - stall.inside.x, player.y - stall.inside.y) < 5;
+      if (!near) { stall.dwell = 0; continue; }
+      stall.dwell = (stall.dwell || 0) + ms;
+      if (stall.dwell > 400) {
+        stall.dwell = 0;
+        player.bob(600);
+        scrub(stall);
+      }
+    }
+  }
+
   function jobsTick(dt) {
     var ms = dt * 16.667;
+    wcTick(ms);
 
     // the machine hands out tickets unless it has jammed
     for (var i = MACHINE.queue.length - 1; i >= 0; i--) {
