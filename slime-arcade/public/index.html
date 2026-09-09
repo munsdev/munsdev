@@ -5533,7 +5533,7 @@ function initSbahnChaos(){
      bin gets littered around instead, and the litterer complains. Click a bin and
      the station worker walks over and empties it.                              */
 
-  var BIN_STEP = 0.2;                         // one deposit
+  var BIN_STEP = 0.1;                         // one deposit -- half speed to fill
   var BIN_STOPS = [[0.00, [46, 158, 58]],     // green
                    [0.40, [216, 208, 46]],    // yellow
                    [0.70, [232, 134, 46]],    // orange
@@ -6137,23 +6137,31 @@ function initSbahnChaos(){
   var WCMID = STALLS.length === 2 ? (STALLS[0].door.cx + STALLS[1].door.cx) / 2 : 0;
 
   STALLS.forEach(function (stall) {
-    var target = id(stall.door.elId);
-    if (!target) return;
     stall.inside = { x: stall.door.cx + (stall.door.cx < WCMID ? 2.5 : -2.5), y: 0 };
     stall.inside.y = baseAt(WCPROP, stall.inside.x) - 6;
-    target.style.cursor = "pointer";
-    target.addEventListener("click", function (e) {
+  });
+
+  // Tap the WC building itself -- a single, much bigger and more forgiving
+  // target than the individual stall doors were -- and the worker walks
+  // over and cleans whichever side(s) actually need it, one after another.
+  if (WCPROP) {
+    WCPROP.el.style.cursor = "pointer";
+    WCPROP.el.addEventListener("click", function (e) {
       e.stopPropagation();
       if (player.mode) return;
+      var dirty = STALLS.filter(function (s) { return s.dirt > 0; });
+      if (!dirty.length) return;
       player.stop();
       player.errands.length = 0;
-      // in through the door, clean the lot, back out
-      player.errands.push({ pt: { x: stall.door.cx, y: baseAt(WCPROP, stall.door.cx) - 1 }, wait: 120 });
-      player.errands.push({ pt: stall.inside, wait: 900,
-                            act: function (who) { who.bob(700); scrub(stall); } });
-      player.errands.push({ pt: stall.clean, wait: 0 });
+      dirty.forEach(function (stall) {
+        // in through the door, clean it, back out
+        player.errands.push({ pt: { x: stall.door.cx, y: baseAt(WCPROP, stall.door.cx) - 1 }, wait: 120 });
+        player.errands.push({ pt: stall.inside, wait: 900,
+                              act: function (who) { who.bob(700); scrub(stall); } });
+        player.errands.push({ pt: stall.clean, wait: 0 });
+      });
     });
-  });
+  }
 
   /* ---- the lift breaks, and gets a warning sign ---- */
 
