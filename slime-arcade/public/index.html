@@ -241,7 +241,8 @@
   .tile.t6{background:#EF3E36;transform:rotate(2deg)}
   .tile.t7{background:#8B5A2B;transform:rotate(-1deg)}
   .tile.t8{background:#5C6B78;transform:rotate(2deg)}
-  .tile.t1:active,.tile.t2:active,.tile.t3:active,.tile.t4:active,.tile.t5:active,.tile.t6:active,.tile.t7:active,.tile.t8:active{transform:translateY(10px) scale(.97)}
+  .tile.t9{background:#4d4b3a;transform:rotate(-1deg)}
+  .tile.t1:active,.tile.t2:active,.tile.t3:active,.tile.t4:active,.tile.t5:active,.tile.t6:active,.tile.t7:active,.tile.t8:active,.tile.t9:active{transform:translateY(10px) scale(.97)}
 
   /* ---------- shared play area ---------- */
   .stage{
@@ -995,6 +996,19 @@
   /* ---------- particles ---------- */
   .bit{position:fixed;pointer-events:none;z-index:99;border-radius:50% 45% 55% 42%/50% 55% 45% 50%;border:3px solid var(--ink)}
 
+  /* ---------- S-Bahn Chaos ----------
+     A full station illustration (Inkscape-exported SVG) with its own
+     self-running simulation. It scales itself to fit via viewBox +
+     preserveAspectRatio, so this stage just needs to give it room and let
+     it center -- no padding eating into a scene this detailed. */
+  .sbahnStage{
+    flex:1 1 auto;min-height:0;position:relative;
+    display:flex;align-items:center;justify-content:center;
+    background:#4d4b3a;border:6px solid var(--ink);border-radius:26px;
+    overflow:hidden;
+  }
+  #svg1{width:100%;height:100%;touch-action:manipulation;overflow:hidden}
+
   @media (max-width:520px){
     .tile{border-radius:28px}
     .stage{border-radius:26px}
@@ -1057,6 +1071,7 @@
       <button class="tile t6" data-go="draw"><span class="ico">&#9999;&#65039;</span><span data-tile="draw"></span></button>
       <button class="tile t7" data-go="train"><span class="ico">&#128642;</span><span data-tile="train"></span></button>
       <button class="tile t8" data-go="lift"><span class="ico">&#128727;</span><span data-tile="lift"></span></button>
+      <button class="tile t9" data-go="sbahnchaos"><span class="ico">&#128649;</span><span data-tile="sbahnchaos"></span></button>
     </div>
   </section>
 
@@ -1252,6 +1267,1180 @@
       <div class="lpedLayer" id="liftPeds"></div>
     </div>
   </section>
+  <!-- ============ S-BAHN CHAOS ============ -->
+  <section class="screen" id="sbahnchaos" style="background:#4d4b3a">
+    <div class="splats" data-splats></div>
+    <header>
+      <button class="back" data-go="home">&#9664; <span data-home></span></button>
+      <span class="title" data-title="sbahnchaos"></span>
+    </header>
+    <div class="sbahnStage" id="sbahnStage">
+    <svg
+       width="210mm"
+       height="297mm"
+       viewBox="0 0 210 297"
+       version="1.1"
+       id="svg1"
+       inkscape:export-filename="Bahnhof Chaos.jpg"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"
+       inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+       sodipodi:docname="SBahnCHAOS.svg"
+       xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+       xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+       xmlns="http://www.w3.org/2000/svg"
+       xmlns:svg="http://www.w3.org/2000/svg">
+      <sodipodi:namedview
+         id="namedview1"
+         pagecolor="#ffffff"
+         bordercolor="#000000"
+         borderopacity="0.25"
+         inkscape:showpageshadow="2"
+         inkscape:pageopacity="0.0"
+         inkscape:pagecheckerboard="0"
+         inkscape:deskcolor="#d1d1d1"
+         inkscape:document-units="mm"
+         inkscape:zoom="0.77593295"
+         inkscape:cx="427.22764"
+         inkscape:cy="566.41492"
+         inkscape:window-width="1920"
+         inkscape:window-height="1010"
+         inkscape:window-x="1920"
+         inkscape:window-y="0"
+         inkscape:window-maximized="1"
+         inkscape:current-layer="svg1"
+         showgrid="false" />
+      <defs
+         id="defs1">
+        <inkscape:path-effect
+           effect="perspective-envelope"
+           up_left_point="44.222552,97.519592"
+           up_right_point="103.3139,97.519592"
+           down_left_point="44.222552,145.86163"
+           down_right_point="102.22235,145.86163"
+           id="path-effect1"
+           is_visible="true"
+           lpeversion="1"
+           deform_type="perspective"
+           horizontal_mirror="false"
+           vertical_mirror="false"
+           overflow_perspective="false" />
+        <inkscape:path-effect
+           effect="perspective-envelope"
+           up_left_point="191.73529,142.71042"
+           up_right_point="202.99884,148.55744"
+           down_left_point="190.95166,146.96353"
+           down_right_point="203.48107,154.19696"
+           id="path-effect39"
+           is_visible="true"
+           lpeversion="1"
+           deform_type="perspective"
+           horizontal_mirror="false"
+           vertical_mirror="false"
+           overflow_perspective="false" />
+        <inkscape:path-effect
+           effect="perspective-envelope"
+           up_left_point="7.4542927,147.98874"
+           up_right_point="18.11534,141.9343"
+           down_left_point="7.7727117,155.17493"
+           down_right_point="17.983943,149.22074"
+           id="path-effect109"
+           is_visible="true"
+           lpeversion="1"
+           deform_type="perspective"
+           horizontal_mirror="false"
+           vertical_mirror="false"
+           overflow_perspective="false" />
+        <inkscape:path-effect
+           effect="perspective-envelope"
+           up_left_point="7.252472,147.69862"
+           up_right_point="29.847966,147.69862"
+           down_left_point="7.252472,157.11781"
+           down_right_point="29.847966,157.11781"
+           id="path-effect108"
+           is_visible="true"
+           lpeversion="1"
+           deform_type="perspective"
+           horizontal_mirror="false"
+           vertical_mirror="false"
+           overflow_perspective="false" />
+        <inkscape:path-effect
+           effect="perspective-envelope"
+           up_left_point="60.003247,99.878657"
+           up_right_point="141.90979,99.878657"
+           down_left_point="0.361215,145.94355"
+           down_right_point="209.63888,145.94355"
+           id="path-effect79"
+           is_visible="true"
+           lpeversion="1"
+           deform_type="perspective"
+           horizontal_mirror="false"
+           vertical_mirror="false"
+           overflow_perspective="false" />
+      </defs>
+      <path pointer-events="none"
+         id="path41"
+         style="display:inline;fill:#b3b3b3;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;fill-opacity:0;stroke-opacity:0"
+         inkscape:label="WALKING SPACE"
+         d="M 91.998298,99.851994 -8.086963,141.35361 c -0.4562318,29.18467 -0.6156199,58.36848 0.092843,87.55113 h 70.621302 c 0.07614,11.64023 0.165975,23.28029 0.0864,34.91719 H -7.99412 c -0.1215091,0 -0.1215001,17.73059 0,17.73059 h 217.90138 c 0.12142,0 0.12157,-17.73059 0,-17.73059 h -69.38429 c 0.0239,0 0.0363,-17.00023 0.0376,-34.91719 h 69.34672 c 0.0513,0 0.0928,-87.63983 0.0928,-87.63983 L 109.91485,99.851994 h -3.39978 l 58.18357,45.694186 H 134.25902 L 103.57093,99.878656 H 98.34221 L 67.654119,145.54618 H 37.214504 L 95.398068,99.851994 Z M 85.351707,228.90474 h 32.484303 c 0.076,11.64022 0.16583,23.28028 0.0864,34.91719 H 85.313604 c 0.02386,0 0.03682,-17.00023 0.0381,-34.91719 z"
+         sodipodi:nodetypes="ccsccssssccscccccccccccccccc"
+         transform="matrix(0.96291863,0,0,1.0078752,7.7870873,-0.78656191)" />
+      <g
+         inkscape:groupmode="layer"
+         id="layer3"
+         inkscape:label="Tracks"
+         style="stroke:#1a1a1a;stroke-width:0.507542;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(0.96291863,0,0,1.0078752,7.7870873,-0.78656191)">
+        <path
+           id="rect4"
+           style="display:inline;fill:#5d6c53;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="M 0,99.878657 H 210 V 146.30632 H 0 Z"
+           inkscape:label="grass"
+           transform="matrix(1.0385093,0,0,0.99218634,-8.086963,0.78041598)" />
+        <path
+           style="fill:#b3b3b3;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="M 165.23845,145.9702 106.51486,99.852002 h 3.39981 L 210,141.26496 v 4.67859 z"
+           id="path71"
+           sodipodi:nodetypes="cccccc"
+           inkscape:label="Right Platform" />
+        <path
+           style="display:inline;fill:#4d4d4d;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="m 106.51486,99.852002 h -0.76881 l 49.4909,46.118198 h 10.0015 z"
+           id="path72"
+           inkscape:label="Right Tracks wall" />
+        <path
+           style="fill:#333333;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="M 155.23695,145.9702 H 127.6666 L 103.03668,99.852002 h 2.70937 z"
+           id="path73"
+           inkscape:label="Right Tracks" />
+        <path
+           style="fill:#333333;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="M 46.676086,145.9702 H 74.24644 L 98.876355,99.852002 h -2.709371 z"
+           id="path85"
+           inkscape:label="Left Tracks" />
+        <path
+           style="fill:#4d4d4d;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="m 95.398176,99.852002 h 0.768808 L 46.676086,145.9702 H 36.674587 Z"
+           id="path84"
+           inkscape:label="Left Tracks wall" />
+        <path
+           style="fill:#b3b3b3;stroke:#1a1a1a;stroke-width:0.452989;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="M 36.674587,145.9702 95.398176,99.852002 H 91.998369 L -8.086963,141.35361 v 4.58994 z"
+           id="path83"
+           sodipodi:nodetypes="cccccc"
+           inkscape:label="Left Platform" />
+        <path
+           style="fill:#b3b3b3;stroke:#1a1a1a;stroke-width:0.507542;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;fill-opacity:1"
+           d="M 134.52616,145.94355 H 67.386877 l 30.95526,-46.064893 h 5.228763 z"
+           id="path67"
+           inkscape:label="Middle Platform"
+           sodipodi:nodetypes="ccccc" />
+        <g
+           id="g237"
+           inkscape:label="Train - BLUE"
+           transform="matrix(-0.97325682,0,0,0.92984438,205.90111,9.8893018)"
+           style="fill:#3771c8">
+          <g
+             id="g226"
+             inkscape:label="Car"
+             transform="matrix(0.27919048,0,0,0.27919048,74.899832,69.483066)"
+             style="fill:#3771c8;stroke-width:1.79089;stroke-dasharray:none">
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 96.392301,115.05442 0.245327,-11.13094 5.135422,-3.5027 -0.15293,6.77298 z"
+               id="path224" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 96.637626,103.92348 h -7.145998 l 8.411274,-3.49924 3.870148,-0.003 z"
+               id="path225"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 89.491628,103.92348 h 7.145998 l -0.245327,11.13094 h -7.150451 z"
+               id="path226"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g229"
+             inkscape:label="Car"
+             transform="matrix(0.54087239,0,0,0.54087239,47.683928,44.29123)"
+             style="fill:#3771c8;stroke-width:0.924432;stroke-dasharray:none">
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 94.419319,115.05764 0.232116,-11.10141 5.129238,-3.49851 -0.148469,6.76267 z"
+               id="path227" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 94.651433,103.95623 h -7.140478 l 8.401205,-3.49505 3.868504,-0.003 z"
+               id="path228"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 87.510955,103.95623 h 7.140478 l -0.232116,11.10141 h -7.136995 z"
+               id="path229"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g232"
+             inkscape:label="Car"
+             style="fill:#3771c8;stroke-width:0.491697;stroke-dasharray:none"
+             transform="matrix(1.0168859,0,0,1.0168859,-2.0485476,-1.5459044)">
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 93.46048,115.01268 0.207297,-11.04811 5.117726,-3.49095 -0.139795,6.74406 z"
+               id="path230" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 93.667774,103.96457 h -7.130491 l 8.382669,-3.48749 3.865543,-0.003 z"
+               id="path231"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 86.537283,103.96457 h 7.130491 l -0.207296,11.04811 h -7.112677 z"
+               id="path232"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g236"
+             inkscape:label="Engine"
+             style="fill:#3771c8;stroke-width:0.5;stroke-dasharray:none">
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 76.43386,116.97 16.371054,-12.42386 -0.219984,11.81812 -19.704112,29.49737 -3.6137,-6.5082 0.06362,-6.54126 3.769028,-6.57458 z"
+               id="path233"
+               sodipodi:nodetypes="cccccccc" />
+            <path
+               style="opacity:1;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="M 92.804913,104.54614 H 84.974888 L 51.99056,116.97 h 24.4433 z"
+               id="path234"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               id="path235"
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+               inkscape:label="Window"
+               d="m 51.99056,116.97 h 24.4433 l -3.334098,9.26759 H 47.927639 Z"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               id="path236"
+               style="fill:#3771c8;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+               inkscape:label="Sbahn"
+               d="m 73.099762,126.23759 -3.720673,7.82909 -0.111972,5.28675 3.613701,6.5082 h -24.98127 l -3.676996,-6.5082 0.06056,-5.28675 3.644531,-7.82909 z"
+               sodipodi:nodetypes="ccccccccc" />
+          </g>
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1;font-family:'Rubik Scribble';-inkscape-font-specification:'Rubik Scribble';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+             x="-68.035255"
+             y="139.14781"
+             id="text237"
+             inkscape:label="label"
+             transform="scale(-1,1)"><tspan
+               sodipodi:role="line"
+               id="tspan237"
+               style="stroke-width:1"
+               x="-68.035255"
+               y="139.14781">TRAIN</tspan></text>
+        </g>
+        <g
+           id="g41"
+           inkscape:label="Train - RED"
+           transform="matrix(0.97325683,0,0,0.92984437,-4.0456518,9.8893019)"
+           style="stroke:#1a1a1a;stroke-width:0.507542;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill:#3771c8">
+          <g
+             id="g4"
+             inkscape:label="Car"
+             transform="matrix(0.27919048,0,0,0.27919048,74.899832,69.483066)"
+             style="fill:#c83737;stroke-width:1.79089;stroke-dasharray:none;fill-opacity:1">
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 96.392301,115.05442 0.245327,-11.13094 5.135422,-3.5027 -0.15293,6.77298 z"
+               id="path2" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 96.637626,103.92348 h -7.145998 l 8.411274,-3.49924 3.870148,-0.003 z"
+               id="path3"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:1.79089;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 89.491628,103.92348 h 7.145998 l -0.245327,11.13094 h -7.150451 z"
+               id="path4"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g27"
+             inkscape:label="Car"
+             transform="matrix(0.54087239,0,0,0.54087239,47.683928,44.29123)"
+             style="fill:#c83737;stroke-width:0.924432;stroke-dasharray:none;fill-opacity:1">
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 94.419319,115.05764 0.232116,-11.10141 5.129238,-3.49851 -0.148469,6.76267 z"
+               id="path16" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 94.651433,103.95623 h -7.140478 l 8.401205,-3.49505 3.868504,-0.003 z"
+               id="path17"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.924432;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 87.510955,103.95623 h 7.140478 l -0.232116,11.10141 h -7.136995 z"
+               id="path27"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g33"
+             inkscape:label="Car"
+             style="fill:#c83737;stroke-width:0.491697;stroke-dasharray:none;fill-opacity:1"
+             transform="matrix(1.0168859,0,0,1.0168859,-2.0485476,-1.5459044)">
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 93.46048,115.01268 0.207297,-11.04811 5.117726,-3.49095 -0.139795,6.74406 z"
+               id="path31" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 93.667774,103.96457 h -7.130491 l 8.382669,-3.48749 3.865543,-0.003 z"
+               id="path32"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.491697;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 86.537283,103.96457 h 7.130491 l -0.207296,11.04811 h -7.112677 z"
+               id="path33"
+               sodipodi:nodetypes="ccccc" />
+          </g>
+          <g
+             id="g40"
+             inkscape:label="Engine"
+             style="fill:#3771c8;stroke-width:0.5;stroke-dasharray:none">
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="m 76.43386,116.97 16.371054,-12.42386 -0.219984,11.81812 -19.704112,29.49737 -3.6137,-6.5082 0.06362,-6.54126 3.769028,-6.57458 z"
+               id="path34"
+               sodipodi:nodetypes="cccccccc" />
+            <path
+               style="opacity:1;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+               d="M 92.804913,104.54614 H 84.974888 L 51.99056,116.97 h 24.4433 z"
+               id="path38"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               id="path39"
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+               inkscape:label="Window"
+               d="m 51.99056,116.97 h 24.4433 l -3.334098,9.26759 H 47.927639 Z"
+               sodipodi:nodetypes="ccccc" />
+            <path
+               id="path40"
+               style="fill:#c83737;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;fill-opacity:1"
+               inkscape:label="Sbahn"
+               d="m 73.099762,126.23759 -3.720673,7.82909 -0.111972,5.28675 3.613701,6.5082 h -24.98127 l -3.676996,-6.5082 0.06056,-5.28675 3.644531,-7.82909 z"
+               sodipodi:nodetypes="ccccccccc" />
+          </g>
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1;font-family:'Rubik Scribble';-inkscape-font-specification:'Rubik Scribble';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+             x="45.386913"
+             y="139.14781"
+             id="text40"
+             inkscape:label="label"><tspan
+               sodipodi:role="line"
+               id="tspan40"
+               style="stroke-width:1"
+               x="45.386913"
+               y="139.14781">TRAIN</tspan></text>
+        </g>
+        <rect
+           style="stroke:none;stroke-width:1.00182;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;fill:#aaccff;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+           id="rect14"
+           width="210"
+           height="99.878654"
+           x="0"
+           y="0"
+           inkscape:label="Sky"
+           transform="matrix(1.0385094,0,0,0.99218637,-8.086963,0.78041598)" />
+        <path
+           style="display:inline;fill:#484537;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="m 0,146.17689 c 47.985436,-179.084083 162.08965,-178.803848 210,0 V 0 H 0 Z"
+           id="path13"
+           sodipodi:nodetypes="ccccc"
+           inkscape:label="Arch"
+           transform="matrix(1.0385094,0,0,0.99218634,-8.086963,0.78041598)" />
+        <g
+           id="g31"
+           inkscape:label="Sign - RED"
+           transform="matrix(1.0385094,0,0,0.99218634,-189.95094,11.306558)"
+           style="stroke-width:0.5;stroke-dasharray:none">
+          <path
+             id="rect35"
+             style="display:inline;fill:#c83737;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+             inkscape:label="Sign"
+             d="m 175.1202,101.58863 v 6.75153 0.72967 6.75152 h 6.75101 10.70581 10.7058 c 3.74017,0 6.75153,-3.01135 6.75153,-6.75152 v -0.72967 c 0,-3.74017 -3.01136,-6.75153 -6.75153,-6.75153 h -10.7058 -10.70581 z"
+             transform="translate(-1.0754877e-6)" />
+          <path
+             style="display:inline;fill:#1a1a1a;fill-opacity:1;stroke:none;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="path35"
+             sodipodi:type="arc"
+             sodipodi:cx="202.83121"
+             sodipodi:cy="108.91634"
+             sodipodi:rx="5.3502502"
+             sodipodi:ry="5.3502502"
+             sodipodi:start="4.7035546"
+             sodipodi:end="5.289188"
+             sodipodi:arc-type="slice"
+             d="m 202.78394,103.5663 a 5.3502502,5.3502502 0 0 1 2.96499,0.8654 l -2.91772,4.48464 z"
+             inkscape:label="Circle" />
+          <circle
+             style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="circle35"
+             inkscape:label="Circle"
+             cx="202.83121"
+             cy="108.91634"
+             r="5.3502502" />
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8.81944px;line-height:1;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';text-align:center;letter-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#1a1a1a;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+             x="185.87917"
+             y="111.87303"
+             id="text31"
+             inkscape:label="##"><tspan
+               sodipodi:role="line"
+               id="tspan31"
+               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8.81944px;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';fill:#1a1a1a;stroke:#b3b3b3;stroke-width:0.5;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+               x="185.87917"
+               y="111.87303">5</tspan></text>
+        </g>
+        <g
+           id="g37"
+           inkscape:label="Sign - BLUE"
+           transform="matrix(1.0385094,0,0,0.99218634,-8.1226557,11.306558)"
+           style="stroke-width:0.5;stroke-dasharray:none">
+          <path
+             id="path36"
+             style="display:inline;fill:#3771c8;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+             inkscape:label="Sign"
+             d="m 210.03435,101.58863 v 6.75153 0.72967 6.75152 h -6.75101 -10.70581 -10.7058 c -3.74017,0 -6.75153,-3.01135 -6.75153,-6.75152 v -0.72967 c 0,-3.74017 3.01136,-6.75153 6.75153,-6.75153 h 10.7058 10.70581 z" />
+          <path
+             style="display:inline;fill:#1a1a1a;fill-opacity:1;stroke:none;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="path37"
+             sodipodi:type="arc"
+             sodipodi:cx="182.8688"
+             sodipodi:cy="108.91634"
+             sodipodi:rx="5.3502502"
+             sodipodi:ry="5.3502502"
+             sodipodi:start="4.7035546"
+             sodipodi:end="1.9916453"
+             sodipodi:arc-type="slice"
+             d="m 182.82154,103.5663 a 5.3502502,5.3502502 0 0 1 4.99737,3.31987 5.3502502,5.3502502 0 0 1 -1.22723,5.87275 5.3502502,5.3502502 0 0 1 -5.90864,1.04082 l 2.18576,-4.8834 z"
+             inkscape:label="Circle" />
+          <circle
+             style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="circle37"
+             inkscape:label="Circle"
+             cx="182.8688"
+             cy="108.91634"
+             r="5.3502502" />
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8.81944px;line-height:1;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';text-align:center;letter-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#1a1a1a;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+             x="199.27287"
+             y="111.87303"
+             id="text37"
+             inkscape:label="##"><tspan
+               sodipodi:role="line"
+               id="tspan37"
+               style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:8.81944px;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';fill:#1a1a1a;stroke:#b3b3b3;stroke-width:0.5;stroke-dasharray:none;stroke-opacity:1;paint-order:markers stroke fill"
+               x="199.27287"
+               y="111.87303">35</tspan></text>
+        </g>
+      </g>
+      <g
+         inkscape:label="Layer 1"
+         inkscape:groupmode="layer"
+         id="layer1">
+        <rect
+           style="fill:#cccccc;stroke-width:0.817856;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+           id="rect22"
+           width="210.5"
+           height="59.623055"
+           x="-0.5"
+           y="145.94891"
+           rx="0"
+           ry="0"
+           inkscape:label="Bahnhof Floor" />
+        <rect
+           style="display:inline;fill:#4d4d4d;stroke-width:0.904139;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+           id="rect1"
+           width="210"
+           height="78.883972"
+           x="0"
+           y="218.11603"
+           rx="0.089350179"
+           ry="12.284682"
+           inkscape:label="Ubahn BG" />
+        <rect
+           style="fill:#b3b3b3;stroke-width:1;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-linejoin:round;stroke-linecap:round"
+           id="rect27"
+           width="210"
+           height="17.870035"
+           x="1.6543803e-13"
+           y="265.1131"
+           rx="0.089350179"
+           ry="15.027762"
+           inkscape:label="Sidewalk" />
+        <g
+           id="g221"
+           inkscape:label="Escalator"
+           style="display:inline">
+          <path
+             id="rect163"
+             style="fill:#333333;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+             inkscape:label="Escalator DOWN"
+             d="m 121.33695,188.54192 h 10.84993 c 0.0486,0 0.0486,76.57116 0,76.57116 h -10.84993 c 0.16641,-25.51933 -0.43863,-51.05437 0,-76.57116 z"
+             sodipodi:nodetypes="sssss" />
+          <path
+             id="rect164"
+             style="fill:#333333;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+             inkscape:label="Escalator UP"
+             d="m 132.2491,188.54192 h 10.84993 c 0.0486,0 0.0486,76.57116 0,76.57116 H 132.2491 c 0.16641,-25.51933 -0.43863,-51.05437 0,-76.57116 z"
+             sodipodi:nodetypes="sssss" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,192.16563 h 21.82812"
+             id="path20-1" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,195.66179 h 21.82812"
+             id="path21-2" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,253.06545 h 21.82812"
+             id="path26-7" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,199.09767 h 21.82812"
+             id="path22-0" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,256.50133 h 21.82812"
+             id="path28-9" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,243.81726 h 21.82812"
+             id="path18-3" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,202.17188 h 21.82812"
+             id="path23-6" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,259.57554 h 21.82812"
+             id="path29-0" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,246.89147 h 21.82812"
+             id="path19-6" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,205.32174 h 21.82812"
+             id="path24-2" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,262.7254 h 21.82812"
+             id="path30-6" />
+          <path
+             style="display:inline;fill:none;fill-opacity:1;stroke:#4d4d4d;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 121.46421,250.04133 h 21.82812"
+             id="path15-1" />
+          <g
+             id="g220"
+             inkscape:label="Lights"
+             style="display:inline">
+            <path
+               style="opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 123.11895,243.6735 3.76526,4.59012 3.76525,-4.59012 z"
+               id="path185" />
+            <path
+               style="opacity:1;fill:#2d5016;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 133.72799,262.29349 3.76526,-4.59012 3.76525,4.59012 z"
+               id="path165" />
+            <path
+               style="opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 123.11895,250.48588 3.76526,4.59012 3.76525,-4.59012 z"
+               id="path186" />
+            <path
+               style="opacity:1;fill:#447821;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 133.72799,255.48111 3.76526,-4.59012 3.76525,4.59012 z"
+               id="path166" />
+            <path
+               style="opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 123.11895,257.70338 3.76526,4.59012 3.76525,-4.59012 z"
+               id="path187" />
+            <path
+               style="opacity:1;fill:#5aa02c;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 133.72799,248.26361 3.76526,-4.59012 3.76525,4.59012 z"
+               id="path167" />
+            <path
+               style="opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 123.11895,192.05069 3.76526,4.59012 3.76525,-4.59012 z"
+               id="path188" />
+            <path
+               style="opacity:1;fill:#447821;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 133.72799,203.58005 3.76526,-4.59012 3.76525,4.59012 z"
+               id="path168" />
+            <path
+               style="opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 123.11895,198.98994 3.76526,4.59012 3.76525,-4.59012 z"
+               id="path189" />
+            <path
+               style="opacity:1;fill:#5aa02c;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.426491;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               d="m 133.72799,196.6408 3.76526,-4.59012 3.76525,4.59012 z"
+               id="path169" />
+          </g>
+        </g>
+        <g
+           id="g222"
+           inkscape:label="Stairs"
+           style="display:inline">
+          <path
+             id="rect162"
+             style="fill:#666666;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+             inkscape:label="Stairs DOWN"
+             d="m 68.175293,188.54192 h 10.849934 c 0.04858,0 0.04857,76.57116 0,76.57116 H 68.175293 c 0.166715,-25.51932 -0.43919,-51.05439 0,-76.57116 z"
+             sodipodi:nodetypes="sssss" />
+          <path
+             id="rect49"
+             style="fill:#666666;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+             inkscape:label="Stairs UP"
+             d="m 79.087449,188.54192 h 10.849933 c 0.04858,0 0.04857,76.57116 0,76.57116 H 79.087449 c -0.06222,0 -0.43919,-51.05439 0,-76.57116 z"
+             sodipodi:nodetypes="ssscs" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,192.16587 H 89.947866"
+             id="path20" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,195.66203 H 89.947866"
+             id="path21" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,253.06569 H 89.947866"
+             id="path26" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,199.09791 H 89.947866"
+             id="path22" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,256.50157 H 89.947866"
+             id="path28" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,243.8175 H 89.947866"
+             id="path18" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,202.17212 H 89.947866"
+             id="path23" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,259.57578 H 89.947866"
+             id="path29" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,246.89171 H 89.947866"
+             id="path19" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,205.32198 H 89.947866"
+             id="path24" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,262.72564 H 89.947866"
+             id="path30" />
+          <path
+             style="fill:none;fill-opacity:1;stroke:#333333;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 68.119754,250.04157 H 89.947866"
+             id="path15" />
+        </g>
+        <rect
+           style="fill:#b3b3b3;stroke-width:1.16728;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+           id="rect6"
+           width="210"
+           height="24.348795"
+           x="1.6543803e-13"
+           y="205.57198"
+           rx="0.089350179"
+           ry="20.476059"
+           inkscape:label="Sidewalk" />
+        <rect
+           style="fill:#1a1a1a;stroke-width:0.812766;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-linejoin:round;stroke-linecap:round"
+           id="rect2"
+           width="210"
+           height="11.804744"
+           x="0"
+           y="229.92078"
+           rx="0.089350179"
+           ry="9.9271708"
+           inkscape:label="Street" />
+        <rect
+           style="fill:#1a1a1a;stroke-width:0.449535;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-linejoin:round;stroke-linecap:round"
+           id="rect5"
+           width="210"
+           height="3.6112051"
+           x="0"
+           y="-286.59433"
+           rx="0.089350179"
+           ry="3.0368342"
+           transform="scale(1,-1)"
+           inkscape:label="Ubahn Tracks" />
+        <rect
+           style="fill:#d40000;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           id="rect160"
+           width="6.2901297"
+           height="9.1206884"
+           x="167.55334"
+           y="196.6606"
+           inkscape:label="Trashbin1" />
+        <rect
+           style="fill:#217844;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           id="rect101"
+           width="6.2901297"
+           height="9.1206884"
+           x="167.55334"
+           y="255.9924"
+           inkscape:label="Trashbin1" />
+        <rect
+           style="fill:#c83737;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           id="rect161"
+           width="6.2901297"
+           height="9.1206884"
+           x="33.007587"
+           y="196.6606"
+           inkscape:label="Trashbin1" />
+        <rect
+           style="fill:#c8ab37;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           id="rect102"
+           width="6.2901297"
+           height="9.1206884"
+           x="33.007587"
+           y="255.9924"
+           inkscape:label="Trashbin1" />
+        <g
+           id="g22"
+           inkscape:label="Ubahn"
+           transform="matrix(1.3271439,0,0,1.3271439,-85.223961,-93.307867)"
+           style="stroke-linecap:round;stroke-linejoin:round;stroke-width:0.3767489;stroke-dasharray:none">
+          <g
+             id="g17">
+            <rect
+               style="fill:#ffcc00;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1;stroke-dasharray:none"
+               id="rect12"
+               width="61.982197"
+               height="21.003708"
+               x="64.80249"
+               y="272.27026"
+               rx="2.4694104"
+               ry="3.5577226"
+               inkscape:label="Ubahn Car" />
+            <rect
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect7-1"
+               width="17.130222"
+               height="11.824779"
+               x="62.945133"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect8-2"
+               width="17.130222"
+               height="11.824779"
+               x="43.128139"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect10-7"
+               width="17.130222"
+               height="11.824779"
+               x="23.311146"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect3-0"
+               width="17.130222"
+               height="11.824779"
+               x="3.2048445"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+          </g>
+          <g
+             id="g16">
+            <rect
+               style="fill:#ffcc00;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1;stroke-dasharray:none"
+               id="rect9"
+               width="61.982197"
+               height="21.003708"
+               x="127.95755"
+               y="272.27026"
+               rx="2.4694104"
+               ry="3.5577226"
+               inkscape:label="Ubahn Car" />
+            <rect
+               style="stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5;stroke-dasharray:none;fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect11"
+               width="17.130222"
+               height="11.824779"
+               x="147.09409"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5;stroke-dasharray:none;fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect13"
+               width="17.130222"
+               height="11.824779"
+               x="127.27709"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5;stroke-dasharray:none;fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect15"
+               width="17.130222"
+               height="11.824779"
+               x="107.4601"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+            <rect
+               style="stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5;stroke-dasharray:none;fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-opacity:1"
+               id="rect16"
+               width="17.130222"
+               height="11.824779"
+               x="87.353798"
+               y="270.7894"
+               rx="0.68247908"
+               ry="2.0029454"
+               inkscape:label="Bus"
+               transform="matrix(0.7534978,0,0,0.7534978,64.216067,70.307272)" />
+          </g>
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1;font-family:'Rubik Scribble';-inkscape-font-specification:'Rubik Scribble';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.376749;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+             x="146.11308"
+             y="290.64581"
+             id="text200"
+             inkscape:label="label"><tspan
+               sodipodi:role="line"
+               id="tspan200"
+               style="stroke-width:0.376749;stroke-dasharray:none"
+               x="146.11308"
+               y="290.64581">UBAHN</tspan></text>
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1;font-family:'Rubik Scribble';-inkscape-font-specification:'Rubik Scribble';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.376749;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+             x="80.302528"
+             y="290.45294"
+             id="text202"
+             inkscape:label="label"><tspan
+               sodipodi:role="line"
+               id="tspan202"
+               style="stroke-width:0.376749;stroke-dasharray:none"
+               x="80.302528"
+               y="290.45294">UBAHN</tspan></text>
+        </g>
+        <g
+           id="g96"
+           inkscape:label="Cafe">
+          <path
+             style="opacity:1;fill:#333333;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 208.08911,155.07282 h -16.7952 l 16.7952,8.90785 z"
+             id="path106" />
+          <path
+             style="opacity:1;fill:#decd87;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 188.48541,156.15456 -0.003,-2.57432 17.18925,0.16497 2.41746,1.32761 v 0 h -16.7952 l 16.7952,8.90785 v 5.23519 c -7.26639,-4.81269 -19.60385,-13.0613 -19.60385,-13.0613 z"
+             id="path105"
+             sodipodi:nodetypes="ccccccccc" />
+          <path
+             id="path94"
+             style="opacity:1;fill:#817169;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             inkscape:label="Face"
+             d="m 186.57156,137.42055 v 23.7939 l 23.42854,19.22777 v -30.15527 z m 1.91099,8.93819 19.60656,11.37009 1e-5,11.48703 -19.60371,-13.0613 z"
+             sodipodi:nodetypes="cccccccccc" />
+          <path
+             id="path95"
+             style="opacity:1;fill:#39312f;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 204.30089,126.69877 -17.7293,10.72182 23.42854,12.8664 v -23.58822 z"
+             sodipodi:nodetypes="ccccc"
+             inkscape:label="Roof" />
+          <g
+             id="g39"
+             inkscape:path-effect="#path-effect39">
+            <path
+               d="m 192.27733,147.72873 c -0.27445,-0.15845 -0.49714,-0.36239 -0.66805,-0.61058 -0.16623,-0.24387 -0.2791,-0.52418 -0.33931,-0.8395 -0.0566,-0.3093 -0.0564,-0.64856 -7.4e-4,-1.01624 0.0278,-0.1659 0.0588,-0.34172 0.093,-0.52719 0.0339,-0.18386 0.0673,-0.35772 0.10018,-0.52181 0.0714,-0.32508 0.17694,-0.57128 0.31656,-0.74133 0.13908,-0.17229 0.30647,-0.26814 0.50287,-0.28864 0.19676,-0.0241 0.41673,0.027 0.66122,0.15394 0.17439,0.0905 0.33175,0.20602 0.47221,0.34689 0.14191,0.13808 0.26189,0.29743 0.35987,0.47856 0.0993,0.17886 0.17002,0.37269 0.21184,0.58191 0.0455,0.20881 0.0565,0.42658 0.0324,0.65356 -0.002,0.0378 -0.0138,0.0637 -0.0361,0.0777 -0.0198,0.0153 -0.0423,0.0161 -0.0676,0.002 l -0.56455,-0.30419 c -0.036,-0.0194 -0.0623,-0.0443 -0.0789,-0.0747 -0.016,-0.0343 -0.0268,-0.085 -0.0323,-0.15201 -0.009,-0.22956 -0.0523,-0.40363 -0.12877,-0.52355 -0.0728,-0.12166 -0.17099,-0.21507 -0.29469,-0.28061 -0.14741,-0.0781 -0.27296,-0.0808 -0.37733,-0.008 -0.10412,0.0691 -0.18277,0.23811 -0.23619,0.5096 -0.0613,0.31868 -0.1167,0.65483 -0.16606,1.00916 -0.0399,0.29781 -0.0261,0.53829 0.0422,0.71942 0.0696,0.17836 0.18236,0.312 0.33837,0.40008 0.13095,0.0739 0.24862,0.0934 0.35257,0.0583 0.10377,-0.0351 0.18983,-0.15413 0.25782,-0.35587 0.0202,-0.0575 0.0417,-0.0913 0.0644,-0.1014 0.0262,-0.0128 0.0577,-0.009 0.0947,0.0115 l 0.57966,0.32148 c 0.026,0.0144 0.0461,0.0393 0.0603,0.0748 0.0171,0.0371 0.0219,0.0744 0.0144,0.11184 -0.0317,0.24274 -0.0948,0.44475 -0.18941,0.6049 -0.0916,0.15862 -0.2084,0.27534 -0.35031,0.3495 -0.14181,0.0699 -0.30036,0.0963 -0.47523,0.079 -0.17413,-0.0217 -0.35736,-0.0882 -0.54913,-0.19887 z m 1.63054,0.86653 c -0.0241,-0.0139 -0.045,-0.0409 -0.0629,-0.081 -0.0142,-0.0429 -0.0192,-0.083 -0.0149,-0.12017 0.003,-0.0232 0.006,-0.0432 0.0113,-0.0601 l 1.44481,-3.54689 c 0.0123,-0.0388 0.0325,-0.0672 0.0605,-0.0855 0.0311,-0.0206 0.0705,-0.0185 0.11818,0.006 l 0.62743,0.32617 c 0.0484,0.0252 0.0843,0.0624 0.10752,0.11162 0.0264,0.0468 0.0425,0.0946 0.0482,0.14338 l 0.83419,4.90427 c 0.006,0.0237 0.008,0.0481 0.007,0.0731 -0.002,0.0401 -0.0146,0.0714 -0.0388,0.0936 -0.0207,0.019 -0.0457,0.0201 -0.0749,0.003 l -0.59326,-0.34197 c -0.0479,-0.0276 -0.0835,-0.0661 -0.10694,-0.11534 -0.0199,-0.0523 -0.0321,-0.095 -0.0366,-0.12823 l -0.13743,-0.84351 -1.22766,-0.69431 -0.24076,0.61522 c -0.009,0.0249 -0.0258,0.0501 -0.0509,0.0758 -0.0246,0.0209 -0.063,0.0164 -0.11489,-0.0136 z m 1.23852,-1.22717 0.83756,0.46348 -0.29113,-1.9391 z m 2.44563,3.35076 c -0.0361,-0.0208 -0.065,-0.0557 -0.0868,-0.10453 -0.0217,-0.0487 -0.0316,-0.10099 -0.0297,-0.15673 l 0.15112,-4.46811 c 0.002,-0.0456 0.0131,-0.0775 0.0348,-0.0957 0.0216,-0.0182 0.0487,-0.0188 0.0813,-0.002 l 2.08591,1.08434 c 0.0342,0.0178 0.0624,0.0475 0.0847,0.0892 0.0255,0.0435 0.0387,0.0893 0.0396,0.1375 l 0.0131,0.67429 c 9.7e-4,0.0498 -0.0109,0.0839 -0.0357,0.10213 -0.0216,0.02 -0.0499,0.0207 -0.0849,0.002 l -1.44244,-0.76599 -0.0152,0.98962 1.37759,0.74727 c 0.0356,0.0193 0.0651,0.0541 0.0885,0.10447 0.0266,0.0474 0.0403,0.0975 0.0412,0.15014 l 0.0127,0.72967 c 8.6e-4,0.0494 -0.0116,0.0867 -0.0375,0.11175 -0.0227,0.0219 -0.0523,0.0227 -0.0888,0.002 l -1.41012,-0.78219 -0.026,1.6883 c -8.7e-4,0.0568 -0.0132,0.0967 -0.0371,0.11963 -0.0239,0.0229 -0.0543,0.0237 -0.0909,0.003 z m 3.15542,1.81883 c -0.0388,-0.0223 -0.0711,-0.0598 -0.097,-0.11236 -0.0258,-0.0524 -0.0396,-0.10858 -0.0414,-0.16851 l -0.1474,-4.7884 c -0.001,-0.0487 0.008,-0.0828 0.0294,-0.10226 0.0211,-0.0194 0.0489,-0.0201 0.0837,-0.002 l 2.2657,1.17779 c 0.0365,0.0189 0.0677,0.0508 0.0937,0.0955 0.026,0.0448 0.0412,0.093 0.0456,0.14459 l 0.0569,0.67158 c 0.005,0.0532 -0.004,0.0905 -0.0246,0.11197 -0.0209,0.0214 -0.0501,0.0222 -0.0874,0.002 l -1.59569,-0.84652 0.0473,0.96893 1.51646,0.82032 c 0.0381,0.0206 0.0709,0.0577 0.0985,0.11142 0.0272,0.0487 0.0432,0.10116 0.0478,0.15737 l 0.0557,0.67647 c 0.004,0.0526 -0.004,0.0932 -0.0255,0.12185 -0.0218,0.0233 -0.0522,0.0242 -0.0912,0.003 l -1.55134,-0.85642 0.0531,1.08829 1.75165,0.98748 c 0.04,0.0226 0.0745,0.0605 0.10336,0.11391 0.0289,0.0535 0.046,0.11106 0.0513,0.17279 l 0.0688,0.80433 c 0.005,0.0638 -0.003,0.10861 -0.0258,0.1344 -0.0227,0.0257 -0.0546,0.0267 -0.0958,0.003 z"
+               id="text39"
+               style="font-weight:bold;font-size:5.40463px;line-height:1;font-family:Rubik;-inkscape-font-specification:'Rubik Bold';letter-spacing:0px;fill:#1a1a1a;stroke:#c8c4b7;stroke-width:0.306404;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;paint-order:markers stroke fill"
+               aria-label="CAFE"
+               inkscape:original-d="m 189.61276,150.82126 q -0.51344,0 -0.88096,-0.16755 -0.36211,-0.16754 -0.56748,-0.49182 -0.19998,-0.32427 -0.22159,-0.80529 -0.005,-0.22159 -0.005,-0.4756 0,-0.25402 0.005,-0.48642 0.0216,-0.4702 0.22699,-0.79448 0.20538,-0.32968 0.57289,-0.49723 0.36752,-0.17295 0.87015,-0.17295 0.3567,0 0.65936,0.0919 0.30266,0.0865 0.52966,0.25943 0.22699,0.16754 0.3513,0.41075 0.12971,0.2378 0.13511,0.54046 0.005,0.0486 -0.0324,0.0811 -0.0324,0.0324 -0.0811,0.0324 h -0.72962 q -0.0703,0 -0.10809,-0.027 -0.0378,-0.0324 -0.0649,-0.11349 -0.0757,-0.28645 -0.24861,-0.38914 -0.16754,-0.10809 -0.41616,-0.10809 -0.29725,0 -0.4702,0.16754 -0.17295,0.16214 -0.18916,0.54587 -0.0162,0.44318 0,0.90798 0.0162,0.38373 0.18916,0.55127 0.17295,0.16214 0.4702,0.16214 0.24862,0 0.42156,-0.10809 0.17295,-0.10809 0.24321,-0.38913 0.0216,-0.0811 0.0594,-0.1081 0.0432,-0.0324 0.1135,-0.0324 h 0.72962 q 0.0487,0 0.0811,0.0324 0.0378,0.0324 0.0324,0.0811 -0.005,0.30266 -0.13511,0.54587 -0.12431,0.2378 -0.3513,0.41075 -0.227,0.16755 -0.52966,0.25942 -0.30266,0.0865 -0.65936,0.0865 z m 1.97742,-0.054 q -0.0432,0 -0.0811,-0.0324 -0.0324,-0.0378 -0.0324,-0.0811 0,-0.027 0.005,-0.0486 l 1.27009,-3.46977 q 0.0162,-0.0594 0.0649,-0.10269 0.054,-0.0486 0.14592,-0.0486 h 0.79989 q 0.0919,0 0.14052,0.0486 0.054,0.0432 0.0703,0.10269 l 1.26468,3.46977 q 0.0108,0.0216 0.0108,0.0486 0,0.0432 -0.0378,0.0811 -0.0324,0.0324 -0.0811,0.0324 h -0.66477 q -0.0811,0 -0.12431,-0.0378 -0.0378,-0.0432 -0.0486,-0.0757 l -0.21078,-0.55127 h -1.44304 l -0.20537,0.55127 q -0.0108,0.0324 -0.0486,0.0757 -0.0378,0.0378 -0.12972,0.0378 z m 1.27008,-1.44303 h 1.00526 l -0.50803,-1.42683 z m 2.95093,1.44303 q -0.0594,0 -0.0973,-0.0378 -0.0378,-0.0378 -0.0378,-0.0973 v -3.51301 q 0,-0.0594 0.0378,-0.0973 0.0378,-0.0378 0.0973,-0.0378 h 2.48072 q 0.0595,0 0.0973,0.0378 0.0432,0.0378 0.0432,0.0973 v 0.54586 q 0,0.0595 -0.0432,0.0973 -0.0378,0.0378 -0.0973,0.0378 h -1.66462 v 0.79448 h 1.55653 q 0.0594,0 0.0973,0.0432 0.0432,0.0378 0.0432,0.0973 v 0.54046 q 0,0.054 -0.0432,0.0973 -0.0378,0.0378 -0.0973,0.0378 h -1.55653 v 1.22145 q 0,0.0594 -0.0378,0.0973 -0.0378,0.0378 -0.0973,0.0378 z m 3.34006,0 q -0.0594,0 -0.0973,-0.0378 -0.0378,-0.0378 -0.0378,-0.0973 v -3.51301 q 0,-0.0594 0.0378,-0.0973 0.0378,-0.0378 0.0973,-0.0378 h 2.52396 q 0.0594,0 0.0973,0.0378 0.0378,0.0378 0.0378,0.0973 v 0.50803 q 0,0.0594 -0.0378,0.0973 -0.0378,0.0378 -0.0973,0.0378 h -1.72407 v 0.72962 h 1.60517 q 0.0594,0 0.0973,0.0432 0.0378,0.0378 0.0378,0.0973 v 0.47021 q 0,0.054 -0.0378,0.0973 -0.0378,0.0378 -0.0973,0.0378 h -1.60517 v 0.75125 h 1.76731 q 0.0594,0 0.0973,0.0378 0.0378,0.0378 0.0378,0.0973 v 0.50804 q 0,0.0594 -0.0378,0.0973 -0.0378,0.0378 -0.0973,0.0378 z" />
+          </g>
+        </g>
+        <g
+           id="g98"
+           inkscape:label="WC"
+           transform="matrix(-1,0,0,1,210,0)">
+          <path
+             style="opacity:1;fill:#aaeeff;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="M 210,180.44242 186.57172,161.21449 V 137.42058 L 210,150.287 Z"
+             id="path97"
+             inkscape:label="Face" />
+          <path
+             id="path98"
+             style="opacity:1;fill:#39312f;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 204.3017,126.69877 -17.73011,10.72182 23.42854,12.8664 v -23.58822 z"
+             sodipodi:nodetypes="ccccc"
+             inkscape:label="Roof" />
+          <path
+             style="opacity:1;fill:#87cdde;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 4.9037449,176.41785 v -18.05221 l 4.5651623,-2.81315 0.018051,17.10385 z"
+             id="path108"
+             sodipodi:nodetypes="ccccc"
+             transform="matrix(-1,0,0,1,210,0)" />
+          <path
+             style="opacity:1;fill:#87cdde;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 16.723188,166.71746 v -15.15382 l 3.544472,-2.63989 0.07314,14.82468 z"
+             id="path107"
+             sodipodi:nodetypes="ccccc"
+             transform="matrix(-1,0,0,1,210,0)" />
+          <path
+             style="font-weight:900;font-size:13.2292px;line-height:1;font-family:Archivo;-inkscape-font-specification:'Archivo Heavy';letter-spacing:0px;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188"
+             d="m 8.7495378,154.48653 -1.2896447,-6.3714 1.4623493,-0.83086 0.4811968,2.83016 c 0.010085,0.0495 0.023242,0.12824 0.039459,0.23616 0.015971,0.101 0.034428,0.21418 0.05536,0.33947 0.02068,0.11834 0.038938,0.22762 0.054782,0.32786 l 0.0247,-0.0142 c 0.00628,-0.0651 0.012246,-0.14037 0.017888,-0.22576 0.00956,-0.0946 0.017057,-0.18807 0.022503,-0.28046 0.00958,-0.0949 0.017105,-0.18863 0.022571,-0.2813 0.00961,-0.0951 0.017476,-0.17903 0.023605,-0.25162 l 0.276351,-3.25891 1.3721467,-0.77961 0.452905,2.83107 c 0.0095,0.0633 0.02147,0.14916 0.03592,0.25748 0.01853,0.10582 0.03716,0.21826 0.05588,0.33727 0.01857,0.11208 0.03489,0.21506 0.04896,0.30899 l 0.02446,-0.0141 c 0.0069,-0.072 0.01377,-0.15082 0.02048,-0.23643 0.01068,-0.0948 0.01933,-0.18853 0.02594,-0.28116 0.0066,-0.0927 0.01331,-0.18217 0.02006,-0.2683 0.01073,-0.0954 0.01961,-0.17943 0.02662,-0.25219 l 0.297153,-3.25556 1.371089,-0.77901 -0.910616,7.5623 -1.458967,0.85037 -0.48851,-2.95323 c -0.01037,-0.0829 -0.02518,-0.17705 -0.04446,-0.28247 -0.01948,-0.11233 -0.03898,-0.22484 -0.05852,-0.33753 -0.01957,-0.11285 -0.03667,-0.21003 -0.05129,-0.29149 l -0.02477,0.0142 c -0.01029,0.0889 -0.0221,0.19922 -0.03544,0.33102 -0.0094,0.12246 -0.02071,0.24933 -0.03399,0.38059 -0.01344,0.12434 -0.02499,0.24058 -0.03465,0.34877 l -0.326932,3.43042 z m 7.2892802,-4.13158 c -0.460692,0.26863 -0.849046,0.36481 -1.165451,0.2879 -0.313848,-0.0796 -0.553879,-0.33186 -0.719902,-0.75881 -0.1632,-0.43893 -0.247672,-1.05176 -0.252589,-1.8417 -0.0075,-1.20235 0.171438,-2.22782 0.538428,-3.06716 0.373236,-0.84654 0.923245,-1.47756 1.64676,-1.88845 0.410111,-0.2329 0.765021,-0.31445 1.064351,-0.24515 0.302294,0.0597 0.532601,0.27455 0.6911,0.64323 0.157547,0.36646 0.229963,0.88178 0.218025,1.54377 l -1.268875,0.72879 c 0.0029,-0.27478 -0.02274,-0.4963 -0.07715,-0.66424 -0.05455,-0.16837 -0.135989,-0.27697 -0.24435,-0.32555 -0.104493,-0.051 -0.238015,-0.0301 -0.400513,0.0628 -0.191077,0.1092 -0.345987,0.26711 -0.464516,0.47348 -0.114331,0.20381 -0.198199,0.44525 -0.251593,0.72393 -0.05325,0.27793 -0.08013,0.57768 -0.08073,0.8989 l -0.0012,0.65237 c -5.93e-4,0.31756 0.02494,0.58193 0.07648,0.7935 0.05538,0.20861 0.138673,0.34707 0.249839,0.41574 0.11094,0.0685 0.255786,0.0509 0.43461,-0.0528 0.174719,-0.10128 0.317989,-0.234 0.429965,-0.39829 0.116026,-0.16672 0.202799,-0.35976 0.260343,-0.57937 0.06171,-0.22906 0.09405,-0.475 0.09693,-0.7381 l 1.217528,-0.70257 c -0.01143,0.63374 -0.0979,1.2106 -0.258952,1.73238 -0.160332,0.51944 -0.387102,0.97467 -0.680526,1.36699 -0.292932,0.38521 -0.645323,0.69778 -1.058007,0.93842 z"
+             id="text108"
+             aria-label="WC"
+             inkscape:label="WC"
+             transform="matrix(-1,0,0,1,210,0)" />
+        </g>
+        <g
+           id="g223"
+           inkscape:label="Tickets"
+           transform="matrix(0.6761731,0,0,0.8149222,34.208156,11.395463)"
+           style="stroke-width:0.67357039;stroke-dasharray:none">
+          <path
+             id="rect104"
+             style="opacity:1;fill:#817169;stroke:#1a1a1a;stroke-width:0.67357039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+             d="m 94.5666,145.90065 h 22.14112 V 165.1569 H 94.5666 Z"
+             inkscape:label="House" />
+          <path
+             id="rect103"
+             style="opacity:1;fill:#39312f;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.67357039;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+             d="m 97.217918,143.32735 h 16.926562 l 2.60826,2.7197 H 94.521577 Z"
+             sodipodi:nodetypes="ccccc"
+             inkscape:label="Roof" />
+        </g>
+        <g
+           id="g219"
+           inkscape:label="BUS"
+           transform="matrix(1.3271439,0,0,1.3271439,-46.370583,-75.064191)"
+           style="stroke-width:0.376749;stroke-dasharray:none">
+          <rect
+             style="fill:#33d643;fill-opacity:1;stroke:#000000;stroke-width:0.376749;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="rect202"
+             width="61.982197"
+             height="21.003708"
+             x="34.940132"
+             y="213.51654"
+             rx="2.4694104"
+             ry="3.5577226"
+             inkscape:label="Bus" />
+          <rect
+             style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="rect7"
+             width="12.907585"
+             height="8.9099445"
+             x="82.116295"
+             y="215.92886"
+             rx="0.51424646"
+             ry="1.5092149"
+             inkscape:label="Bus" />
+          <rect
+             style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="rect8"
+             width="12.907585"
+             height="8.9099445"
+             x="67.184227"
+             y="215.92886"
+             rx="0.51424646"
+             ry="1.5092149"
+             inkscape:label="Bus" />
+          <rect
+             style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="rect10"
+             width="12.907585"
+             height="8.9099445"
+             x="52.252167"
+             y="215.92886"
+             rx="0.51424646"
+             ry="1.5092149"
+             inkscape:label="Bus" />
+          <rect
+             style="fill:#aaffee;fill-opacity:1;stroke:#000000;stroke-width:0.3767489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="rect3"
+             width="12.907585"
+             height="8.9099445"
+             x="37.102116"
+             y="215.92886"
+             rx="0.51424646"
+             ry="1.5092149"
+             inkscape:label="Bus" />
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1;font-family:'Rubik Scribble';-inkscape-font-specification:'Rubik Scribble';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;opacity:1;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.376749;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+             x="57.96785"
+             y="231.06865"
+             id="text199"
+             inkscape:label="label"><tspan
+               sodipodi:role="line"
+               id="tspan199"
+               style="stroke-width:0.376749;stroke-dasharray:none"
+               x="57.96785"
+               y="231.06865">BUS</tspan></text>
+        </g>
+        <g
+           id="g14"
+           inkscape:label="Lift">
+          <path
+             style="fill:#6f918a;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 97.832729,205.38872 v -21.9458 h 15.499081 v 21.79774 z"
+             id="path9"
+             inkscape:label="Interior" />
+          <path
+             style="fill:#b7c8c4;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 105.58228,205.38872 v -21.9458 h 7.74953 v 21.79774 z"
+             id="path10"
+             inkscape:label="Door2" />
+          <path
+             style="fill:#b7c8c4;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 97.832729,205.38872 v -21.9458 h 7.749551 v 21.79774 z"
+             id="path11"
+             inkscape:label="Door1" />
+          <path
+             id="path12"
+             style="fill:#817169;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-dasharray:none"
+             inkscape:label="House"
+             d="m 89.955233,178.88681 c -0.09149,0 0,16.49821 0,26.53838 h 31.362427 l 0,-26.53838 z m 7.877555,4.55626 h 15.498792 v 21.79763 l -15.498792,0.1478 z"
+             sodipodi:nodetypes="scccsccccc" />
+          <circle
+             style="fill:#666666;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.499999;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="circle12"
+             cx="116.70293"
+             cy="195.47101"
+             r="1.6196901" />
+          <path
+             style="display:inline;fill:#aa0000;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 115.49826,195.0486 1.25515,1.53011 1.25514,-1.53011 z"
+             id="path14" />
+        </g>
+        <g
+           id="g8"
+           inkscape:label="Lift"
+           transform="translate(0,59.843284)"
+           style="stroke-width:0.5;stroke-dasharray:none">
+          <path
+             style="fill:#6f918a;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 97.832729,205.38872 v -21.9458 h 15.499081 v 21.79774 z"
+             id="path7"
+             inkscape:label="Interior" />
+          <path
+             style="fill:#b7c8c4;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 105.58228,205.38872 v -21.9458 h 7.74953 v 21.79774 z"
+             id="path5"
+             inkscape:label="Door2" />
+          <path
+             style="fill:#b7c8c4;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 97.832729,205.38872 v -21.9458 h 7.749551 v 21.79774 z"
+             id="path6"
+             inkscape:label="Door1" />
+          <path
+             id="path1"
+             style="fill:#817169;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dashoffset:10.7188;stroke-dasharray:none"
+             inkscape:label="House"
+             d="m 89.955233,181.88224 c -0.09149,0 0,13.50278 0,23.54295 h 31.362427 l 0,-23.54295 z m 7.877555,1.56083 h 15.498792 v 21.79763 l -15.498792,0.1478 z"
+             sodipodi:nodetypes="scccsccccc" />
+          <circle
+             style="fill:#666666;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             id="path8"
+             cx="116.70293"
+             cy="195.47101"
+             r="1.6196901" />
+          <path
+             style="display:inline;fill:#5aa02c;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+             d="m 118.00855,195.84029 -1.25515,-1.53011 -1.25514,1.53011 z"
+             id="path189-3" />
+          <path
+             id="rect103-3"
+             style="fill:#39312f;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.733695;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188"
+             d="m 93.847563,114.33704 h 23.701127 l 3.65216,4.58964 H 90.072068 Z"
+             sodipodi:nodetypes="ccccc"
+             inkscape:label="Roof" />
+        </g>
+        <rect
+           style="fill:#b3b3b3;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+           id="rect39"
+           width="5.7967849"
+           height="4.6033297"
+           x="101.10275"
+           y="134.94576" />
+        <rect
+           style="fill:#999999;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+           id="rect38"
+           width="6.0337834"
+           height="1.2236112"
+           x="100.98425"
+           y="140.43317" />
+        <rect
+           style="fill:#999999;fill-opacity:1;stroke:#1a1a1a;stroke-width:0.5;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1;paint-order:markers stroke fill"
+           id="rect37"
+           width="1.9048449"
+           height="4.8103356"
+           x="108.41352"
+           y="134.84225" />
+      </g>
+      <g
+         id="g26"
+         inkscape:label="meeple"
+         transform="matrix(0.54131684,0,0,0.54131684,69.749522,63.342358)"
+         style="display:inline;stroke:#1a1a1a;stroke-width:0.923673;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1">
+        <path
+           id="path25"
+           style="fill:#55ddff;stroke:#1a1a1a;stroke-width:0.923673;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="m 175.88685,192.55752 a 5.1818476,5.1818476 0 0 1 -5.18184,5.18185 5.1818476,5.1818476 0 0 1 -5.18185,-5.18185 5.1818476,5.1818476 0 0 1 5.18185,-5.18184 5.1818476,5.1818476 0 0 1 5.18184,5.18184 z"
+           inkscape:label="head" />
+        <path
+           id="rect26"
+           style="fill:#55ddff;stroke:#1a1a1a;stroke-width:0.923673;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.5;stroke-dasharray:none;stroke-dashoffset:10.7188;stroke-opacity:1"
+           d="m 167.73106,196.60564 h 6.21597 l 2.75057,14.65892 -11.27036,-1.05506 z"
+           sodipodi:nodetypes="ccccc"
+           inkscape:label="body" />
+      </g>
+    </svg>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -1268,8 +2457,8 @@
       speechLang: "en-US",
       tagline: "PICK A GAME! TAP ANYTHING!",
       home: "HOME",
-      titles:  { shapes:"SHAPES!", colors:"COLORS!", numbers:"COUNT!", sounds:"SOUNDS!", letters:"LETTERS!", draw:"DRAW!", train:"TRAIN!", lift:"ELEVATOR!" },
-      tiles:   { shapes:"SHAPES", colors:"COLORS", numbers:"COUNT", sounds:"SOUNDS", letters:"LETTERS", draw:"DRAW", train:"TRAIN", lift:"ELEVATOR" },
+      titles:  { shapes:"SHAPES!", colors:"COLORS!", numbers:"COUNT!", sounds:"SOUNDS!", letters:"LETTERS!", draw:"DRAW!", train:"TRAIN!", lift:"ELEVATOR!", sbahnchaos:"S-BAHN CHAOS!" },
+      tiles:   { shapes:"SHAPES", colors:"COLORS", numbers:"COUNT", sounds:"SOUNDS", letters:"LETTERS", draw:"DRAW", train:"TRAIN", lift:"ELEVATOR", sbahnchaos:"S-BAHN CHAOS" },
       hints:   { shape:"TAP A SHAPE", color:"TAP A COLOR", number:"TAP A NUMBER", sound:"TAP TO MAKE NOISE", letter:"TAP A LETTER" },
       shapeNames: { circle:"CIRCLE", square:"SQUARE", triangle:"TRIANGLE", star:"STAR", heart:"HEART", diamond:"DIAMOND" },
       colorNames: { red:"RED", orange:"ORANGE", yellow:"YELLOW", green:"GREEN", blue:"BLUE", purple:"PURPLE", pink:"PINK", brown:"BROWN" },
@@ -1294,8 +2483,8 @@
       speechLang: "de-DE",
       tagline: "WÄHL EIN SPIEL! TIPP ÜBERALL!",
       home: "HAUS",
-      titles:  { shapes:"FORMEN!", colors:"FARBEN!", numbers:"ZÄHLEN!", sounds:"GERÄUSCHE!", letters:"BUCHSTABEN!", draw:"MALEN!", train:"ZUG!", lift:"AUFZUG!" },
-      tiles:   { shapes:"FORMEN", colors:"FARBEN", numbers:"ZÄHLEN", sounds:"GERÄUSCHE", letters:"BUCHSTABEN", draw:"MALEN", train:"ZUG", lift:"AUFZUG" },
+      titles:  { shapes:"FORMEN!", colors:"FARBEN!", numbers:"ZÄHLEN!", sounds:"GERÄUSCHE!", letters:"BUCHSTABEN!", draw:"MALEN!", train:"ZUG!", lift:"AUFZUG!", sbahnchaos:"S-BAHN CHAOS!" },
+      tiles:   { shapes:"FORMEN", colors:"FARBEN", numbers:"ZÄHLEN", sounds:"GERÄUSCHE", letters:"BUCHSTABEN", draw:"MALEN", train:"ZUG", lift:"AUFZUG", sbahnchaos:"S-BAHN CHAOS" },
       hints:   { shape:"TIPP EINE FORM", color:"TIPP EINE FARBE", number:"TIPP EINE ZAHL", sound:"TIPPEN FÜR KNALL", letter:"TIPP EINEN BUCHSTABEN" },
       shapeNames: { circle:"KREIS", square:"QUADRAT", triangle:"DREIECK", star:"STERN", heart:"HERZ", diamond:"RAUTE" },
       colorNames: { red:"ROT", orange:"ORANGE", yellow:"GELB", green:"GRÜN", blue:"BLAU", purple:"LILA", pink:"PINK", brown:"BRAUN" },
@@ -1634,6 +2823,22 @@
       startLiftLoop();
     } else if(typeof stopLiftLoop === "function"){
       stopLiftLoop();
+    }
+    if(id === "sbahnchaos"){
+      // The SVG has to actually be laid out (display:flex, not none)
+      // before its geometry can be measured, which is most of what
+      // setup does -- so setup is deferred to the first time this
+      // screen is opened, one frame after the display change lands,
+      // the same way the train and lift screens defer their layout.
+      requestAnimationFrame(function(){
+        if(!window.sbahnInited && typeof window.sbahnInit === "function"){
+          window.sbahnInited = true;
+          window.sbahnInit();
+        }
+        if(typeof window.sbahnStart === "function") window.sbahnStart();
+      });
+    } else if(typeof window.sbahnStop === "function"){
+      window.sbahnStop();
     }
   }
   document.addEventListener("pointerdown", function(e){
@@ -3136,6 +4341,14 @@
     tone({f:520, to:780, dur:.15, type:"triangle", vol:.2});
     say(t().langName[lang]);
   }
+  // S-Bahn Chaos is a separate, self-contained script (its own IIFE,
+  // its own huge inline SVG) rather than code merged into this one --
+  // too large and too independent to safely share a scope with. This
+  // is the only door between the two: the same pre-rendered-buffer
+  // tone()/noise() this whole app already uses, not a second audio
+  // engine.
+  window.henryArcadeAudio = { tone: tone, noise: noise, say: say, stationChime: stationChime };
+
   applyLang();
 
   if("serviceWorker" in navigator){
@@ -3144,6 +4357,2034 @@
     });
   }
 })();
+</script>
+<script>
+function initSbahnChaos(){
+  var HA = window.henryArcadeAudio || { tone:function(){}, noise:function(){}, say:function(){}, stationChime:function(){} };
+  var svg = document.getElementById("svg1");
+  var layer1 = document.getElementById("layer1");
+  var layer3 = document.getElementById("layer3");
+  var floor  = document.getElementById("path41");
+  var PAGE_W = svg.viewBox.baseVal.width  || 210;
+  var PAGE_H = svg.viewBox.baseVal.height || 297;
+
+  function q(label) { return svg.querySelector('[inkscape\\:label="' + label + '"]'); }
+  function id(v) { return document.getElementById(v); }
+  function svgEl(n) { return document.createElementNS("http://www.w3.org/2000/svg", n); }
+
+  function toUser(evt) {
+    var pt = svg.createSVGPoint();
+    pt.x = evt.clientX; pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  function matIn(el, ref) {
+    return (ref || svg).getScreenCTM().inverse().multiply(el.getScreenCTM());
+  }
+  function matStr(m) { return "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].join(",") + ")"; }
+  function boxIn(el, ref) {
+    var b = el.getBBox(), m = matIn(el, ref), xs = [], ys = [];
+    [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]]
+      .forEach(function (c) {
+        var p = svg.createSVGPoint(); p.x = c[0]; p.y = c[1];
+        p = p.matrixTransform(m); xs.push(p.x); ys.push(p.y);
+      });
+    return { x1: Math.min.apply(null, xs), x2: Math.max.apply(null, xs),
+             y1: Math.min.apply(null, ys), y2: Math.max.apply(null, ys) };
+  }
+  function wrapEl(el, cls) {
+    var g = svgEl("g");
+    g.setAttribute("class", cls);
+    el.parentNode.insertBefore(g, el);
+    g.appendChild(el);
+    return g;
+  }
+  function stripIds(node) {
+    if (node.removeAttribute) node.removeAttribute("id");
+    for (var i = 0; i < node.children.length; i++) stripIds(node.children[i]);
+  }
+  function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function animate(ms, fn, done) {
+    var t0 = null;
+    function frame(now) {
+      if (t0 === null) t0 = now;
+      var t = Math.min(1, (now - t0) / ms);
+      fn(ease(t));
+      if (t < 1) requestAnimationFrame(frame);
+      else if (done) done();
+    }
+    requestAnimationFrame(frame);
+  }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  var CLOCK = 0;                              // ms since load, set by the main tick
+
+  var defs = svg.querySelector("defs") || svg.insertBefore(svgEl("defs"), svg.firstChild);
+
+  /* ================= depth model ================================================= */
+
+  var BACKDROP = ["rect22", "rect1", "rect27", "g221", "g222", "rect6", "rect2", "rect5"];
+  var PROP_IDS = ["g223", "rect39", "rect38", "rect37",
+                  "g96", "g98", "g14", "rect160", "rect161",
+                  "g219", "g8", "rect101", "rect102", "g22"];
+  var PINNED = { rect39: "g223", rect38: "g223", rect37: "g223" };
+  var SLANT = {
+    g98: { x1: 0,       y1: 180.442, x2: 23.428, y2: 161.214 },
+    g96: { x1: 186.572, y1: 161.214, x2: 210,    y2: 180.442 }
+  };
+
+  var props = PROP_IDS.map(function (v) {
+    var el = id(v);
+    return el ? { key: v, el: el, base: boxIn(el).y2, slant: SLANT[v] || null } : null;
+  }).filter(Boolean);
+  props.forEach(function (p) {
+    var host = PINNED[p.key];
+    if (host) props.forEach(function (h) { if (h.key === host) p.base = h.base; });
+  });
+  props.sort(function (a, b) { return a.base - b.base; });
+
+  BACKDROP.forEach(function (v) { if (id(v)) layer1.appendChild(id(v)); });
+  props.forEach(function (p) { layer1.appendChild(p.el); });
+
+  function baseAt(p, px) {
+    if (!p.slant) return p.base;
+    var s = p.slant, t = (px - s.x1) / (s.x2 - s.x1);
+    return s.y1 + (s.y2 - s.y1) * Math.max(0, Math.min(1, t));
+  }
+  function propByKey(k) {
+    for (var i = 0; i < props.length; i++) if (props[i].key === k) return props[i];
+    return null;
+  }
+  function frontOf(k) {
+    for (var i = 0; i < props.length; i++) {
+      if (props[i].key === k) return props[i + 1] ? props[i + 1].el : null;
+    }
+    return null;
+  }
+
+  var FLOOR_TOP    = boxIn(id("rect22")).y1;
+  var SIDEWALK_TOP = boxIn(id("rect6")).y1;
+  var SIDEWALK_BOT = boxIn(id("rect6")).y2;
+  var SIDEWALK     = id("rect6");
+  var SKY          = id("rect14");
+
+  /* ================= stairs, escalator, lift lanes ================================
+     Down on the left half, up on the right half. Which side you get is decided
+     by the end you come in from.                                             */
+
+  var LANES = [
+    { x1: 68.175, x2: 89.937,
+      down: { x1: 68.175,  x2: 79.025,  speed: 0.6, down: true },
+      up:   { x1: 79.087,  x2: 89.937,  speed: 0.6, down: false } },
+    { x1: 121.337, x2: 143.099,
+      down: { x1: 121.337, x2: 132.187, speed: 1.9, down: true },
+      up:   { x1: 132.249, x2: 143.099, speed: 1.9, down: false } }
+  ];
+  LANES.forEach(function (L) { [L.down, L.up].forEach(function (h) { h.cx = (h.x1 + h.x2) / 2; }); });
+
+  var LANE_TOP = 188.542, LANE_BOT = 265.113, LANE_EDGE = 2;
+  var ENTRY_SLACK = 4, APPROACH = 8;
+
+  function laneAt(px) {
+    for (var i = 0; i < LANES.length; i++) {
+      if (px >= LANES[i].x1 && px <= LANES[i].x2) return LANES[i];
+    }
+    return null;
+  }
+
+  /* ================= vehicles on a timetable =====================================
+     Everything runs itself. One cycle is: pull in, stand at the platform, pull
+     out, wait for the next slot. The badges count the wait down and their pie
+     empties over the same period.                                            */
+
+  var ARRIVE_MS = 2600, LEAVE_MS = 2600;
+
+  var vclip = svgEl("clipPath");
+  vclip.setAttribute("id", "viewportclip");
+  vclip.setAttribute("clipPathUnits", "userSpaceOnUse");
+  var vrect = svgEl("rect");
+  vrect.setAttribute("x", 0); vrect.setAttribute("y", 0);
+  vrect.setAttribute("width", PAGE_W); vrect.setAttribute("height", PAGE_H);
+  vclip.appendChild(vrect);
+  defs.appendChild(vclip);
+
+  var GONE_S = 0.02;
+  var layer3ToRoot = matIn(layer3);
+  var SERVICES = [];
+
+  function wedge(cx, cy, r, frac) {
+    if (frac >= 0.999) {
+      return "M " + cx + "," + (cy - r) + " A " + r + "," + r + " 0 1 1 " + (cx - 0.01) + "," + (cy - r) + " Z";
+    }
+    if (frac <= 0.001) return "M " + cx + "," + cy + " Z";
+    var ang = -Math.PI / 2 + frac * Math.PI * 2;
+    return "M " + cx + "," + cy +
+           " L " + cx + "," + (cy - r) +
+           " A " + r + "," + r + " 0 " + (frac > 0.5 ? 1 : 0) + " 1 " +
+           (cx + r * Math.cos(ang)) + "," + (cy + r * Math.sin(ang)) + " Z";
+  }
+
+  // All four badges live in one column on the right. Two of them are the signs
+  // that were already in the drawing, moved; two are copies for the bus and the
+  // Ubahn. They sit above everything because they are the controls.
+  function placeBadge(srcId, dx, dy, scale, signFill, pieFill, clone) {
+    var src = id(srcId);
+    if (!src) return null;
+    var node = clone ? src.cloneNode(true) : src;
+    if (clone) stripIds(node);
+    var holder = svgEl("g");
+    holder.setAttribute("transform", "translate(" + dx + "," + dy + ") scale(" + scale + ")");
+    holder.appendChild(node);
+    svg.appendChild(holder);
+    var paths = node.querySelectorAll("path");
+    if (signFill && paths[0]) paths[0].style.fill = signFill;
+    if (pieFill && paths[1]) paths[1].style.fill = pieFill;
+    return { holder: holder,
+             pie: paths[1],
+             text: node.querySelector("tspan") || node.querySelector("text"),
+             // the two sign shapes put their dial in different places
+             cx: srcId === "g31" ? 202.83121 : 182.8688,
+             cy: 108.91634, r: 5.3502502 };
+  }
+
+  function addService(cfg) {
+    cfg.pieEl = cfg.pieEl || (cfg.pieId ? id(cfg.pieId) : null);
+    cfg.textEl = cfg.textEl || (cfg.textId ? id(cfg.textId) : null);
+    cfg.phase = "away";
+    SERVICES.push(cfg);
+    return cfg;
+  }
+
+  // --- the two trains ---
+  [["red", "Train - RED", "Left Tracks", 101.560, 94.826, 0, "path35", "tspan31",
+    202.83121, 108.91634, { x: 92, y: 139 }],
+   ["blue", "Train - BLUE", "Right Tracks", 100.353, 94.826, 30000, "path37", "tspan37",
+    182.8688, 108.91634, { x: 118, y: 139 }]].forEach(function (c) {
+    var target = q(c[1]), track = q(c[2]);
+    if (!target || !track) return;
+    var wrap = wrapEl(target, "railcar");
+    var bb = boxIn(target, layer3);
+    var stopS = (boxIn(track, layer3).y2 - c[4]) / (bb.y2 - c[4]);
+    var svc = addService({
+      key: c[0], kind: "train", period: 60000, offset: c[5], dwell: 9000,
+      pieId: c[6], textId: c[7], cx: c[8], cy: c[9], r: 5.3502502,
+      board: c[9 + 1], wrap: wrap, vx: c[3], vy: c[4], bb: bb, stopS: stopS, riders: [], queue: []
+    });
+    svc.put = function (s) {
+      wrap.setAttribute("transform",
+        "translate(" + svc.vx + "," + svc.vy + ") scale(" + s + ") translate(" + (-svc.vx) + "," + (-svc.vy) + ")");
+      var p = svg.createSVGPoint();
+      p.x = 0; p.y = svc.vy + s * bb.y2 - s * svc.vy + svc.vy * 0;
+      p.y = svc.vy + s * (bb.y2 - svc.vy);
+      svc.baseY = p.matrixTransform(layer3ToRoot).y;
+      wrap.style.display = s <= GONE_S + 0.001 ? "none" : "";
+    };
+    svc.at = function (f) { svc.put(GONE_S + (svc.stopS - GONE_S) * f); };
+    svc.at(0);
+  });
+
+  var TRAINS = {};
+  SERVICES.forEach(function (s) { if (s.kind === "train") TRAINS[s.key] = s; });
+
+  // Bus and Ubahn are props, so they get wired up once the depth list is built.
+  function addSlider(key, propKey, badge, period, offset, dwell, board) {
+    var p = propByKey(propKey);
+    if (!p) return;
+    var b = boxIn(p.el);
+    var slider = wrapEl(p.el, "slider");
+    var viewport = wrapEl(slider, "viewport");
+    viewport.setAttribute("clip-path", "url(#viewportclip)");
+    p.el = viewport;
+    var offLeft = -(b.x2 + 4), offRight = PAGE_W - b.x1 + 4;
+    var svc = addService({
+      key: key, kind: "slider", period: period, offset: offset, dwell: dwell,
+      pieEl: badge && badge.pie, textEl: badge && badge.text, badge: badge,
+      cx: 182.8688, cy: 108.91634, r: 5.3502502,
+      board: board, riders: [], queue: []
+    });
+    svc.hit = slider;
+    svc.put = function (tx) { slider.setAttribute("transform", "translate(" + tx + ",0)"); };
+    svc.at = function (f, leaving) {
+      svc.put(leaving ? offLeft * f : offRight * (1 - f));
+    };
+    svc.at(0, false);
+  }
+
+  /* ================= doorways ==================================================== */
+
+  var DOORS = [
+    { el: "path108", prop: "g98" },
+    { el: "path107", prop: "g98" }
+  ].map(function (d, i) {
+    var el = id(d.el);
+    if (!el) return null;
+    var clip = svgEl("clipPath");
+    clip.setAttribute("id", "doorclip" + i);
+    clip.setAttribute("clipPathUnits", "userSpaceOnUse");
+    var holder = svgEl("g");
+    holder.setAttribute("transform", matStr(matIn(el.parentNode)));
+    holder.appendChild(el.cloneNode(true));
+    clip.appendChild(holder);
+    defs.appendChild(clip);
+    var b = boxIn(el);
+    return { box: b, cx: (b.x1 + b.x2) / 2, prop: d.prop, elId: d.el,
+             clip: "url(#doorclip" + i + ")" };
+  }).filter(Boolean);
+
+  // An invisible stall divider between the two doors. It runs from behind the
+  // building down through the face, so whichever door you walk in, that is the
+  // door you come back out of.
+  var BLOCKERS = [];
+  if (DOORS.length === 2) {
+    var mid = (DOORS[0].cx + DOORS[1].cx) / 2;
+    BLOCKERS.push({ x1: mid - 1.2, x2: mid + 1.2, y1: 140, y2: 184 });
+  }
+
+  // The lift is solid from the same line the stairs and escalator start at, so
+  // you can pass behind its top but not through it. The doorway becomes real
+  // floor while the doors are open, at either level.
+  var LIFTZONE = {
+    top:    { x1: 89.955, x2: 121.318, y1: 188.542, y2: 205.39,
+              dx1: 97.9, dx2: 113.3, cy1: 191.0, open: false },
+    bottom: { x1: 89.955, x2: 121.318, y1: 248.385, y2: 265.233,
+              dx1: 97.9, dx2: 113.3, cy1: 250.9, open: false },
+    carDepth: null                    // filled in once the lift is built
+  };
+  LIFTZONE.each = function (fn) { return fn(LIFTZONE.top) || fn(LIFTZONE.bottom); };
+  LIFTZONE.blocks = function (px, py) {
+    return LIFTZONE.each(function (f) {
+      if (px < f.x1 || px > f.x2 || py < f.y1 || py > f.y2) return false;
+      if (f.open && px >= f.dx1 && px <= f.dx2) return false;   // through the doors
+      return true;
+    });
+  };
+  LIFTZONE.opening = function (px, py) {      // inside the car, doors open
+    return LIFTZONE.each(function (f) {
+      return f.open && px >= f.dx1 && px <= f.dx2 && py >= f.cy1 && py <= f.y2;
+    });
+  };
+
+  // The cafe is a solid building, so its front wall cannot be walked through.
+  // Only a band along the wall is blocked, which leaves the ground behind it
+  // open, so people can still pass behind the shop.
+  var POLY_BLOCKERS = [
+    [[186.572, 161.214], [210, 180.442], [210, 175.442], [186.572, 156.214]]
+  ];
+  function inPoly(poly, px, py) {
+    var hit = false;
+    for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      var a = poly[i], b = poly[j];
+      if ((a[1] > py) !== (b[1] > py) &&
+          px < (b[0] - a[0]) * (py - a[1]) / (b[1] - a[1]) + a[0]) hit = !hit;
+    }
+    return hit;
+  }
+
+  /* ================= walking rules, shared by everyone ============================ */
+
+  var HORIZON  = 96.10;
+  var FREEZE_Y = 205.57;
+  var LIMIT_Y  = 111.37;
+  var SIZE     = 0.8;
+  var SPEED    = 0.575;
+  var GRID     = 2;
+  var BODY     = 1.5;      // how much room a meeple keeps off a wall, at full size
+
+  var CURVE = [
+    [205.57, 1.00],
+    [145.95, 0.82],
+    [118.00, 0.42]
+  ];
+
+  // Edges of the middle platform itself. It is wider than the gap between the
+  // rails, so using the track edges left people beside a train painted behind it.
+  var MID = { yBase: 146.306, xL: 72.675, xR: 137.325, slope: 0.64234 };
+
+  var meepleSrc = q("meeple");
+  var srcBox = boxIn(meepleSrc);
+  var SRC_X = (srcBox.x1 + srcBox.x2) / 2, SRC_Y = srcBox.y2;
+  var maxScale = SIZE * (FREEZE_Y - HORIZON) / (Math.min(SRC_Y, FREEZE_Y) - HORIZON);
+
+  function scaleAt(py) {
+    var f = CURVE[0][1];
+    if (py < CURVE[0][0]) {
+      f = CURVE[CURVE.length - 1][1];
+      for (var i = 0; i < CURVE.length - 1; i++) {
+        var a = CURVE[i], b = CURVE[i + 1];
+        if (py <= a[0] && py >= b[0]) {
+          f = a[1] + (b[1] - a[1]) * (a[0] - py) / (a[0] - b[0]);
+          break;
+        }
+      }
+    }
+    return maxScale * f;
+  }
+
+  var toFloor = matIn(svg, floor);
+  var probe = svg.createSVGPoint();
+  function onFloor(px, py) {
+    if (LIFTZONE.opening(px, py)) return true;      // standing in the car
+    if (LIFTZONE.blocks(px, py)) return false;
+    for (var i = 0; i < BLOCKERS.length; i++) {
+      var b = BLOCKERS[i];
+      if (px >= b.x1 && px <= b.x2 && py >= b.y1 && py <= b.y2) return false;
+    }
+    for (var j = 0; j < POLY_BLOCKERS.length; j++) {
+      if (inPoly(POLY_BLOCKERS[j], px, py)) return false;
+    }
+    probe.x = px; probe.y = py;
+    return floor.isPointInFill(probe.matrixTransform(toFloor));
+  }
+
+  // Keep a body's width clear of every wall. Without this he can put his feet
+  // exactly on an inside corner, where a diagonal step is blocked on both axes
+  // and the slide has nowhere to go. The margin shrinks with perspective so the
+  // far ends of the platforms stay reachable.
+  var clearCache = {};
+  var D = 0.7071;
+  var RING = [[1, 0], [-1, 0], [0, 1], [0, -1],
+              [D, D], [D, -D], [-D, D], [-D, -D]];
+  function walkable(px, py) {
+    var k = Math.round(px * 2) + "," + Math.round(py * 2), v = clearCache[k];
+    if (v !== undefined) return v;
+    v = onFloor(px, py);
+    if (v) {
+      var r = BODY * scaleAt(py) / maxScale;
+      for (var i = 0; i < RING.length; i++) {
+        if (!onFloor(px + RING[i][0] * r, py + RING[i][1] * r)) { v = false; break; }
+      }
+    }
+    clearCache[k] = v;
+    return v;
+  }
+
+  function clearWalkCache() {
+    clearCache = {};
+    wcache = {};
+    hugCache = {};
+  }
+
+  function rules(st, nx, ny) {
+    var lv = st.level, ln = st.lane;
+    ny = Math.max(LIMIT_Y, ny);
+
+    if (lv === "shaft") {
+      nx = Math.min(ln.x2 - LANE_EDGE, Math.max(ln.x1 + LANE_EDGE, nx));
+      if (ny < LANE_TOP)      { lv = "surface"; ln = null; }
+      else if (ny > LANE_BOT) { lv = "ubahn";   ln = null; }
+    } else if (lv === "surface") {
+      var L = laneAt(nx);
+      if (L && ny > LANE_TOP && ny < SIDEWALK_TOP) {
+        var h = L.down;
+        if (st.y <= LANE_TOP + ENTRY_SLACK && ny >= st.y - 0.001 &&
+            nx >= h.x1 && nx <= h.x2) { lv = "shaft"; ln = h; }
+        else return null;
+      } else if (ny > SIDEWALK_BOT) {
+        return null;
+      }
+    } else {
+      var U = laneAt(nx);
+      if (ny < LANE_BOT) {
+        var g = U && U.up;
+        if (g && st.y >= LANE_BOT - ENTRY_SLACK && ny <= st.y + 0.001 &&
+            nx >= g.x1 && nx <= g.x2) { lv = "shaft"; ln = g; }
+        else return null;
+      }
+    }
+    return { x: nx, y: ny, level: lv, lane: ln };
+  }
+  function attempt(st, nx, ny) {
+    var r = rules(st, nx, ny);
+    return r && walkable(r.x, r.y) ? r : null;
+  }
+  function paceOf(st) { return (st.level === "shaft" && st.lane) ? st.lane.speed : 1; }
+
+  /* ================= planner ===================================================== */
+
+  var wcache = {}, hugCache = {};
+
+  function cellOpen(ix, iy) {
+    var k = ix + "," + iy, v = wcache[k];
+    if (v === undefined) { v = walkable(ix * GRID, iy * GRID); wcache[k] = v; }
+    return v;
+  }
+  function hug(ix, iy) {
+    var k = ix + "," + iy, v = hugCache[k];
+    if (v === undefined) {
+      var n = 0;
+      if (!cellOpen(ix + 1, iy)) n++;
+      if (!cellOpen(ix - 1, iy)) n++;
+      if (!cellOpen(ix, iy + 1)) n++;
+      if (!cellOpen(ix, iy - 1)) n++;
+      v = n * 0.35;
+      hugCache[k] = v;
+    }
+    return v;
+  }
+
+  function Heap() { this.a = []; }
+  Heap.prototype.push = function (n) {
+    var a = this.a, i = a.length; a.push(n);
+    while (i > 0) {
+      var p = (i - 1) >> 1;
+      if (a[p].f <= a[i].f) break;
+      var t = a[p]; a[p] = a[i]; a[i] = t; i = p;
+    }
+  };
+  Heap.prototype.pop = function () {
+    var a = this.a, top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last;
+      var i = 0;
+      for (;;) {
+        var l = 2 * i + 1, r = l + 1, m = i;
+        if (l < a.length && a[l].f < a[m].f) m = l;
+        if (r < a.length && a[r].f < a[m].f) m = r;
+        if (m === i) break;
+        var t = a[m]; a[m] = a[i]; a[i] = t; i = m;
+      }
+    }
+    return top;
+  };
+
+  function plan(from, gx, gy, lock) {
+    var gix = Math.round(gx / GRID), giy = Math.round(gy / GRID);
+    if (!cellOpen(gix, giy)) {
+      var best = null, bd = 1e9;
+      for (var ox = -5; ox <= 5; ox++) {
+        for (var oy = -5; oy <= 5; oy++) {
+          if (!cellOpen(gix + ox, giy + oy)) continue;
+          var dd = ox * ox + oy * oy;
+          if (dd < bd) { bd = dd; best = [gix + ox, giy + oy]; }
+        }
+      }
+      if (!best) return null;
+      gix = best[0]; giy = best[1];
+    }
+    var start = { ix: Math.round(from.x / GRID), iy: Math.round(from.y / GRID),
+                  x: from.x, y: from.y, level: from.level, lane: from.lane, g: 0, f: 0 };
+    var open = new Heap(), seen = {}, guard = 0;
+    open.push(start);
+    seen[start.ix + "|" + start.iy] = 0;
+
+    while (open.a.length && guard++ < 120000) {
+      var cur = open.pop();
+      if (seen[cur.ix + "|" + cur.iy] < cur.g) continue;
+      if (cur.ix === gix && cur.iy === giy) {
+        var out = [], n = cur;
+        while (n) { out.unshift({ x: n.x, y: n.y, level: n.level, lane: n.lane }); n = n.from; }
+        out.shift();
+        return out;
+      }
+      for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+          if (!dx && !dy) continue;
+          var ix = cur.ix + dx, iy = cur.iy + dy;
+          var nx = ix * GRID, ny = iy * GRID;
+          var r = rules(cur, nx, ny);
+          if (!r || r.level !== lock) continue;
+          if (Math.abs(r.x - nx) > 0.001 || Math.abs(r.y - ny) > 0.001) continue;
+          if (!cellOpen(ix, iy)) continue;
+          if (dx && dy) {
+            var a = rules(cur, nx, cur.y), b = rules(cur, cur.x, ny);
+            if (!a || a.level !== lock || !cellOpen(ix, cur.iy)) continue;
+            if (!b || b.level !== lock || !cellOpen(cur.ix, iy)) continue;
+          }
+          var k = ix + "|" + iy;
+          var g = cur.g + (dx && dy ? 1.4142 : 1) + hug(ix, iy);
+          if (seen[k] !== undefined && seen[k] <= g) continue;
+          seen[k] = g;
+          open.push({ ix: ix, iy: iy, x: r.x, y: r.y, level: r.level, lane: r.lane,
+                      g: g, f: g + Math.hypot(gix - ix, giy - iy), from: cur });
+        }
+      }
+    }
+    return null;
+  }
+
+  function lineOfSight(st, tx, ty) {
+    var s = { x: st.x, y: st.y, level: st.level, lane: st.lane }, guard = 0;
+    while (guard++ < 400) {
+      var dx = tx - s.x, dy = ty - s.y, d = Math.hypot(dx, dy);
+      if (d < 0.6) return s;
+      var f = Math.min(1, 1 / d);
+      var wx = s.x + dx * f, wy = s.y + dy * f;
+      var r = attempt(s, wx, wy);
+      if (!r || Math.abs(r.x - wx) > 1e-6 || Math.abs(r.y - wy) > 1e-6) return null;
+      s = r;
+    }
+    return null;
+  }
+  function smooth(from, path) {
+    var out = [], cur = { x: from.x, y: from.y, level: from.level, lane: from.lane }, i = 0;
+    while (i < path.length) {
+      var best = -1, bestEnd = null;
+      for (var j = Math.min(path.length - 1, i + 24); j > i; j--) {
+        var end = lineOfSight(cur, path[j].x, path[j].y);
+        if (end && end.level === path[j].level) { best = j; bestEnd = end; break; }
+      }
+      if (best < 0) {
+        out.push(path[i]);
+        cur = { x: path[i].x, y: path[i].y, level: path[i].level, lane: path[i].lane };
+        i++;
+      } else {
+        out.push(path[best]);
+        cur = bestEnd;
+        i = best + 1;
+      }
+    }
+    return out;
+  }
+
+  function gatesOf(h) {
+    return { outTop: { x: h.cx, y: LANE_TOP - APPROACH },
+             inTop:  { x: h.cx, y: LANE_TOP + APPROACH },
+             inBot:  { x: h.cx, y: LANE_BOT - APPROACH },
+             outBot: { x: h.cx, y: LANE_BOT + APPROACH } };
+  }
+  function wp(p, level, lane) { return { x: p.x, y: p.y, level: level, lane: lane }; }
+
+  function levelOfPoint(px, py) {
+    if (py >= LANE_BOT) return { level: "ubahn", half: null };
+    var L = laneAt(px);
+    if (L && ((py > LANE_TOP && py <= SIDEWALK_TOP) || (py >= SIDEWALK_BOT && py < LANE_BOT))) {
+      return { level: "shaft", half: px <= L.down.x2 ? L.down : L.up };
+    }
+    return { level: "surface", half: null };
+  }
+  function segTo(from, pt, lock) {
+    var path = plan(from, pt.x, pt.y, lock);
+    if (!path) return null;
+    if (walkable(pt.x, pt.y)) path.push(wp(pt, lock, null));
+    if (!path.length) return null;
+    return smooth(from, path);
+  }
+  function pathLen(from, path) {
+    var t = 0, px = from.x, py = from.y;
+    for (var i = 0; i < path.length; i++) {
+      t += Math.hypot(path[i].x - px, path[i].y - py);
+      px = path[i].x; py = path[i].y;
+    }
+    return t;
+  }
+
+  function buildRoute(me, tx, ty) {
+    var out = [], st = { x: me.x, y: me.y, level: me.level, lane: me.lane };
+    var tgt = levelOfPoint(tx, ty);
+
+    if (st.level === "shaft") {
+      var h = st.lane, gt = gatesOf(h);
+      if (tgt.level === "shaft" && tgt.half === h) return [wp({ x: h.cx, y: ty }, "shaft", h)];
+      if (h.down) {
+        out.push(wp(gt.inBot, "shaft", h), wp(gt.outBot, "ubahn", null));
+        st = { x: gt.outBot.x, y: gt.outBot.y, level: "ubahn", lane: null };
+      } else {
+        out.push(wp(gt.inTop, "shaft", h), wp(gt.outTop, "surface", null));
+        st = { x: gt.outTop.x, y: gt.outTop.y, level: "surface", lane: null };
+      }
+    }
+
+    var need = tgt.level === "shaft" ? (tgt.half.down ? "surface" : "ubahn") : tgt.level;
+
+    if (st.level !== need) {
+      var descending = st.level === "surface";
+      var best = null;
+      for (var i = 0; i < LANES.length; i++) {
+        var half = descending ? LANES[i].down : LANES[i].up;
+        var g = gatesOf(half);
+        var lead = segTo(st, descending ? g.outTop : g.outBot, st.level);
+        if (!lead) continue;
+        var far = descending ? g.outBot : g.outTop;
+        var cost = pathLen(st, lead) + (LANE_BOT - LANE_TOP) / half.speed +
+                   Math.hypot(far.x - tx, far.y - ty);
+        if (!best || cost < best.cost) best = { cost: cost, half: half, lead: lead, g: g };
+      }
+      if (!best) return null;
+      out = out.concat(best.lead);
+      if (descending) {
+        out.push(wp(best.g.inTop, "shaft", best.half),
+                 wp(best.g.inBot, "shaft", best.half),
+                 wp(best.g.outBot, "ubahn", null));
+        st = { x: best.g.outBot.x, y: best.g.outBot.y, level: "ubahn", lane: null };
+      } else {
+        out.push(wp(best.g.inBot, "shaft", best.half),
+                 wp(best.g.inTop, "shaft", best.half),
+                 wp(best.g.outTop, "surface", null));
+        st = { x: best.g.outTop.x, y: best.g.outTop.y, level: "surface", lane: null };
+      }
+    }
+
+    if (tgt.level === "shaft") {
+      var th = tgt.half, tg = gatesOf(th);
+      var lead2 = segTo(st, th.down ? tg.outTop : tg.outBot, st.level);
+      if (!lead2) return null;
+      return out.concat(lead2, [wp(th.down ? tg.inTop : tg.inBot, "shaft", th),
+                                wp({ x: th.cx, y: ty }, "shaft", th)]);
+    }
+    var tail = segTo(st, { x: tx, y: ty }, tgt.level);
+    if (!tail) return null;
+    return out.concat(tail);
+  }
+
+  /* ================= actors ======================================================
+     One movement system for everybody. The player gets clicks and keys, the
+     others get an errand list.                                                  */
+
+  var TURN = 0.22, BRAKE = 3;
+
+  function makeActor(node, opts) {
+    var walker = wrapEl(node, "walker");
+
+    var cupEl = svgEl("path");                 // coffee, right hand
+    cupEl.setAttribute("d", "m 176.9,199.6 h 3.1 l -0.45,4.3 h -2.2 z");
+    cupEl.setAttribute("style", "fill:#f4f1e8;stroke:#1a1a1a;stroke-width:0.8;display:none");
+    node.appendChild(cupEl);
+
+    var tkEl = svgEl("rect");                  // ticket, left hand
+    tkEl.setAttribute("x", 160.2); tkEl.setAttribute("y", 199.4);
+    tkEl.setAttribute("width", 5.2); tkEl.setAttribute("height", 3.7);
+    tkEl.setAttribute("style", "fill:#cccccc;stroke:#1a1a1a;stroke-width:0.8;display:none");
+    node.appendChild(tkEl);
+    var portal = wrapEl(walker, "portal");
+    if (!opts.interactive) portal.style.pointerEvents = "none";
+
+    var a = {
+      x: opts.x, y: opts.y, level: "surface", lane: null,
+      route: null, at: 0, goal: null, retries: 0,
+      vel: { x: 0, y: 0 }, stallT: 0, waitT: 0, errands: [], job: opts.job || null
+    };
+
+    function doorAt(px, py) {
+      for (var i = 0; i < DOORS.length; i++) {
+        var d = DOORS[i], b = d.box;
+        if (px < b.x1 || px > b.x2 || py < b.y1) continue;
+        if (py <= baseAt(propByKey(d.prop), px) + 0.5) return d;
+      }
+      return null;
+    }
+    function slot() {
+      var car = LIFTZONE.carDepth && LIFTZONE.carDepth(a.x, a.y);
+      if (car) return { parent: car.parent, before: car.before, clip: null };
+      var door = doorAt(a.x, a.y);
+      if (door) return { parent: layer1, before: frontOf(door.prop), clip: door.clip };
+      if (a.level === "shaft" && a.y > SIDEWALK_TOP) {
+        return { parent: layer1, before: SIDEWALK, clip: null };
+      }
+      if (a.y < FLOOR_TOP) {
+        var reach = (MID.yBase - a.y) * MID.slope;
+        var train = null;
+        if (a.x < MID.xL + reach)      train = TRAINS.red;
+        else if (a.x > MID.xR - reach) train = TRAINS.blue;
+        var behind = train && a.y <= train.baseY;
+        return { parent: layer3, before: behind ? TRAINS.blue.wrap : SKY, clip: null };
+      }
+      for (var j = 0; j < props.length; j++) {
+        if (baseAt(props[j], a.x) > a.y) return { parent: layer1, before: props[j].el, clip: null };
+      }
+      return { parent: layer1, before: null, clip: null };
+    }
+
+    var clipNow = null;
+    a.apply = function () {
+      var t = slot();
+      if (portal.parentNode !== t.parent || portal.nextSibling !== t.before) {
+        t.parent.insertBefore(portal, t.before);
+      }
+      if (t.clip !== clipNow) {
+        clipNow = t.clip;
+        if (clipNow) portal.setAttribute("clip-path", clipNow);
+        else portal.removeAttribute("clip-path");
+      }
+      var s = scaleAt(a.y);
+      var M = svg.createSVGMatrix()
+        .translate(a.x, a.y - (a.dip || 0))
+        .scale(s)
+        .scaleNonUniform(a.face || 1, 1)          // 1 faces left, -1 faces right
+        .translate(-SRC_X, -SRC_Y);
+      walker.setAttribute("transform", matStr(matIn(portal.parentNode).inverse().multiply(M)));
+    };
+    a.step = function (nx, ny) {
+      var r = attempt(a, nx, ny) || attempt(a, nx, a.y) || attempt(a, a.x, ny);
+      if (r) { a.x = r.x; a.y = r.y; a.level = r.level; a.lane = r.lane; }
+      a.apply();
+      return !!r;
+    };
+    a.goTo = function (tx, ty, again) {
+      if (!again) { a.goal = { x: tx, y: ty }; a.retries = 0; }
+      var r = buildRoute(a, tx, ty);
+      if (!r || !r.length) { a.route = null; return false; }
+      a.route = r; a.at = 0;
+      return true;
+    };
+    a.destroy = function () {
+      if (portal.parentNode) portal.parentNode.removeChild(portal);
+      var i = crowd.indexOf(a);
+      if (i >= 0) crowd.splice(i, 1);
+    };
+    a.hide = function () { portal.style.display = "none"; };
+    a.show = function () { portal.style.display = ""; };
+    a.stop = function () {
+      a.route = null; a.goal = null; a.arriveCb = null;
+      a.vel.x = a.vel.y = 0;
+    };
+    // Wedged on a corner: shove off in whatever direction is open. Cheap
+    // insurance so nobody can end up parked against a wall forever.
+    a.escape = function () {
+      var step = Math.max(0.8, SPEED * scaleAt(a.y) * 2);
+      for (var i = 0; i < 8; i++) {
+        var ang = i * Math.PI / 4;
+        var r = attempt(a, a.x + Math.cos(ang) * step, a.y + Math.sin(ang) * step);
+        if (r) { a.x = r.x; a.y = r.y; a.level = r.level; a.lane = r.lane; a.apply(); return true; }
+      }
+      return false;
+    };
+
+    a.advance = function (dt, drive) {
+      var pace = SPEED * scaleAt(a.y) * paceOf(a) * (a.speedMul || 1);
+      var wantX = 0, wantY = 0;
+
+      if (drive && (drive.x || drive.y)) {
+        var n = Math.hypot(drive.x, drive.y);
+        wantX = pace * drive.x / n; wantY = pace * drive.y / n;
+      } else if (a.route) {
+        while (a.at < a.route.length - 1 &&
+               Math.hypot(a.route[a.at].x - a.x, a.route[a.at].y - a.y) < Math.max(0.5, pace * dt * 1.2)) {
+          a.at++;
+        }
+        var w = a.route[a.at];
+        var dx = w.x - a.x, dy = w.y - a.y, d = Math.hypot(dx, dy);
+        var end = a.route[a.route.length - 1];
+        var toEnd = Math.hypot(end.x - a.x, end.y - a.y);
+        if (a.at >= a.route.length - 1 && d < Math.max(0.35, pace * dt)) {
+          a.step(w.x, w.y);
+          a.route = null; a.goal = null;
+          a.vel.x = a.vel.y = 0;
+          if (a.arriveCb) { var cb = a.arriveCb; a.arriveCb = null; cb(a); }
+        } else if (d > 0.0001) {
+          var slow = Math.min(1, toEnd / BRAKE);
+          wantX = pace * slow * dx / d;
+          wantY = pace * slow * dy / d;
+        }
+      }
+
+      var k = Math.min(1, TURN * dt);
+      a.vel.x += (wantX - a.vel.x) * k;
+      a.vel.y += (wantY - a.vel.y) * k;
+
+      if (a.vel.x > 0.02 && a.face !== -1)      { a.face = -1; a.apply(); }
+      else if (a.vel.x < -0.02 && a.face !== 1)  { a.face = 1;  a.apply(); }
+
+      if (Math.abs(a.vel.x) > 0.0005 || Math.abs(a.vel.y) > 0.0005) {
+        var px = a.x, py = a.y;
+        a.step(a.x + a.vel.x * dt, a.y + a.vel.y * dt);
+        var moved = Math.hypot(a.x - px, a.y - py);
+        if (a.route && moved < pace * dt * 0.2) {
+          a.stallT += dt * 16.667;
+          if (a.stallT > 400) {
+            a.stallT = 0;
+            a.vel.x = a.vel.y = 0;
+            a.escape();
+            if (a.goal && a.retries < 3) { a.retries++; a.goTo(a.goal.x, a.goal.y, true); }
+            else { a.route = null; a.goal = null; a.arriveCb = null; }
+          }
+        } else {
+          a.stallT = 0;
+        }
+      }
+    };
+
+    // A quick dip, for putting something in a bin.
+    var bobT = 0, bobMs = 0;
+    a.bob = function (ms) { bobT = 0; bobMs = ms; };
+    a.bobOffset = function (dt) {
+      if (bobMs <= 0) return 0;
+      bobT += dt * 16.667;
+      if (bobT >= bobMs) { bobMs = 0; return 0; }
+      return Math.sin(bobT / bobMs * Math.PI) * 1.6;
+    };
+
+    var mark = svgEl("text");
+    mark.setAttribute("x", 170.7);
+    mark.setAttribute("y", 184);
+    mark.setAttribute("text-anchor", "middle");
+    mark.setAttribute("style", "font:bold 13px sans-serif;fill:#d02020;stroke:#1a1a1a;stroke-width:0.6;display:none");
+    mark.textContent = "!";
+    node.appendChild(mark);
+    var grumbleMs = 0;
+    a.grumble = function (ms) {
+      grumbleMs = ms; mark.style.display = "";
+      HA.tone({ f: 300, to: 180, dur: .22, type: "square", vol: .14 });
+    };
+    a.grumbleTick = function (dt) {
+      if (grumbleMs <= 0) return;
+      grumbleMs -= dt * 16.667;
+      if (grumbleMs <= 0) mark.style.display = "none";
+    };
+
+    a.hasCup = false;
+    a.cupUntil = 0;
+    a.giveCup = function (now) {
+      a.hasCup = true;
+      a.cupUntil = (now || 0) + rnd(5000, 10000);   // they finish it before binning it
+      cupEl.style.display = "";
+    };
+    a.dropCup = function () { a.hasCup = false; cupEl.style.display = "none"; };
+    a.ticket = null;
+    a.giveTicket = function (key, colour) {
+      a.ticket = key;
+      tkEl.style.fill = colour;
+      tkEl.style.display = "";
+    };
+    a.dropTicket = function () { a.ticket = null; tkEl.style.display = "none"; };
+
+    a.apply();
+    return a;
+  }
+
+  var CLEAN = meepleSrc.cloneNode(true);      // before the worker gets dressed
+  stripIds(CLEAN);
+
+  function tint(node, body, head) {
+    var parts = node.querySelectorAll("path");
+    for (var i = 0; i < parts.length; i++) {
+      var label = parts[i].getAttribute("inkscape:label");
+      parts[i].style.fill = (label === "head") ? head : body;
+    }
+  }
+  // Headgear, hair and props, so the public are not four copies of one person.
+  function gear(node, d) {
+    function el(tag, attrs, fill) {
+      var e = svgEl(tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      e.setAttribute("style", "fill:" + fill + ";stroke:#1a1a1a;stroke-width:0.923673;stroke-linejoin:round");
+      node.appendChild(e);
+      return e;
+    }
+    if (d.hair) {
+      el("path", { d: "M 165.548,192.36 A 5.1818,5.1818 0 0 1 175.862,192.36 Z" }, d.hair);
+    }
+    if (d.hat) {
+      el("ellipse", { cx: 170.705, cy: 192.30, rx: d.brim || 6.6, ry: 1.15 }, d.hat);
+      el("path", { d: "M 166.1,191.8 A 4.85,4.85 0 0 1 175.3,191.8 Z" }, d.hat);
+    }
+    if (d.wheels) {                            // wheelchair, seen from the side
+      el("path", { d: "m 164.6,204.4 h 13.6 v 1.9 h -13.6 z" }, "#3f4a55");   // seat
+      el("path", { d: "m 176.4,206.0 h 2.2 l 1.1,4.6 h -2.2 z" }, "#3f4a55"); // footrest
+      var rim = svgEl("circle");
+      rim.setAttribute("cx", 170.8); rim.setAttribute("cy", 207.4); rim.setAttribute("r", 5.4);
+      rim.setAttribute("style", "fill:none;stroke:#2b2b2b;stroke-width:1.5");
+      node.appendChild(rim);
+      el("circle", { cx: 170.8, cy: 207.4, r: 1.5 }, "#8d8d8d");              // hub
+      el("circle", { cx: 178.6, cy: 210.6, r: 2.0 }, "#2b2b2b");              // castor
+    }
+    if (d.pram) {                              // pushchair alongside
+      el("path", { d: "m 178.6,203.2 h 7.2 l -0.9,7.4 h -6.3 z" }, "#5566aa");
+      el("ellipse", { cx: 179.6, cy: 211.6, rx: 1.5, ry: 1.5 }, "#3a3a3a");
+      el("ellipse", { cx: 184.4, cy: 211.6, rx: 1.5, ry: 1.5 }, "#3a3a3a");
+    }
+  }
+
+  function spawn(d) {
+    var node = CLEAN.cloneNode(true);
+    stripIds(node);
+    layer1.appendChild(node);
+    tint(node, d.body, d.head);
+    gear(node, d);
+    var a = makeActor(node, { x: d.x, y: d.y, interactive: false });
+    a.auto = true;
+    a.liftOnly = !!d.liftOnly;
+    a.liftPrefers = !!d.liftPrefers;
+    a.speedMul = d.speedMul || 1;
+    return a;
+  }
+
+  /* ================= the barista =================================================
+     The cafe front is a wall with a window cut in it. Inside, the dark panel is
+     the back of the shop and the tan shape is the counter. That tan shape is one
+     path holding two things: a thin back edge along the top and the wide front
+     band. Painting him behind the whole thing put the back edge straight through
+     his head, so it gets split and he goes between the two: over the dark panel
+     and the back edge, under the front band. Clipped to the window so nothing
+     escapes onto the sign.                                                    */
+
+  (function () {
+    var cafe = id("g96"), dark = id("path106"), counter = id("path105");
+    if (!cafe || !dark || !counter) return;
+
+    var style = counter.getAttribute("style");
+    function slab(d) {
+      var el = svgEl("path");
+      el.setAttribute("style", style);
+      el.setAttribute("d", d);
+      return el;
+    }
+    var back  = slab("M 188.48541,153.58024 L 205.67466,153.74521 L 208.08911,155.07282 " +
+                     "L 191.29391,155.07282 L 188.48541,156.15456 Z");
+    var front = slab("M 191.29391,155.07282 L 208.08911,163.98067 L 208.08911,169.21586 " +
+                     "L 188.48541,156.15456 Z");
+
+    var winClip = svgEl("clipPath");
+    winClip.setAttribute("id", "cafewindow");
+    winClip.setAttribute("clipPathUnits", "userSpaceOnUse");
+    var winPoly = svgEl("polygon");
+    winPoly.setAttribute("points", "188.485,146.359 208.092,157.729 208.092,169.216 188.489,156.155");
+    winClip.appendChild(winPoly);
+    defs.appendChild(winClip);
+
+    var node = CLEAN.cloneNode(true);
+    stripIds(node);
+    tint(node, "#6b4a2f", "#e8bb85");                 // brown apron, bare head
+    node.setAttribute("transform",
+      matStr(svg.createSVGMatrix()
+        .translate(199, 162).scale(0.85).translate(-SRC_X, -SRC_Y)
+        .multiply(matIn(meepleSrc))));
+
+    var holder = svgEl("g");
+    holder.setAttribute("clip-path", "url(#cafewindow)");
+    holder.style.pointerEvents = "none";
+    holder.appendChild(node);
+
+    cafe.insertBefore(back, counter);
+    cafe.insertBefore(holder, counter);
+    cafe.insertBefore(front, counter);
+    cafe.removeChild(counter);
+  })();
+
+  /* ================= the player ================================================== */
+
+  // The one you control runs the station: orange vest with a reflective band
+  // and a service cap, so he reads apart from the public at a glance.
+  (function () {
+    tint(meepleSrc, "#f47b20", "#e8bb85");
+    function add(tag, attrs) {
+      var el = svgEl(tag);
+      for (var k in attrs) el.setAttribute(k, attrs[k]);
+      el.setAttribute("style", (attrs.fill ? "" : "fill:#1f3a5f;") +
+                               "stroke:#1a1a1a;stroke-width:0.923673;stroke-linejoin:round");
+      meepleSrc.appendChild(el);
+      return el;
+    }
+    var band = svgEl("path");
+    band.setAttribute("d", "M 167.472,203.500 L 174.795,203.500 L 175.152,205.400 L 167.150,205.400 Z");
+    band.setAttribute("style", "fill:#f2ead6;stroke:none");
+    meepleSrc.appendChild(band);
+    add("ellipse", { cx: 170.705, cy: 192.30, rx: 7.4, ry: 1.25 });
+    add("path", { d: "M 165.548,192.06 A 5.1818,5.1818 0 0 1 175.862,192.06 Z" });
+  })();
+
+  var player = makeActor(meepleSrc, { x: SRC_X, y: SRC_Y, interactive: true });
+
+  svg.addEventListener("click", function (e) {
+    var p = toUser(e);
+    if (player.goTo(p.x, p.y)) HA.tone({ f: 520, dur: .06, type: "sine", vol: .08 });
+  });
+
+  var keys = {};
+  var MAP = { ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", ArrowDown: "d",
+              a: "l", d: "r", w: "u", s: "d", A: "l", D: "r", W: "u", S: "d" };
+  var sbahnScreenEl = document.getElementById("sbahnchaos");
+  function sbahnActive() { return !!sbahnScreenEl && sbahnScreenEl.classList.contains("on"); }
+  window.addEventListener("keydown", function (e) {
+    if (!sbahnActive()) return;
+    var k = MAP[e.key];
+    if (!k) return;
+    keys[k] = true;
+    player.stop();
+    e.preventDefault();
+  });
+  window.addEventListener("keyup", function (e) {
+    if (!sbahnActive()) return;
+    var k = MAP[e.key];
+    if (k) keys[k] = false;
+  });
+
+  /* ================= the regulars ================================================
+     Errands are a queue of places with a dwell time. Everything they do goes
+     through the same router the player uses, so they use the lanes head on and
+     obey the same one way rule.                                               */
+
+  var WANDER = [
+    { x: 40,  y: 195 }, { x: 100, y: 190 }, { x: 165, y: 195 },
+    { x: 60,  y: 215 }, { x: 150, y: 218 }, { x: 105, y: 222 },
+    { x: 30,  y: 170 }, { x: 175, y: 172 }
+  ];
+  var PLATFORMS = [
+    { x: 60,  y: 152 }, { x: 150, y: 152 }, { x: 100, y: 135 },
+    { x: 88,  y: 125 }, { x: 118, y: 125 }, { x: 105, y: 160 }
+  ];
+  var UBAHN = [
+    { x: 30,  y: 274 }, { x: 90,  y: 276 }, { x: 150, y: 274 }, { x: 185, y: 276 }
+  ];
+  var CAFE_FRONT = [{ x: 193, y: 186 }, { x: 190, y: 183 }, { x: 196, y: 190 }];
+  var TICKETS    = [{ x: 103, y: 150 }, { x: 108, y: 151 }, { x: 100, y: 150 }];
+
+  // In the door, sideways into that stall so the wall hides him, then back out
+  // the way he came. The divider makes the shortcut through the other door
+  // impossible, so this cannot go wrong even if a route is replanned.
+  var WC = propByKey("g98");
+  var DOOR_MID = DOORS.length === 2 ? (DOORS[0].cx + DOORS[1].cx) / 2 : 0;
+
+  function errandToilet(a) {
+    var d = pick(DOORS);
+    var ix = d.cx + (d.cx < DOOR_MID ? 2.5 : -2.5);
+    travelTo(a, { x: d.cx, y: baseAt(WC, d.cx) - 1 }, 250, function (who) {
+      for (var i = 0; i < STALLS.length; i++) {
+        if (STALLS[i].door === d) soil(STALLS[i], rnd(0.16, 0.3));
+      }
+    });
+    a.errands.push({ pt: { x: ix, y: baseAt(WC, ix) - 6 }, wait: rnd(1800, 4200) });
+    a.errands.push({ pt: { x: d.cx, y: baseAt(WC, d.cx) - 1 }, wait: 250 });
+    a.errands.push({ pt: { x: d.cx, y: baseAt(WC, d.cx) + 6 }, wait: rnd(300, 900) });
+  }
+  var TOILET_COOLDOWN = [60000, 120000];   // nobody needs it twice in a row
+
+  function errandBin(a) {
+    var bin = pick(BINS);
+    travelTo(a, bin.stand, rnd(500, 1200), function (who) {
+      useBin(who, bin);
+      if (who.dropCup) who.dropCup();
+    });
+  }
+
+  function nextErrand(a, now) {
+    var roll = Math.random();
+    if (roll < 0.15 && now > a.toiletOK) {
+      errandToilet(a);
+      a.toiletOK = now + rnd(TOILET_COOLDOWN[0], TOILET_COOLDOWN[1]);
+      return;
+    }
+    var binOk = !a.hasCup || now > a.cupUntil;              // no beeline to the bin
+    if (a.hasCup && binOk && roll < 0.6) { errandBin(a); return; }
+    if (roll < 0.30)      { if (binOk) errandBin(a); else travelTo(a, pick(WANDER), rnd(800, 2500)); }
+    else if (roll < 0.46) { if (!errandCafe(a)) errandBin(a); }
+    else if (roll < 0.58) { if (!errandTicket(a)) errandRide(a); }
+    else if (roll < 0.64) { if (a.ticket) errandRide(a); else if (!errandTicket(a)) errandRide(a); }
+    else if (roll < 0.72) travelTo(a, pick(UBAHN),      rnd(1500, 4000));
+    else if (roll < 0.88) travelTo(a, pick(PLATFORMS),  rnd(2000, 5000));
+    else                  travelTo(a, pick(WANDER),     rnd(800, 2500));
+  }
+
+  var SKIN = ["#f6c28b", "#d9a066", "#c98f5c", "#eab98f", "#b87a4e"];
+  var HAIR = ["#3b2b1d", "#c9a227", "#5a3921", "#2f2f2f", "#8c6239", "#a33b2a"];
+  var COATS = ["#e4572e", "#8ac926", "#c77dff", "#ffca3a", "#4f9d8f", "#2a6f97",
+               "#d1495b", "#f28f3b", "#5f6caf", "#7bb661", "#b5651d", "#3d5a80"];
+
+  var CROWD = [
+    { x: 45,  y: 196 }, { x: 150, y: 200 }, { x: 100, y: 218 }, { x: 175, y: 186 },
+    { x: 30,  y: 190 }, { x: 70,  y: 190 }, { x: 160, y: 215 }, { x: 52,  y: 222 },
+    { x: 140, y: 224 }, { x: 96,  y: 196 }, { x: 112, y: 196 }, { x: 40,  y: 160 },
+    { x: 155, y: 165 }, { x: 80,  y: 170 }, { x: 60,  y: 276 }, { x: 150, y: 276 },
+    // the ones who need the lift
+    { x: 62,  y: 212, head: "#dcdcdc", hat: "#4a4a4a", liftPrefers: true, speedMul: 0.62 },
+    { x: 130, y: 212, head: "#dcdcdc", hair: "#bfbfbf", liftPrefers: true, speedMul: 0.6 },
+    { x: 168, y: 200, head: "#dcdcdc", hat: "#6b5a4a", liftPrefers: true, speedMul: 0.65 },
+    { x: 88,  y: 214, wheels: true, liftOnly: true, speedMul: 0.85 },
+    { x: 118, y: 216, hair: "#5a3921", pram: true, liftOnly: true, speedMul: 0.8 },
+    { x: 100, y: 280, pram: true, liftOnly: true, speedMul: 0.82 }
+  ];
+  var crowd = CROWD.map(function (c, i) {
+    c.body = c.body || COATS[i % COATS.length];
+    c.head = c.head || SKIN[i % SKIN.length];
+    if (!c.hat && !c.hair && !c.wheels && i % 3 === 0) c.hair = HAIR[i % HAIR.length];
+    if (!c.hat && !c.hair && i % 5 === 0) c.hat = HAIR[(i + 2) % HAIR.length];
+    var a = spawn(c);
+    a.toiletOK = rnd(4000, 60000);
+    return a;
+  });
+  function allActors() { return [player].concat(crowd); }
+
+  // A newcomer, off a train or a bus.
+  function spawnRandom(x, y) {
+    var i = Math.floor(Math.random() * 1000);
+    var d = { x: x, y: y,
+              body: pick(COATS), head: pick(SKIN) };
+    var r = Math.random();
+    if (r < 0.22) d.hair = pick(HAIR);
+    else if (r < 0.38) d.hat = pick(HAIR);
+    if (r > 0.93) { d.head = "#dcdcdc"; d.liftPrefers = true; d.speedMul = 0.62; }
+    else if (r > 0.90) { d.wheels = true; d.liftOnly = true; d.speedMul = 0.85; }
+    else if (r > 0.87) { d.pram = true; d.liftOnly = true; d.speedMul = 0.8; }
+    var a = spawn(d);
+    a.toiletOK = CLOCK + rnd(20000, 90000);
+    crowd.push(a);
+    return a;
+  }
+
+  function think(a, dt, now) {
+    if (a.mode) return;                       // in the lift, or waiting for it
+    if (a.route) return;
+    if (a.waitT > 0) { a.waitT -= dt * 16.667; return; }
+    if (!a.errands.length) {
+      if (!a.auto) return;                    // the worker only does what he is told
+      nextErrand(a, now);
+    }
+    var job = a.errands.shift();
+    if (!job) return;
+    if (a.goTo(job.pt.x, job.pt.y)) {
+      a.arriveCb = function (who) {
+        if (job.act) job.act(who);
+        who.waitT = job.wait;
+      };
+    } else {
+      a.errands.length = 0;
+      a.waitT = 600;
+    }
+  }
+
+
+  /* ================= the bins ====================================================
+     Each bin fills as people use it, colouring from green through to red. A full
+     bin gets littered around instead, and the litterer complains. Click a bin and
+     the station worker walks over and empties it.                              */
+
+  var BIN_STEP = 0.2;                         // one deposit
+  var BIN_STOPS = [[0.00, [46, 158, 58]],     // green
+                   [0.40, [216, 208, 46]],    // yellow
+                   [0.70, [232, 134, 46]],    // orange
+                   [1.00, [208, 32, 32]]];    // red
+
+  function binColour(f) {
+    var a = BIN_STOPS[0], b = BIN_STOPS[BIN_STOPS.length - 1];
+    for (var i = 0; i < BIN_STOPS.length - 1; i++) {
+      if (f >= BIN_STOPS[i][0] && f <= BIN_STOPS[i + 1][0]) { a = BIN_STOPS[i]; b = BIN_STOPS[i + 1]; break; }
+    }
+    var t = (f - a[0]) / (b[0] - a[0] || 1), c = [0, 0, 0];
+    for (var j = 0; j < 3; j++) c[j] = Math.round(a[1][j] + (b[1][j] - a[1][j]) * t);
+    return "rgb(" + c.join(",") + ")";
+  }
+
+  var litterLayer = svgEl("g");
+  litterLayer.style.pointerEvents = "none";
+  layer1.insertBefore(litterLayer, props[0].el);       // on the ground, under everything
+
+  var BINS = ["rect161", "rect160", "rect102", "rect101"].map(function (v) {
+    var el = id(v);
+    if (!el) return null;
+    var b = boxIn(el);
+    var bin = {
+      el: el, box: b, fill: 0, litter: [], busy: false,
+      stand: { x: (b.x1 + b.x2) / 2 + ((b.x1 + b.x2) / 2 < 105 ? -4.6 : 4.6), y: b.y2 + 2.5 }
+    };
+    el.style.fill = binColour(0);
+    el.style.cursor = "pointer";
+    el.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (bin.busy || bin.fill <= 0) return;
+      if (player.goTo(bin.stand.x, bin.stand.y)) {
+        player.arriveCb = function () { emptyBin(bin); };
+      }
+    });
+    return bin;
+  }).filter(Boolean);
+
+  function dropLitter(bin) {
+    if (bin.litter.length > 7) return;
+    var g = svgEl("ellipse");
+    var w = bin.box.x2 - bin.box.x1;
+    g.setAttribute("cx", (bin.box.x1 + bin.box.x2) / 2 + rnd(-w * 1.6, w * 1.6));
+    g.setAttribute("cy", bin.box.y2 + rnd(0.5, 4));
+    g.setAttribute("rx", rnd(0.7, 1.4));
+    g.setAttribute("ry", rnd(0.4, 0.8));
+    g.setAttribute("style", "fill:" + pick(["#8d857a", "#b9b0a2", "#6f6459", "#c4bda8"]) +
+                            ";stroke:#1a1a1a;stroke-width:0.25");
+    litterLayer.appendChild(g);
+    bin.litter.push(g);
+  }
+
+  function useBin(a, bin) {
+    a.bob(600);
+    if (bin.fill >= 1) {
+      dropLitter(bin);
+      a.grumble(1600);
+      return;
+    }
+    bin.fill = Math.min(1, bin.fill + BIN_STEP);
+    bin.el.style.fill = binColour(bin.fill);
+  }
+
+  function emptyBin(bin) {
+    if (bin.busy) return;
+    bin.busy = true;
+    HA.noise(.5, 0, 900, .16);
+    var from = bin.fill;
+    var cx = (bin.box.x1 + bin.box.x2) / 2, cy = (bin.box.y1 + bin.box.y2) / 2;
+    animate(1000, function (t) {
+      bin.fill = from * (1 - t);
+      bin.el.style.fill = binColour(bin.fill);
+      var k = Math.sin(t * Math.PI * 8) * 0.5 * (1 - t);       // a shake that settles
+      bin.el.setAttribute("transform",
+        "translate(" + cx + "," + cy + ") rotate(" + k * 6 + ") translate(" + (-cx) + "," + (-cy) + ")");
+    }, function () {
+      bin.fill = 0;
+      bin.el.style.fill = binColour(0);
+      bin.el.removeAttribute("transform");
+      while (bin.litter.length) litterLayer.removeChild(bin.litter.pop());
+      bin.busy = false;
+    });
+  }
+
+  /* ================= the lift =====================================================
+     Two doors that retract left behind the frame, a call button that reads green
+     when the car is at that floor and red when it is not, and room for four. It
+     runs itself: it goes where it is called, opens, swaps its load, and closes. */
+
+  var LIFT_CAPACITY = 4;
+  var LIFT_DOOR_MS  = 700, LIFT_DWELL_MS = 1600, LIFT_TRAVEL_MS = 2600;
+  var DOOR_SLIDE    = 15.499;                 // both panels, right back into the wall
+
+  var LIFT = (function () {
+    var pclip = svgEl("clipPath");
+    pclip.setAttribute("id", "liftpocket");
+    pclip.setAttribute("clipPathUnits", "userSpaceOnUse");
+    var prect = svgEl("rect");
+    prect.setAttribute("x", 89.955); prect.setAttribute("y", 178.5);
+    prect.setAttribute("width", 31.363); prect.setAttribute("height", 27.2);
+    pclip.appendChild(prect);
+    defs.appendChild(pclip);
+
+    function floorOf(groupId, dy, level, wait, door) {
+      var g = id(groupId);
+      if (!g) return null;
+      var doors = [];
+      var kids = g.querySelectorAll("path");
+      for (var i = 0; i < kids.length; i++) {
+        var lb = kids[i].getAttribute("inkscape:label");
+        if (lb === "Door1" || lb === "Door2") doors.push(kids[i]);
+      }
+      // Pocket the doors: they retract past the frame, so they get clipped to
+      // the doorway or they would slide out into the open on the left.
+      var back = svgEl("rect");                  // solid wall behind the car
+      back.setAttribute("x", 89.955); back.setAttribute("y", 178.9);
+      back.setAttribute("width", 31.363); back.setAttribute("height", 26.5);
+      back.setAttribute("style", "fill:#3f4a48;stroke:none");
+      g.insertBefore(back, g.firstChild);
+
+      var pocket = svgEl("g");
+      pocket.setAttribute("clip-path", "url(#liftpocket)");
+      if (doors.length) {
+        doors[0].parentNode.insertBefore(pocket, doors[0]);
+        doors.forEach(function (d) { pocket.appendChild(d); });
+      }
+      var slots = [];
+      for (var s = 0; s < LIFT_CAPACITY; s++) {
+        slots.push({ x: 101.0 + s * 3.6, y: door.carY });
+      }
+      return { group: g, doors: doors, pocket: pocket, button: g.querySelector("circle"),
+               level: level, wait: wait, door: door, slots: slots, zone: door.zone };
+    }
+    var top = floorOf("g14", 0, "surface",
+                      { x: 105.58, y: 209.5 },
+                      { x: 105.58, y: 208.0, carY: 203.4, zone: LIFTZONE.top });
+    var bottom = floorOf("g8", 59.843284, "ubahn",
+                         { x: 105.58, y: 272 },
+                         { x: 105.58, y: 269.5, carY: 263.2, zone: LIFTZONE.bottom });
+    if (!top || !bottom) return null;
+
+    var L = {
+      at: "top", state: "idle", t: 0, open: 0,
+      riders: [], queue: { top: [], bottom: [] },
+      floors: { top: top, bottom: bottom }
+    };
+
+    function paint() {
+      ["top", "bottom"].forEach(function (k) {
+        var f = L.floors[k];
+        var here = (L.at === k && L.state !== "moving");
+        if (f.button) f.button.style.fill = here ? "#3ecf4a" : "#d02020";
+        var slide = (L.at === k) ? -DOOR_SLIDE * L.open : 0;
+        f.doors.forEach(function (d) {
+          d.setAttribute("transform", "translate(" + slide + ",0)");
+        });
+        var walkIn = here && L.open > 0.6;
+        if (f.zone.open !== walkIn) {          // the doorway just became floor, or stopped being
+          f.zone.open = walkIn;
+          clearWalkCache();
+        }
+      });
+    }
+    L.paint = paint;
+    paint();
+
+    L.other = function () { return L.at === "top" ? "bottom" : "top"; };
+    L.floorFor = function (level) { return level === "ubahn" ? "bottom" : "top"; };
+
+    LIFTZONE.carDepth = function (px, py) {
+      for (var k in L.floors) {
+        var f = L.floors[k];
+        if (px >= f.zone.dx1 && px <= f.zone.dx2 && py >= f.zone.cy1 && py <= f.zone.y2) {
+          return { parent: f.group, before: f.pocket };
+        }
+      }
+      return null;
+    };
+
+    L.call = function (a, destFloor) {
+      if (L.broken) return false;
+      a.mode = "lift";
+      a.liftDest = destFloor;
+      var here = L.floorFor(a.level);
+      if (L.queue[here].indexOf(a) < 0) L.queue[here].push(a);
+    };
+    L.roomLeft = function () { return LIFT_CAPACITY - L.riders.length; };
+    L.waitingAt = function (k) { return L.queue[k].length; };
+
+    // People walk in and out on their own feet and stay visible in the car.
+    function freeSlot(f) {
+      for (var i = 0; i < f.slots.length; i++) {
+        var taken = false;
+        for (var j = 0; j < L.riders.length; j++) if (L.riders[j].slotIx === i) taken = true;
+        if (!taken) return i;
+      }
+      return -1;
+    }
+    function board() {
+      var f = L.floors[L.at];
+      for (var i = L.riders.length - 1; i >= 0; i--) {
+        var r = L.riders[i];
+        if (r.liftDest !== L.at || r.mode === "leaving") continue;
+        L.riders.splice(i, 1);
+        r.slotIx = -1;
+        r.mode = "leaving";
+        r.level = f.level;
+        r.lane = null;
+        if (!r.goTo(f.wait.x + rnd(-4, 4), f.wait.y)) {
+          r.x = f.wait.x; r.y = f.wait.y; r.mode = null; r.apply();
+        } else {
+          r.arriveCb = function (who) { who.mode = null; };
+        }
+      }
+      var q = L.queue[L.at];
+      while (q.length && L.riders.length < LIFT_CAPACITY) {
+        var a = q.shift();
+        if (a.mode !== "lift") continue;
+        var ix = freeSlot(f);
+        if (ix < 0) { q.unshift(a); break; }
+        a.slotIx = ix;
+        a.mode = "boarding";
+        L.riders.push(a);
+        (function (who, floor, slotIx) {
+          if (!who.goTo(floor.slots[slotIx].x, floor.slots[slotIx].y)) {
+            who.x = floor.slots[slotIx].x; who.y = floor.slots[slotIx].y;
+            who.mode = "riding"; who.apply();
+          } else {
+            who.arriveCb = function (w) { w.mode = "riding"; };
+          }
+        })(a, f, ix);
+      }
+    }
+    function allAboard() {
+      for (var i = 0; i < L.riders.length; i++) {
+        if (L.riders[i].mode === "boarding") return false;
+      }
+      return true;
+    }
+    function carryRiders() {                    // the car has arrived, bring its load
+      var f = L.floors[L.at];
+      L.riders.forEach(function (r) {
+        var s = f.slots[Math.max(0, r.slotIx)];
+        r.stop();
+        r.x = s.x; r.y = s.y; r.level = f.level; r.lane = null;
+        r.mode = "riding";
+        r.apply();
+      });
+    }
+    // anyone standing in the car when the doors shut rides along, player included
+    function sweep() {
+      var f = L.floors[L.at];
+      allActors().forEach(function (a) {
+        if (a.mode === "riding" || a.mode === "boarding" || a.mode === "leaving") return;
+        if (a.x < f.zone.dx1 || a.x > f.zone.dx2) return;
+        if (a.y < f.zone.cy1 || a.y > f.zone.y2) return;
+        if (L.riders.length >= LIFT_CAPACITY) return;
+        a.stop();
+        a.slotIx = freeSlot(f);
+        a.mode = "riding";
+        a.liftDest = L.other();
+        L.riders.push(a);
+      });
+    }
+
+    // The car is solid once it shuts, so nothing may be left inside that is not
+    // riding. Anyone else gets put back out on the landing.
+    function evict() {
+      var f = L.floors[L.at];
+      allActors().forEach(function (a) {
+        if (a.mode === "riding" || a.mode === "boarding") return;
+        if (a.x < f.zone.dx1 - 1 || a.x > f.zone.dx2 + 1) return;
+        if (a.y < f.zone.cy1 - 1 || a.y > f.zone.y2 + 1) return;
+        a.stop();
+        a.mode = null;
+        a.x = f.wait.x + rnd(-3, 3);
+        a.y = f.wait.y;
+        a.level = f.level;
+        a.lane = null;
+        a.apply();
+      });
+    }
+    L.evict = evict;
+
+    L.tick = function (dt) {
+      var ms = dt * 16.667;
+      L.t -= ms;
+      switch (L.state) {
+        case "idle":
+          if (L.broken) break;
+          if (L.waitingAt(L.at) || L.riders.length) { L.state = "opening"; L.t = LIFT_DOOR_MS; L.served = true; }
+          else if (L.waitingAt(L.other())) { L.state = "moving"; L.t = LIFT_TRAVEL_MS; paint(); }
+          break;
+        case "opening":
+          L.open = 1 - Math.max(0, L.t) / LIFT_DOOR_MS;
+          paint();
+          if (L.t <= 0) { L.open = 1; L.state = "open"; L.t = LIFT_DWELL_MS; board(); paint(); }
+          break;
+        case "open":
+          if (L.waitingAt(L.at) && L.riders.length < LIFT_CAPACITY) board();
+          if (L.t <= 0 && allAboard()) { sweep(); L.state = "closing"; L.t = LIFT_DOOR_MS; }
+          else if (L.t < -4000) { L.state = "closing"; L.t = LIFT_DOOR_MS; }
+          break;
+        case "closing":
+          L.open = Math.max(0, L.t) / LIFT_DOOR_MS;
+          paint();
+          if (L.t <= 0) {
+            L.open = 0;
+            paint();
+            sweep();                            // catch anyone who stepped in late
+            evict();                            // and put out whoever cannot ride
+            if (L.broken) { L.state = "idle"; break; }
+            if (L.riders.length || L.waitingAt(L.other())) { L.state = "moving"; L.t = LIFT_TRAVEL_MS; paint(); }
+            else {
+              L.state = "idle";
+              if (L.served && Math.random() < LIFT_BREAK_CHANCE && L.breakDown) {
+                L.served = false;
+                L.breakDown();
+              }
+            }
+          }
+          break;
+        case "moving":
+          if (L.t <= 0) {
+            L.at = L.other();
+            carryRiders();
+            L.state = "opening"; L.t = LIFT_DOOR_MS;
+            HA.tone({ f: 880, dur: .12, type: "sine", vol: .12 });
+            paint();
+          }
+          break;
+      }
+    };
+    return L;
+  })();
+
+  /* ---- how the regulars decide to change level ---- */
+
+  function levelOfPt(pt) { return levelOfPoint(pt.x, pt.y).level; }
+
+  function travelTo(a, pt, wait, act) {
+    var here = a.level === "shaft" ? "surface" : a.level;
+    var there = levelOfPt(pt);
+    var needsLift = a.liftOnly ||
+                    (a.liftPrefers && LIFT && LIFT.waitingAt(LIFT.floorFor(here)) < 2);
+
+    if (LIFT && LIFT.broken && a.liftOnly && there !== here) return false;   // stranded, pick something else
+    if (LIFT && there !== here && (needsLift || a.liftOnly)) {
+      var destFloor = LIFT.floorFor(there);
+      var f = LIFT.floors[LIFT.floorFor(here)];
+      a.errands.push({ pt: { x: f.wait.x + rnd(-3, 3), y: f.wait.y },
+                       wait: 0,
+                       act: function (who) { LIFT.call(who, destFloor); } });
+    }
+    a.errands.push({ pt: pt, wait: wait, act: act });
+    return true;
+  }
+
+  /* ================= bus and ubahn services, and the clock for all of them ===== */
+
+  // Two a side, double size, so they are easy to hit with a thumb. The left pair
+  // use the left hand sign shape and the right pair the right hand one, so none
+  // of them read backwards.
+  var BADGE_SCALE = 2;
+  var LEFT_X = 16, RIGHT_X = -210;            // put each shape flush to its edge
+  var ROW_1 = -216, ROW_2 = -180;             // tops at y 8 and y 44
+
+  var redBadge   = placeBadge("g31", LEFT_X,  ROW_1, BADGE_SCALE, "#c83737", "#1a1a1a", false);
+  var ubahnBadge = placeBadge("g31", LEFT_X,  ROW_2, BADGE_SCALE, "#ffcc00", "#1a1a1a", true);
+  var blueBadge  = placeBadge("g37", RIGHT_X, ROW_1, BADGE_SCALE, "#3771c8", "#1a1a1a", false);
+  var busBadge   = placeBadge("g37", RIGHT_X, ROW_2, BADGE_SCALE, "#22b14c", "#1a1a1a", true);
+
+  SERVICES.forEach(function (s) {
+    if (s.key === "red")  s.badge = redBadge;
+    if (s.key === "blue") s.badge = blueBadge;
+    if (s.badge) {
+      s.pieEl = s.badge.pie; s.textEl = s.badge.text;
+      s.cx = s.badge.cx; s.cy = s.badge.cy; s.r = s.badge.r;
+    }
+  });
+
+  addSlider("bus",   "g219", busBadge,   60000, 45000, 9000, { x: 40, y: 213 });
+  addSlider("ubahn", "g22",  ubahnBadge, 60000, 15000, 9000, { x: 70, y: 272 });
+  SERVICES.forEach(function (s) {
+    if (s.badge) { s.cx = s.badge.cx; s.cy = s.badge.cy; s.r = s.badge.r; }
+  });
+
+  // Vehicles arrive on the timetable, but they do not leave until you send them.
+  // When the stop time is up they flash, and a tap dispatches them.
+  var FLASH_HZ = 3;
+
+  SERVICES.forEach(function (s) {
+    s.state = "away";
+    s.t = 0;
+    s.next = s.offset;                      // first slot
+    var hit = s.badge && s.badge.holder;
+    if (!hit) return;
+    s.hitEl = hit;
+    hit.style.cursor = "pointer";
+    hit.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (s.state !== "ready") return;
+      hit.style.opacity = "";
+      s.state = "leaving";
+      s.t = LEAVE_MS;
+      HA.tone({ f: 330, to: 220, dur: .4, type: "sawtooth", vol: .18 });
+      departService(s);
+    });
+  });
+
+  function slotAfter(s, now) {              // next 30 second slot for this service
+    var k = Math.ceil((now - s.offset) / s.period);
+    return s.offset + k * s.period;
+  }
+
+  function serviceTick(now, dt) {
+    var ms = dt * 16.667;
+    for (var i = 0; i < SERVICES.length; i++) {
+      var s = SERVICES[i];
+      s.t -= ms;
+
+      switch (s.state) {
+        case "away":
+          if (now >= s.next) { s.state = "arriving"; s.t = ARRIVE_MS; HA.noise(.7, 0, 340, .1); }
+          break;
+        case "arriving":
+          if (s.t <= 0) { s.state = "dwell"; s.t = s.dwell; loadService(s); }
+          break;
+        case "dwell":
+          if (s.t <= 0) { s.state = "ready"; boardWaiting(s); HA.stationChime(); }
+          break;
+        case "ready":
+          break;                            // waiting for you
+        case "leaving":
+          if (s.t <= 0) {
+            s.state = "away";
+            s.next = slotAfter(s, now + 2000);
+          }
+          break;
+      }
+
+      var f = 1;
+      if (s.state === "arriving") f = 1 - Math.max(0, s.t) / ARRIVE_MS;
+      else if (s.state === "leaving") f = Math.max(0, s.t) / LEAVE_MS;
+      else if (s.state === "away") f = 0;
+      if (s.kind === "train") {
+        s.at(f);                                   // 1 at the platform, 0 in the tunnel
+      } else if (s.state === "arriving") {
+        s.at(f, false);
+      } else if (s.state === "leaving") {
+        s.at(1 - f, true);                         // 0 at the platform, 1 off the left
+      } else if (s.state === "away") {
+        s.at(1, true);
+      } else {
+        s.at(1, false);                            // standing at the stop
+      }
+
+      if (s.hitEl) {                        // the badge blinks when it is due out
+        if (s.state === "ready") {
+          var on = Math.floor(now / (1000 / FLASH_HZ / 2)) % 2 === 0;
+          s.hitEl.style.opacity = on ? "1" : "0.35";
+        } else if (s.hitEl.style.opacity) {
+          s.hitEl.style.opacity = "";
+        }
+      }
+
+      var left = s.state === "away" ? Math.max(0, s.next - now) : 0;
+      if (s.textEl) {
+        var label = s.state === "ready" ? "GO" : String(Math.ceil(left / 1000));
+        if (s.textEl.textContent !== label) s.textEl.textContent = label;
+      }
+      if (s.pieEl) {
+        var frac = s.state === "away" ? left / s.period : (s.state === "ready" ? 1 : 0);
+        s.pieEl.setAttribute("d", wedge(s.cx, s.cy, s.r, frac));
+      }
+    }
+  }
+
+  function releaseRiders(s) {
+    while (s.riders.length) {
+      var r = s.riders.pop();
+      r.show();
+      r.x = s.board.x + rnd(-4, 4);
+      r.y = s.board.y;
+      r.mode = null;
+      r.apply();
+    }
+  }
+  function boardWaiting(s) {
+    for (var i = s.queue.length - 1; i >= 0; i--) {
+      var a = s.queue[i];
+      if (a.mode !== "queued" || Math.hypot(a.x - s.board.x, a.y - s.board.y) > 12) continue;
+      s.queue.splice(i, 1);
+      a.stop();
+      if (a.dropTicket) a.dropTicket();
+      a.hide();
+      a.mode = "aboard";
+      s.riders.push(a);
+    }
+  }
+  function loadService(s) {
+    releaseRiders(s);
+    boardWaiting(s);
+  }
+  function departService(s) {
+    for (var i = s.queue.length - 1; i >= 0; i--) {
+      if (s.queue[i].mode === "queued") { s.queue[i].mode = null; s.queue.splice(i, 1); }
+    }
+  }
+
+  function errandRide(a) {
+    var s = null;
+    if (a.ticket) {
+      for (var i = 0; i < SERVICES.length; i++) if (SERVICES[i].key === a.ticket) s = SERVICES[i];
+    }
+    if (!s) s = pick(SERVICES);
+    travelTo(a, { x: s.board.x + rnd(-4, 4), y: s.board.y }, 0, function (who) {
+      who.mode = "queued";
+      s.queue.push(who);
+    });
+  }
+
+  /* ================= things that go wrong, and the man who fixes them ===========
+     The lift breaks, the ticket machine jams, the toilets get filthy and the cafe
+     needs someone behind the counter. Each one is a tap job for the worker.    */
+
+  var GRIME_LAYER = svgEl("g");
+  GRIME_LAYER.style.pointerEvents = "none";
+  layer1.insertBefore(GRIME_LAYER, props[0].el);
+
+  function jobSpot(a, pt, cb) {                 // send the worker, then do the thing
+    if (player.goTo(pt.x, pt.y)) player.arriveCb = cb;
+  }
+  // Several of these groups carry their own transform, so the wobble is
+  // prepended to it rather than replacing it, which is what threw the ticket
+  // machine across the platform.
+  function shake(el, ms, amount) {
+    var base = el.getAttribute("transform") || "";
+    var t0 = null;
+    (function step(now) {
+      if (t0 === null) t0 = now;
+      var t = (now - t0) / ms;
+      if (t >= 1) {
+        if (base) el.setAttribute("transform", base); else el.removeAttribute("transform");
+        return;
+      }
+      var dx = Math.sin(t * Math.PI * 14) * amount * (1 - t);
+      el.setAttribute("transform", "translate(" + dx + ",0) " + base);
+      requestAnimationFrame(step);
+    })(0);
+  }
+
+  /* ---- the toilets get dirty, one side at a time ---- */
+
+  var WCPROP = propByKey("g98");
+  var STALLS = DOORS.map(function (d) {
+    return { door: d, dirt: 0, marks: [], haze: null,
+             clean: { x: d.cx, y: baseAt(WCPROP, d.cx) + 4 } };
+  });
+
+  function soil(stall, amount) {
+    stall.dirt = Math.min(1, stall.dirt + amount);
+    var want = Math.round(stall.dirt * 6);
+    while (stall.marks.length < want) {
+      var e = svgEl("ellipse");
+      e.setAttribute("cx", stall.door.cx + rnd(-3.4, 3.4));
+      e.setAttribute("cy", baseAt(WCPROP, stall.door.cx) + rnd(0.5, 5));
+      e.setAttribute("rx", rnd(0.8, 1.8));
+      e.setAttribute("ry", rnd(0.5, 1.0));
+      e.setAttribute("style", "fill:" + pick(["#6f6a4a", "#7d7355", "#5d5a3f"]) +
+                              ";stroke:none;opacity:0.85");
+      GRIME_LAYER.appendChild(e);
+      stall.marks.push(e);
+    }
+    if (stall.dirt > 0.6 && !stall.haze) {
+      var h = svgEl("ellipse");
+      h.setAttribute("cx", stall.door.cx);
+      h.setAttribute("cy", baseAt(WCPROP, stall.door.cx) - 4);
+      h.setAttribute("rx", 5); h.setAttribute("ry", 4);
+      h.setAttribute("style", "fill:#8fb14a;stroke:none;opacity:0.28");
+      GRIME_LAYER.appendChild(h);
+      stall.haze = h;
+    }
+  }
+  function scrub(stall) {
+    while (stall.marks.length) GRIME_LAYER.removeChild(stall.marks.pop());
+    if (stall.haze) { GRIME_LAYER.removeChild(stall.haze); stall.haze = null; }
+    stall.dirt = 0;
+    HA.tone({ f: 784, dur: .12, type: "sine", vol: .1 });
+    HA.tone({ f: 1046, at: .1, dur: .18, type: "sine", vol: .1 });
+  }
+  var WCMID = STALLS.length === 2 ? (STALLS[0].door.cx + STALLS[1].door.cx) / 2 : 0;
+
+  STALLS.forEach(function (stall) {
+    var target = id(stall.door.elId);
+    if (!target) return;
+    stall.inside = { x: stall.door.cx + (stall.door.cx < WCMID ? 2.5 : -2.5), y: 0 };
+    stall.inside.y = baseAt(WCPROP, stall.inside.x) - 6;
+    target.style.cursor = "pointer";
+    target.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (player.mode) return;
+      player.stop();
+      player.errands.length = 0;
+      // in through the door, clean the lot, back out
+      player.errands.push({ pt: { x: stall.door.cx, y: baseAt(WCPROP, stall.door.cx) - 1 }, wait: 120 });
+      player.errands.push({ pt: stall.inside, wait: 900,
+                            act: function (who) { who.bob(700); scrub(stall); } });
+      player.errands.push({ pt: stall.clean, wait: 0 });
+    });
+  });
+
+  /* ---- the lift breaks, and gets a warning sign ---- */
+
+  var LIFT_BREAK_CHANCE = 0.22;
+  if (LIFT) {
+    LIFT.broken = false;
+    ["top", "bottom"].forEach(function (k) {
+      var f = LIFT.floors[k];
+      var sign = svgEl("g");
+      sign.style.display = "none";
+      var back = svgEl("rect");
+      back.setAttribute("x", 98.6); back.setAttribute("y", 179.3);
+      back.setAttribute("width", 14); back.setAttribute("height", 3.7);
+      back.setAttribute("style", "fill:#f2c200;stroke:#1a1a1a;stroke-width:0.5");
+      sign.appendChild(back);
+      for (var i = 0; i < 5; i++) {
+        var bar = svgEl("path");
+        var x = 99.2 + i * 2.8;
+        bar.setAttribute("d", "m " + x + ",183 l 1.5,-3.7 h 1.3 l -1.5,3.7 z");
+        bar.setAttribute("style", "fill:#1a1a1a;stroke:none");
+        sign.appendChild(bar);
+      }
+      f.group.appendChild(sign);
+      f.sign = sign;
+      f.group.style.cursor = "pointer";
+      f.group.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (LIFT.broken) {
+          jobSpot(player, f.wait, function () {
+            shake(f.group, 1200, 0.7);
+            animate(1200, function () {}, function () {
+              LIFT.broken = false;
+              LIFT.floors.top.sign.style.display = "none";
+              LIFT.floors.bottom.sign.style.display = "none";
+              LIFT.paint();
+            });
+          });
+          return;
+        }
+        // otherwise the worker rides it
+        if (player.mode) return;
+        if (player.goTo(f.wait.x + rnd(-3, 3), f.wait.y)) {
+          player.arriveCb = function (who) {
+            if (!LIFT.broken) LIFT.call(who, k === "top" ? "bottom" : "top");
+          };
+        }
+      });
+    });
+    LIFT.breakDown = function () {
+      LIFT.broken = true;
+      HA.tone({ f: 220, to: 140, dur: .5, type: "square", vol: .2 });
+      HA.tone({ f: 220, to: 140, dur: .5, at: .55, type: "square", vol: .2 });
+      shake(LIFT.floors.top.group, 900, 0.9);
+      shake(LIFT.floors.bottom.group, 900, 0.9);
+      LIFT.floors.top.sign.style.display = "";
+      LIFT.floors.bottom.sign.style.display = "";
+      LIFT.paint();
+    };
+  }
+
+  /* ---- the ticket machine ---- */
+
+  var TICKET_COLOURS = { red: "#c1272d", blue: "#1f6fbf", bus: "#22b14c", ubahn: "#ffcc00" };
+  var MACHINE = { broken: false, queue: [], el: id("g223"),
+                  serveAt: { x: 105, y: 152 } };
+  if (MACHINE.el) {
+    MACHINE.el.style.cursor = "pointer";
+    MACHINE.el.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (!MACHINE.broken) return;
+      jobSpot(player, MACHINE.serveAt, function () {
+        shake(MACHINE.el, 1200, 0.8);
+        animate(1200, function () {}, function () {
+          MACHINE.broken = false;
+          HA.tone({ f: 660, to: 990, dur: .3, type: "triangle", vol: .18 });
+        });
+      });
+    });
+  }
+
+  /* ---- the cafe counter ---- */
+
+  var CAFE_QUEUE = [{ x: 191, y: 167.5 }, { x: 194.5, y: 171 }, { x: 198, y: 174.5 }];
+  var CAFE = { queue: [], el: id("g96"), timer: 0, busy: false,
+               hatch: { x: 196.5, y: 170 } };          // where the cup comes over
+
+  // The barista hands one across, cup and all, then the queue shuffles up.
+  function serveCoffee() {
+    var got = CAFE.queue[0];
+    if (!got) return;
+    CAFE.busy = true;
+    HA.tone({ f: 587, dur: .15, type: "sine", vol: .14 });
+    HA.tone({ f: 784, at: .12, dur: .2, type: "sine", vol: .12 });
+    var fly = svgEl("path");
+    fly.setAttribute("d", "m -1.55,-2.2 h 3.1 l -0.45,4.3 h -2.2 z");
+    fly.setAttribute("style", "fill:#f4f1e8;stroke:#1a1a1a;stroke-width:0.8");
+    layer1.appendChild(fly);
+    var sx = CAFE.hatch.x, sy = CAFE.hatch.y;
+    animate(650, function (t) {
+      var tx = sx + (got.x - sx) * t;
+      var ty = sy + (got.y - 6 - sy) * t - Math.sin(t * Math.PI) * 2.5;
+      fly.setAttribute("transform", "translate(" + tx + "," + ty + ") scale(" + (0.8 + 0.2 * t) + ")");
+    }, function () {
+      layer1.removeChild(fly);
+      CAFE.queue.shift();
+      got.giveCup(CLOCK);
+      got.mode = null;
+      got.waitT = 400;
+      got.bob(400);
+      for (var i = 0; i < CAFE.queue.length; i++) {      // everyone moves up one
+        var spot = CAFE_QUEUE[Math.min(i, CAFE_QUEUE.length - 1)];
+        var w = CAFE.queue[i];
+        w.mode = null;
+        w.errands.unshift({ pt: spot, wait: 0, act: function (who) {
+          who.mode = "cafeq";
+          if (CAFE.queue.indexOf(who) < 0) CAFE.queue.push(who);
+        } });
+      }
+      CAFE.busy = false;
+      CAFE.timer = 0;
+    });
+  }
+
+  /* ---- the errands that use all of the above ---- */
+
+  function errandCafe(a) {
+    if (a.hasCup) return false;
+    var spot = CAFE_QUEUE[Math.min(CAFE.queue.length, CAFE_QUEUE.length - 1)];
+    travelTo(a, { x: spot.x, y: spot.y }, 0, function (who) {
+      who.mode = "cafeq";
+      who.patience = 22000;
+      CAFE.queue.push(who);
+    });
+    return true;
+  }
+  function errandTicket(a) {
+    if (a.ticket) return false;
+    travelTo(a, pick(TICKETS), 0, function (who) {
+      who.mode = "ticketq";
+      who.patience = 18000;
+      MACHINE.queue.push(who);
+    });
+    return true;
+  }
+
+  function jobsTick(dt) {
+    var ms = dt * 16.667;
+
+    // the machine hands out tickets unless it has jammed
+    for (var i = MACHINE.queue.length - 1; i >= 0; i--) {
+      var a = MACHINE.queue[i];
+      if (a.mode !== "ticketq") { MACHINE.queue.splice(i, 1); continue; }
+      a.patience -= ms;
+      if (!MACHINE.broken && a.patience < 15000) {
+        MACHINE.queue.splice(i, 1);
+        var svc = pick(SERVICES);
+        a.giveTicket(svc.key, TICKET_COLOURS[svc.key] || "#cccccc");
+        a.mode = null;
+        a.waitT = 400;
+        if (Math.random() < 0.06) {                            // jams now and then
+          MACHINE.broken = true;
+          HA.tone({ f: 200, dur: .35, type: "sawtooth", vol: .18 });
+        }
+      } else if (a.patience <= 0) {
+        MACHINE.queue.splice(i, 1);
+        a.grumble(2200);
+        a.mode = null;
+      } else if (MACHINE.broken && a.patience < 12000 && Math.random() < 0.01) {
+        a.grumble(1400);
+      }
+    }
+
+    // the cafe serves itself, one customer at a time
+    for (var j = CAFE.queue.length - 1; j >= 0; j--) {
+      var c = CAFE.queue[j];
+      if (c.mode !== "cafeq") { CAFE.queue.splice(j, 1); continue; }
+      c.patience -= ms;
+      if (c.patience <= 0) {
+        CAFE.queue.splice(j, 1);
+        c.grumble(2200);
+        c.mode = null;
+      }
+    }
+    if (!CAFE.busy && CAFE.queue.length) {
+      var front = CAFE.queue[0];
+      if (Math.hypot(front.x - CAFE_QUEUE[0].x, front.y - CAFE_QUEUE[0].y) < 6) {
+        CAFE.timer += ms;
+        if (CAFE.timer > 1400) serveCoffee();
+      }
+    } else if (!CAFE.queue.length) {
+      CAFE.timer = 0;
+    }
+  }
+
+  /* ================= the clock =================================================== */
+
+  var last = 0, sbahnRaf = null;
+  function sbahnTick(now) {
+    CLOCK = now;
+    var dt = last ? Math.min(3, (now - last) / 16.667) : 1;
+    last = now;
+
+    var drive = { x: (keys.r ? 1 : 0) - (keys.l ? 1 : 0),
+                  y: (keys.d ? 1 : 0) - (keys.u ? 1 : 0) };
+    player.advance(dt, drive);
+    think(player, dt, now);
+    var pdip = player.bobOffset(dt);
+    if (pdip !== player.dip) { player.dip = pdip; player.apply(); }
+
+    for (var i = 0; i < crowd.length; i++) {
+      var a = crowd[i];
+      a.advance(dt, null);
+      var dip = a.bobOffset(dt);
+      if (dip !== a.dip) { a.dip = dip; a.apply(); }
+      a.grumbleTick(dt);
+      think(a, dt, now);
+    }
+    if (LIFT) { LIFT.tick(dt); if (LIFT.state === "moving" && LIFT.evict) LIFT.evict(); }
+    serviceTick(now, dt);
+    jobsTick(dt);
+    sbahnRaf = requestAnimationFrame(sbahnTick);
+  }
+  // Only ticks while this screen is the one showing -- started and
+  // stopped from the main app's screen switcher, same as the train
+  // and lift loops.
+  window.sbahnStart = function () {
+    if (sbahnRaf != null) return;
+    last = 0;
+    sbahnRaf = requestAnimationFrame(sbahnTick);
+  };
+  window.sbahnStop = function () {
+    if (sbahnRaf != null) { cancelAnimationFrame(sbahnRaf); sbahnRaf = null; }
+  };
+}
+window.sbahnInit = initSbahnChaos;
 </script>
 </body>
 </html>
