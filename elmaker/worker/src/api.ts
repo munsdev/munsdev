@@ -109,7 +109,7 @@ export async function putItems(env: Env, body: any): Promise<Response> {
         String(it.top ?? ""),
         String(it.bot ?? ""),
         String(it.variant ?? "stack"),
-        String(it.align ?? "left"),
+        String(it.align ?? "center"),
         it.img ? String(it.img) : null,
         Number(it.zoom) || 100,
         Number(it.fx) ?? 50,

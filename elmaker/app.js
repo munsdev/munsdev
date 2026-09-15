@@ -33,7 +33,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 function newItem(top,bot){
   return {id:nid(), top:top||'LONG LINE?', bot:bot||'LOG IT.',
-          variant:'stack', align:'left', img:null, zoom:100, fx:50, fy:50, scrim:70};
+          variant:'stack', align:'center', img:null, zoom:100, fx:50, fy:50, scrim:70};
 }
 
 /* ---------- persistence ---------- */

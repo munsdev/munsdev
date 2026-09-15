@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS items (
   top        TEXT NOT NULL DEFAULT '',
   bot        TEXT NOT NULL DEFAULT '',
   variant    TEXT NOT NULL DEFAULT 'stack',
-  align      TEXT NOT NULL DEFAULT 'left',
+  align      TEXT NOT NULL DEFAULT 'center',
   image_sha  TEXT,
   zoom       INTEGER NOT NULL DEFAULT 100,
   fx         REAL NOT NULL DEFAULT 50,
