@@ -4,6 +4,11 @@ import { cookieFrom, mintToken, tokenValid, passwordOk, setCookieHeader, clearCo
 import { loginPage } from "./login";
 import { getState, putProject, putItems, deleteItems } from "./api";
 import { haveImage, putImage, putThumb, getImage, deleteImage } from "./images";
+import {
+  listCollections, createCollection, renameCollection,
+  listGraphics, getGraphic, createGraphic, putRender, finishGraphic,
+  deleteGraphic, getRender,
+} from "./library";
 
 /* The tool used to be a single file with `connect-src 'none'` and no server.
    It now has both, so that photos survive a reload -- see HANDOFF section 1.
@@ -109,13 +114,23 @@ export default {
        API and the image bytes alike. Gating only the page would leave the
        photos and the copy readable to anyone who guessed a URL. */
     if (!authed) {
-      if (path.startsWith("/api/") || path.startsWith("/img/") || path.startsWith("/thumb/")) {
+      if (
+        path.startsWith("/api/") || path.startsWith("/img/") ||
+        path.startsWith("/thumb/") || path.startsWith("/r/")
+      ) {
         return json({ error: "unauthorized" }, 401);
       }
       return harden(loginPage(false));
     }
 
-    // --- images ---
+    // --- finished graphics ---
+    const renderMatch = /^\/r\/([0-9a-f-]{36})\/(\d{2,5}x\d{2,5})\.png$/.exec(path);
+    if (renderMatch) {
+      if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
+      return harden(await getRender(env, renderMatch[1], renderMatch[2]));
+    }
+
+    // --- source photos ---
     const imgMatch = /^\/(img|thumb)\/([0-9a-f]{64})$/.exec(path);
     if (imgMatch) {
       if (request.method !== "GET") return json({ error: "method not allowed" }, 405);
@@ -157,6 +172,34 @@ async function api(request: Request, env: Env, path: string): Promise<Response> 
   if (path === "/api/items" && method === "PUT") return putItems(env, await request.json());
   if (path === "/api/items/delete" && method === "POST")
     return deleteItems(env, await request.json());
+
+  // --- library ---
+  if (path === "/api/collections") {
+    if (method === "GET") return listCollections(env);
+    if (method === "POST") return createCollection(env, await request.json());
+    return json({ error: "method not allowed" }, 405);
+  }
+  const colOne = /^\/api\/collections\/([0-9a-f-]{36})$/.exec(path);
+  if (colOne && method === "PATCH") return renameCollection(env, colOne[1], await request.json());
+
+  const colGfx = /^\/api\/collections\/([0-9a-f-]{36})\/graphics$/.exec(path);
+  if (colGfx && method === "GET") return listGraphics(env, colGfx[1]);
+
+  if (path === "/api/graphics" && method === "POST")
+    return createGraphic(env, await request.json());
+
+  const gfxOne = /^\/api\/graphics\/([0-9a-f-]{36})$/.exec(path);
+  if (gfxOne) {
+    if (method === "GET") return getGraphic(env, gfxOne[1]);
+    if (method === "DELETE") return deleteGraphic(env, gfxOne[1]);
+    return json({ error: "method not allowed" }, 405);
+  }
+
+  const gfxDone = /^\/api\/graphics\/([0-9a-f-]{36})\/finish$/.exec(path);
+  if (gfxDone && method === "POST") return finishGraphic(env, gfxDone[1], await request.json());
+
+  const gfxRender = /^\/api\/graphics\/([0-9a-f-]{36})\/renders\/(\d{2,5}x\d{2,5})$/.exec(path);
+  if (gfxRender && method === "PUT") return putRender(env, gfxRender[1], gfxRender[2], request);
 
   const haveApi = /^\/api\/have\/([0-9a-f]{64})$/.exec(path);
   if (haveApi && method === "GET") return haveImage(env, haveApi[1]);
