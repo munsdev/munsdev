@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+worker/src/page.html
+
+# test artifacts
+q-*.png

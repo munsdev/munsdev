@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Makes ElectionLog social graphics. Nothing leaves your computer.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23121A24'/%3E%3Cpath d='M12 14h22v9H21v6h11v9H21v6h13v9H12z' fill='%23fff'/%3E%3Cpath d='M38 14h9v25h9v14H38z' fill='%23E9A81C'/%3E%3C/svg%3E">
+<title>ElectionLog Graphic Maker</title>
+<style>
+/*FONTS*/
+:root{
+  --black:#000000; --dark:#121A24; --white:#FFFFFF;
+  --gold:#E9A81C; --grey:#999999; --muted:#7F8C99;
+  --teal:#296B60; --crimson:#A81D33;
+  --panel:#18222E; --panel2:#1E2A38; --rail:#0E151D; --line:#2A3846;
+  --display:"ElectionLog Display",Impact,"Arial Black",sans-serif;
+  --struct:"ElectionLog Struct",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --body:"ElectionLog Body",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"ElectionLog Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body:not(.ready) .main,body:not(.ready) .bar{opacity:0}
+body.ready .main,body.ready .bar{opacity:1;transition:opacity .16s ease}
+html,body{height:100%}
+body{
+  margin:0;background:var(--black);color:var(--white);
+  font-family:var(--body);font-size:14px;-webkit-font-smoothing:antialiased;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100dvh;overflow:hidden;
+}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+
+/* ---------- header ---------- */
+header.top{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:11px 16px;background:var(--black);border-bottom:1px solid var(--line);
+}
+.lockup{font-family:var(--display);font-size:18px;letter-spacing:-.01em;white-space:nowrap}
+.lockup .a{color:#fff}.lockup .b{color:var(--gold)}.lockup .c{color:var(--grey)}
+.tool-name{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey)}
+.hdr-right{display:flex;gap:8px;align-items:center}
+
+/* ---------- main: stage + rail ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 272px;min-height:0}
+
+/* --panelw / --sheeth is the space permanently reserved for the open panel.
+   It is reserved whether the panel is open or not, which is the whole point:
+   the graphic is measured against a box that never changes size. */
+.stage{
+  --panelw:340px; --sheeth:0px;
+  min-height:150px;position:relative;display:block;overflow:hidden;
+  padding:16px; padding-right:calc(var(--panelw) + 16px);
+  background:radial-gradient(120% 90% at 50% 0%, #16212D 0%, #0A1018 70%, #06090D 100%);
+}
+.frame{position:relative;width:100%;height:100%;display:grid;place-items:center;min-width:0;min-height:0;padding-bottom:38px}
+#preview{
+  max-width:100%;max-height:100%;display:block;
+  box-shadow:0 18px 60px rgba(0,0,0,.72);border-radius:2px;touch-action:none
+}
+#preview.grab{cursor:grab}
+#preview.grabbing{cursor:grabbing}
+.stage-sizes{
+  position:absolute;right:0;bottom:0;z-index:6;gap:6px;
+  background:rgba(6,9,13,.78);padding:5px;border-radius:999px;backdrop-filter:blur(3px)
+}
+.stage-tag{
+  position:absolute;left:0;bottom:0;z-index:7;display:flex;gap:8px;align-items:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  background:rgba(6,9,13,.7);padding:5px 9px;border-radius:4px;pointer-events:none
+}
+.stage-tag .hintdrag{color:var(--gold)}
+
+/* ---------- the rail: the list, always visible ---------- */
+.rail{background:var(--rail);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
+.rail-head{
+  display:flex;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--line);flex:none
+}
+.rail-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);flex:1}
+.items{flex:1;min-height:0;min-width:0;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:10px}
+.items::-webkit-scrollbar{width:9px}
+.items::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+.rail-foot{
+  display:flex;gap:6px;padding:9px 10px;border-top:1px solid var(--line);flex:none
+}
+
+.item{
+  display:flex;gap:9px;align-items:center;background:var(--panel);
+  border:1px solid var(--line);border-left:3px solid var(--line);border-radius:6px;
+  padding:7px 8px;cursor:pointer;position:relative
+}
+.item:hover{border-color:var(--grey)}
+.item.on{border-color:var(--gold);border-left-color:var(--gold);background:var(--panel2)}
+.item .thumb{
+  width:36px;height:36px;flex:none;border-radius:4px;background:var(--black);
+  background-size:cover;background-position:center;border:1px solid var(--line);
+  display:grid;place-items:center;font-family:var(--mono);font-size:7.5px;color:var(--muted)
+}
+.item .txt{flex:1;min-width:0}
+.item .t1{font-family:var(--display);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t2{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--grey);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .ops{display:flex;gap:2px;flex:none;opacity:0;transition:opacity .12s}
+.item:hover .ops,.item.on .ops{opacity:1}
+.item .ops button{
+  width:22px;height:22px;border:0;background:transparent;color:var(--muted);cursor:pointer;
+  border-radius:4px;font-size:13px;line-height:1;padding:0;display:grid;place-items:center
+}
+.item .ops button:hover{background:var(--line);color:#fff}
+.item .ops button.rm:hover{background:rgba(168,29,51,.22);color:#ff8fa0}
+.item .ops button:disabled{opacity:.25;cursor:not-allowed}
+.item.dragging{opacity:.4}
+
+/* ---------- drawer ---------- */
+.drawer{
+  position:absolute;top:0;right:0;bottom:0;width:var(--panelw);
+  background:var(--dark);border-left:1px solid var(--line);
+  overflow-y:auto;padding:16px;z-index:8
+}
+.drawer[hidden]{display:none}
+/* a hint that there is more below, shown only when the panel actually scrolls */
+.scrollfade{display:none}
+.drawer.scrolls .scrollfade{
+  display:block;position:sticky;bottom:-16px;left:0;right:0;height:26px;
+  margin:-26px -16px 0;order:99;pointer-events:none;
+  background:linear-gradient(rgba(18,26,36,0),var(--dark))
+}
+.drawer::-webkit-scrollbar{width:9px}
+.drawer::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+.panel[hidden]{display:none}
+.panel-head{display:flex;align-items:baseline;gap:10px;margin:0 0 13px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.panel-num{font-family:var(--mono);font-size:10.5px;color:var(--gold);letter-spacing:.16em}
+.panel-title{font-family:var(--struct);font-weight:700;font-size:12px;letter-spacing:.19em;text-transform:uppercase}
+.panel-sub{font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);display:block;margin:0 0 6px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 20px}
+
+/* ---------- bottom bar ---------- */
+.bar{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--black);border-top:1px solid var(--line);
+  padding-bottom:max(9px,env(safe-area-inset-bottom));
+}
+.tabs{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  white-space:nowrap;flex:none;
+  background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:9px 13px;cursor:pointer;color:var(--grey);
+  font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;
+}
+.tab:hover{border-color:var(--muted);color:#fff}
+.tab[aria-expanded=true]{background:var(--gold);color:#121A24;border-color:var(--gold)}
+/* Export stands out without borrowing the selected state's solid gold,
+   which made it read as the open panel from across the screen. */
+.tab.go{background:transparent;color:var(--gold);border-color:var(--gold)}
+.tab.go:hover{background:rgba(233,168,28,.12);color:var(--gold)}
+.tab.go[aria-expanded=true]{background:var(--gold);color:#121A24}
+
+.barrow{display:flex;align-items:center;gap:10px;flex:none}
+.nav{display:flex;align-items:center;gap:4px;flex:none}
+.nav button{
+  width:34px;height:34px;border-radius:7px;background:var(--panel);border:1px solid var(--line);
+  color:#fff;cursor:pointer;font-size:16px;line-height:1;display:grid;place-items:center
+}
+.nav button:hover{border-color:var(--gold)}
+.nav button:disabled{opacity:.35;cursor:not-allowed}
+.counter{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--grey);min-width:58px;text-align:center;flex:none}
+
+/* ---------- controls ---------- */
+textarea,input[type=text]{
+  width:100%;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  padding:9px 11px;color:#fff;outline:none;resize:vertical;line-height:1.35
+}
+textarea:focus,input[type=text]:focus{border-color:var(--gold)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.field{margin:0 0 14px}
+label.field{display:block}
+.field[hidden]{display:none}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--panel2);border:1px solid var(--line);color:#fff;
+  padding:8px 13px;border-radius:6px;cursor:pointer;
+  font-family:var(--struct);font-weight:600;font-size:12px;letter-spacing:.07em;text-transform:uppercase
+}
+.btn:hover{border-color:var(--grey)}
+.btn.gold{background:var(--gold);color:#121A24;border-color:var(--gold)}
+.btn.gold:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent}
+.btn.danger:hover{border-color:var(--crimson);color:#ff8fa0}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.lg{padding:13px 18px;font-size:13px;width:100%}
+.btn.sm{padding:6px 10px;font-size:11px}
+.btn.icon{padding:6px 9px;font-size:13px;font-weight:700}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  border:1px solid var(--line);background:var(--panel);border-radius:999px;
+  padding:6px 13px;cursor:pointer;user-select:none;font-weight:500;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)
+}
+.chip[aria-pressed=true]{background:var(--gold);color:#121A24;border-color:var(--gold)}
+
+.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;
+     background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.seg button{
+  background:var(--panel);border:0;padding:9px 6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)
+}
+.seg button[aria-pressed=true]{background:var(--gold);color:#121A24}
+
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.hint{font-size:12px;color:var(--muted);line-height:1.5}
+.hint code{font-family:var(--mono);font-size:11px;color:var(--grey);background:var(--panel);padding:1px 5px;border-radius:3px}
+.note{border-left:2px solid var(--gold);padding:8px 0 8px 12px;margin:12px 0 0;font-size:12.5px;color:var(--muted);line-height:1.55}
+.note.warnnote{border-left-color:var(--crimson);color:#ffb3bf}
+
+.drop{
+  border:1px dashed var(--line);border-radius:6px;padding:15px;text-align:center;cursor:pointer;
+  color:var(--muted);font-size:12.5px;background:var(--panel)
+}
+.drop:hover,.drop.over{border-color:var(--gold);color:#fff}
+.lib{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.lib .p{width:50px;height:50px;border-radius:4px;background-size:cover;background-position:center;border:1px solid var(--line);cursor:pointer;position:relative}
+.lib .p.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(233,168,28,.32)}
+.lib .p.none{
+  display:grid;place-items:center;background:var(--panel);
+  font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--muted);text-align:center
+}
+.lib .p.none.on{color:var(--gold)}
+.lib .p .x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:var(--crimson);color:#fff;border:0;cursor:pointer;font-size:11px;line-height:17px;padding:0}
+
+.status{font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--grey);margin-top:10px;min-height:17px}
+.status.ok{color:#7FD4C4}.status.err{color:#FF8FA0}
+
+.sheetview{
+  position:fixed;inset:0;z-index:60;background:#06090D;display:flex;flex-direction:column
+}
+.sheetview[hidden]{display:none}
+.gridhead{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:var(--black);border-bottom:1px solid var(--line);flex:none
+}
+.gridwrap{
+  flex:1;min-height:0;overflow-y:auto;padding:16px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;align-content:start
+}
+.gcard{cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:7px;background:var(--panel)}
+.gcard:hover{border-color:var(--grey)}
+.gcard.on{border-color:var(--gold);background:var(--panel2)}
+.gcard canvas{width:100%;height:auto;display:block;border-radius:2px}
+.gcard .gl{
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--grey);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+/* size chips carry platform names, so they read as a list rather than pills */
+#sizes{flex-direction:column;align-items:stretch;gap:6px}
+.sizechip{text-transform:none;letter-spacing:.01em;font-size:12px;padding:9px 12px;
+          border-radius:6px;text-align:left}
+.alert{
+  background:#7D5B10;color:#fff;padding:9px 16px;font-size:12.5px;line-height:1.45;
+  border-bottom:1px solid var(--line)
+}
+.alert[hidden]{display:none}
+.toast{
+  touch-action:pan-y;user-select:none;cursor:grab;
+  transition:transform .18s ease, opacity .18s ease;will-change:transform;
+  position:fixed;top:64px;left:0;right:0;margin:0 auto;width:max-content;
+  max-width:calc(100vw - 24px);
+  z-index:50;background:var(--panel2);border:1px solid var(--gold);border-radius:8px;
+  padding:10px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.6);
+  font-size:13px;max-width:92vw
+}
+.toast[hidden]{display:none}
+
+dialog{background:var(--panel);color:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;max-width:520px;width:92vw}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+
+/* ================= NARROW SCREENS ================= */
+@media (max-width:900px) and (min-height:620px){
+  .main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+  .toast{top:52px}
+  .stage{--panelw:0px; --sheeth:158px;
+         padding:12px; padding-bottom:calc(var(--sheeth) + 12px)}
+  .drawer{top:auto;left:0;right:0;bottom:0;width:auto;height:var(--sheeth);
+          border-left:0;border-top:1px solid var(--line);padding:9px 10px 10px}
+  /* a control strip, not a form: no headings, no prose, labels beside the control */
+  .drawer .panel-head,.drawer .note,.drawer .hint{display:none}
+  .drawer .cols{display:block}
+  .drawer label.field{display:grid;grid-template-columns:66px minmax(0,1fr);align-items:center;
+                 gap:9px;margin:0 0 7px}
+  .drawer div.field{margin:0 0 7px}
+  .drawer .field[hidden]{display:none}
+  /* photo: chooser and the strip of images sit side by side */
+  .drawer #photoBlock{display:flex;gap:8px;align-items:center}
+  .drawer #photoBlock .drop{flex:0 0 106px;display:flex;align-items:center;justify-content:center;
+                    padding:7px;font-size:11px;line-height:1.25;min-height:46px}
+  .drawer #photoBlock .lib{flex:1;min-width:0;margin:0;flex-wrap:nowrap;overflow-x:auto;align-items:center}
+  .drawer #photoBlock .lib .p{flex:none}
+  .drawer .eyebrow{margin:0;font-size:9px;letter-spacing:.1em}
+  .drawer textarea{padding:6px 9px;min-height:44px}
+  .drawer .row{margin-top:0}
+  .drawer .btn.lg{padding:10px 14px;font-size:12px}
+  .drawer .drop{padding:10px;font-size:12px}
+  .drawer .lib{margin-top:7px}
+  .drawer .lib .p{width:42px;height:42px}
+  #storeWarn:not([hidden]){display:block;font-size:11px;padding:5px 0 0 9px;margin:0}
+  #cropBlock .row{gap:6px;margin-top:2px}
+  #cropBlock .row .btn{flex:1}
+  .stage-sizes{right:50%;transform:translateX(50%);bottom:0}
+  .rail{border-left:0;border-top:1px solid var(--line);flex-direction:row;align-items:stretch}
+  .rail-head{display:none}
+  .rail-foot{border-top:0;border-right:1px solid var(--line);flex-direction:column;padding:6px;gap:5px;justify-content:center}
+  .rail-foot .btn{padding:7px 10px;font-size:13px;font-weight:700;min-width:44px}
+  #btnBulk{display:none}
+  .items{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:8px;gap:6px;align-items:stretch}
+  .item{
+    flex:none;width:116px;flex-direction:column;align-items:stretch;gap:2px;
+    padding:5px 6px;border-left-width:1px;border-top:3px solid var(--line)
+  }
+  .item.on{border-top-color:var(--gold)}
+  .item .thumb{display:none}
+  .item .t1{font-size:11px;white-space:normal;line-height:1.15;max-height:2.3em;overflow:hidden}
+  .item .t2{display:none}
+  .item .ops{opacity:1;justify-content:space-between;border-top:1px solid var(--line);padding-top:1px;margin-top:auto}
+  .item .ops button{width:20px;height:18px;font-size:12px}
+  .items{padding:6px;gap:5px}
+  .rail-foot{padding:5px;gap:4px}
+  .rail-foot .btn{padding:5px 9px;font-size:12px}
+}
+@media (max-width:720px) and (min-height:620px){
+  header.top{padding:9px 12px;gap:8px}
+  .lockup{font-size:15px}
+  .tool-name{display:none}
+  .hdr-right{gap:6px}
+  .chip{padding:5px 10px;font-size:10px}
+
+  .stage-tag{display:none}
+  .stage-sizes{right:50%;transform:translateX(50%);bottom:6px;padding:4px}
+
+  .drawer{max-height:52vh;padding:13px 13px 16px}
+  .panel-sub{display:none}
+  .btn{padding:9px 10px;font-size:11px;letter-spacing:.04em}
+  .row.wrap .btn{flex:1 1 44%}
+  .btn.sm{padding:6px 9px;font-size:10.5px}
+
+  .bar{flex-direction:column;align-items:stretch;gap:6px;padding:6px 8px;
+       padding-bottom:max(6px,env(safe-area-inset-bottom))}
+  .barrow{order:1;flex:1}
+  .nav{flex:1;gap:6px}
+  .nav button{width:auto;min-width:52px;flex:1;height:36px;font-size:17px}
+  .counter{align-self:center;min-width:62px}
+  .tabs{order:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;overflow:visible}
+  .tab{padding:0 1px;height:36px;display:flex;align-items:center;justify-content:center;
+       text-align:center;font-size:9px;letter-spacing:0;overflow:hidden}
+}
+@media (max-width:380px) and (min-height:620px){
+  .tab{font-size:8.5px}
+}
+@media (max-width:900px) and (min-height:620px) and (max-height:780px){ .stage{--sheeth:150px} }
+@media (max-width:900px) and (min-height:620px) and (max-height:680px){ .stage{--sheeth:138px} }
+
+/* ================= SHORT SCREENS (phones on their side) =================
+   A bottom sheet would leave the graphic a few dozen pixels tall, so the
+   panel goes back to the side where the width is. */
+@media (max-height:619px){
+  .toast{top:52px}
+  .main{grid-template-columns:minmax(0,1fr) 196px}
+  .stage{--panelw:264px; --sheeth:0px; padding:10px; padding-right:274px}
+  .frame{padding-bottom:26px}
+  .stage-tag{display:none}
+  .drawer{width:var(--panelw);padding:12px;top:0;right:0;bottom:0;left:auto;height:auto;
+          border-left:1px solid var(--line);border-top:0}
+  .drawer .panel-head{margin:0 0 9px;padding-bottom:6px}
+  .drawer .panel-sub{display:none}
+  .drawer .note{display:none}
+  .drawer .cols{display:block}
+  .drawer .field{margin:0 0 9px}
+  .drawer textarea{min-height:42px}
+  .rail{flex-direction:column;border-left:1px solid var(--line);border-top:0}
+  .rail-head{display:flex;padding:6px 8px}
+  .rail-foot{flex-direction:row;padding:6px 8px;border-top:1px solid var(--line);border-right:0}
+  .items{flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:7px;gap:5px}
+  .item{width:auto;flex-direction:row;align-items:center;border-top-width:1px;border-left-width:3px}
+  .item .thumb{display:none}
+  .item .t1{white-space:nowrap;max-height:none;font-size:11px}
+  .item .t2{display:none}
+  .item .ops{opacity:1;border-top:0;margin-top:0;padding-top:0}
+  .bar{flex-direction:row;padding:6px 10px}
+  .tabs{display:flex;grid-template-columns:none}
+  .tab{height:auto;padding:7px 10px;font-size:9.5px;letter-spacing:.06em}
+  .nav button{width:30px;height:30px;min-width:0;flex:none}
+  .counter{min-width:52px}
+}
+/* Anything tapped on a touch screen gets a finger-sized target. */
+@media (pointer:coarse){
+  .btn,.chip,.tab,.seg button{min-height:36px}
+  .btn.sm{min-height:34px}
+  .item .ops button{width:34px;height:30px;font-size:14px}
+  .lib .p .x{width:22px;height:22px;line-height:22px;top:-7px;right:-7px}
+  input[type=range]{height:30px}
+  .nav button{min-height:36px}
+}
+</style>
+</head>
+<body>
+
+<div class="alert" id="storeAlert" hidden></div>
+
+<noscript>
+  <div style="padding:24px 18px;background:#A81D33;color:#fff;font-size:15px;line-height:1.5">
+    This tool runs entirely in your browser, so it needs JavaScript switched on. Nothing is uploaded either way.
+  </div>
+</noscript>
+
+<header class="top">
+  <div class="row" style="gap:12px">
+    <div class="lockup"><span class="a">ELECTION</span><span class="b">LOG</span><span class="c">.ORG</span></div>
+    <div class="tool-name">Graphic Maker</div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn ghost sm" id="btnGrid">All graphics</button>
+    <button class="btn ghost sm" id="btnHelp">Rules</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="stage" id="stage">
+    <div class="frame" id="frame">
+      <canvas id="preview" width="1080" height="1350"></canvas>
+      <div class="stage-tag"><span id="pvSize">1080 x 1350</span><span class="hintdrag" id="dragHint" hidden>Drag to move  ·  scroll to zoom</span></div>
+      <div class="chips stage-sizes" id="pvSwitch"></div>
+    </div>
+<div class="drawer" id="drawer" hidden>
+  <div class="scrollfade" aria-hidden="true"></div>
+
+  <section class="panel" id="p-text" hidden>
+    <div class="panel-head"><span class="panel-num">01</span><span class="panel-title">Words</span><span class="panel-sub">One idea per graphic</span></div>
+    <div class="cols">
+      <label class="field"><span class="eyebrow">Top line</span><textarea id="fTop" rows="2" placeholder="LONG LINE?"></textarea></label>
+      <label class="field"><span class="eyebrow">Bottom line</span><textarea id="fBot" rows="2" placeholder="LOG IT."></textarea></label>
+    </div>
+    <div class="hint">Both lines size themselves to fit. Press Enter to break a line where you want it.</div>
+  </section>
+
+  <section class="panel" id="p-layout" hidden>
+    <div class="panel-head"><span class="panel-num">02</span><span class="panel-title">Layout</span><span class="panel-sub">Seven, and no more</span></div>
+    <div class="cols">
+      <div class="field">
+        <span class="eyebrow">Arrangement</span>
+        <div class="seg" id="segVariant">
+          <button data-v="stack" aria-pressed="true">Stack</button>
+          <button data-v="bleed" aria-pressed="false">Full bleed</button>
+          <button data-v="band" aria-pressed="false">Gold band</button>
+          <button data-v="type" aria-pressed="false">Type only</button>
+          <button data-v="split" aria-pressed="false">Split</button>
+          <button data-v="slab" aria-pressed="false">Slab</button>
+          <button data-v="stamp" aria-pressed="false">Stamp</button>
+        </div>
+        <div class="hint">Type only, Split, Slab and Stamp take no photo.</div>
+      </div>
+      <div class="field">
+        <span class="eyebrow">Alignment</span>
+        <div class="seg two" id="segAlign">
+          <button data-a="left" aria-pressed="true">Left</button>
+          <button data-a="center" aria-pressed="false">Centre</button>
+        </div>
+      </div>
+    </div>
+    <div class="note">Stack with no photo falls back to type only on its own, so a graphic is never left with a hole in it.</div>
+  </section>
+
+  <section class="panel" id="p-photo" hidden>
+    <div class="panel-head"><span class="panel-num">03</span><span class="panel-title">Photo</span><span class="panel-sub">Nothing is uploaded anywhere</span></div>
+    <div class="cols">
+      <div class="field" id="photoBlock">
+        <div class="drop" id="drop">Drop images here, or click to choose.</div>
+        <div class="lib" id="lib"></div>
+        <div class="note warnnote" id="storeWarn" hidden></div>
+      </div>
+      <div id="cropBlock">
+        <div class="hint" style="margin-bottom:10px">Drag the photo on the graphic itself to move it. Scroll or pinch over it to zoom.</div>
+        <label class="field"><span class="eyebrow">Zoom <span id="vZoom" style="color:var(--gold)">100%</span></span><input type="range" id="fZoom" min="100" max="400" value="100"></label>
+        <label class="field" id="darkenField"><span class="eyebrow">Darken <span id="vScrim" style="color:var(--gold)">70%</span></span><input type="range" id="fScrim" min="0" max="100" value="70"></label>
+        <div class="hint" id="darkenNote" hidden>Darkening only applies to Full bleed, the one layout with type sitting on the photo. On the others the type is on its own ground already.</div>
+        <div class="row" style="margin-top:4px">
+          <button class="btn sm ghost" id="btnRecentre">Recentre</button>
+          <button class="btn sm ghost" id="btnFillAll">Use this photo for all</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-list" hidden>
+    <div class="panel-head"><span class="panel-num">04</span><span class="panel-title">The list</span><span class="panel-sub">Adding always appends</span></div>
+    <div class="cols">
+      <div>
+        <label class="field">
+          <span class="eyebrow">Paste lines</span>
+          <textarea id="bulkText" rows="3" placeholder="LONG LINE? | LOG IT.&#10;MACHINE DOWN? | LOG IT."></textarea>
+        </label>
+        <div class="row wrap">
+          <button class="btn" id="bulkAdd">Add pasted lines</button>
+          <button class="btn" id="btnSeed">Load all 46 lines</button>
+        </div>
+      </div>
+      <div>
+        <div class="row wrap">
+          <button class="btn" id="btnAdd2">+ Add a graphic</button>
+          <button class="btn" id="btnDupe">Duplicate selected</button>
+          <button class="btn ghost danger" id="btnClear">Clear the list</button>
+        </div>
+        <div class="note">One line each. Anything before a <code>|</code> is the top line, anything after it is the bottom line. Without a <code>|</code> the bottom line stays LOG IT.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-sizes" hidden>
+    <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Sizes</span><span class="panel-sub">Tick what you are posting to</span></div>
+    <div class="chips" id="sizes"></div>
+    <div class="note">The 1080 x 1920 size holds 240px clear top and bottom so nothing lands under the platform's own buttons.</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm ghost" id="btnGuides" aria-pressed="false">Show safe margins</button>
+      <span class="hint">Guides are preview only. They are never in an exported file.</span>
+    </div>
+  </section>
+
+  <section class="panel" id="p-export" hidden>
+    <div class="panel-head"><span class="panel-num">06</span><span class="panel-title">Export</span><span class="panel-sub" id="exportCount">nothing yet</span></div>
+    <div class="cols">
+      <div>
+        <button class="btn gold lg" id="btnExport">Generate and download everything</button>
+        <div class="row wrap" style="margin-top:9px">
+          <button class="btn" id="btnOne">Just this one</button>
+          <button class="btn ghost" id="btnCopy">Copy to clipboard</button>
+          <button class="btn ghost danger" id="btnCancel" hidden>Stop</button>
+        </div>
+        <div class="status" id="status"></div>
+        <label class="field" style="margin-top:12px">
+          <span class="eyebrow">Caption under every post</span>
+          <textarea id="fCaption" rows="2"></textarea>
+        </label>
+      </div>
+      <div class="note" style="margin-top:0">One zip: a PNG per graphic per ticked size, numbered in list order, plus captions.txt with the post text and an image description for every file.</div>
+    </div>
+  </section>
+
+</div>
+  </div>
+
+  <aside class="rail">
+    <div class="rail-head">
+      <span class="rail-title">Graphics</span>
+      <span class="rail-title" id="itemCount" style="flex:none"></span>
+    </div>
+    <div class="items" id="items"></div>
+    <div class="rail-foot">
+      <button class="btn sm grow" id="btnAdd">+ Add a graphic</button>
+      <button class="btn sm ghost" id="btnSeed2" title="Add all 46 campaign lines to the list">All 46</button>
+    </div>
+  </aside>
+</div>
+
+
+
+<div class="bar">
+  <div class="barrow">
+    <div class="nav">
+      <button id="btnPrev" title="Previous graphic">&lsaquo;</button>
+      <button id="btnNext" title="Next graphic">&rsaquo;</button>
+    </div>
+    <div class="counter" id="editingWhat">0 / 0</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="tab" data-p="text"   aria-expanded="false">Words</button>
+    <button class="tab" data-p="layout" aria-expanded="false">Layout</button>
+    <button class="tab" data-p="photo"  aria-expanded="false">Photo</button>
+    <button class="tab" data-p="list"   aria-expanded="false">List</button>
+    <button class="tab" data-p="sizes"  aria-expanded="false">Sizes</button>
+    <button class="tab go" data-p="export" aria-expanded="false">Export</button>
+  </div>
+</div>
+
+<div class="sheetview" id="grid" hidden>
+  <div class="gridhead">
+    <span class="panel-num">&#9632;</span>
+    <span class="panel-title">All graphics</span>
+    <span class="rail-title" id="gridCount" style="flex:1"></span>
+    <div class="seg" id="gridMode" style="width:260px">
+      <button data-g="all" aria-pressed="true">All graphics</button>
+      <button data-g="one" aria-pressed="false">This one, all sizes</button>
+    </div>
+    <button class="btn gold sm" id="gridClose">Close</button>
+  </div>
+  <div class="gridwrap" id="gridWrap"></div>
+</div>
+
+<div class="toast" id="toast" hidden>
+  <span id="toastText"></span>
+  <button class="btn sm gold" id="toastUndo">Undo</button>
+</div>
+
+<dialog id="dlgHelp">
+  <div class="panel-head"><span class="panel-num">??</span><span class="panel-title">What this tool will not let you do</span></div>
+  <p class="hint" style="line-height:1.7">
+  There are no colour pickers and no font controls. The palette, the type and the layout are fixed, so a graphic made here cannot come out off brand.<br><br>
+  <b style="color:#fff">One idea per graphic.</b> One top line, one bottom line. A second point is a second graphic.<br><br>
+  <b style="color:#fff">The mark sits in the white bar and nothing else goes in there.</b><br><br>
+  <b style="color:#fff">Gold carries dark text, never white.</b> That is why the gold band flips the text colour.<br><br>
+  <b style="color:#fff">A card may not characterise a report or draw a conclusion from one.</b> Describe what someone saw. Never why it happened, never who did it.<br><br>
+  <b style="color:#fff">Words that do not go on a graphic:</b> defend, fight, resist, stolen, rigged, crisis.
+  </p>
+  <div class="row" style="margin-top:6px;justify-content:flex-end"><button class="btn gold" id="helpClose">Understood</button></div>
+</dialog>
+
+<script>
+/*APP*/
+</script>
+</body>
+</html>

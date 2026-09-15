@@ -1,0 +1,42 @@
+name = "socialmaker"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+# The built page is compiled into the Worker as a text module. Run
+# `node build.mjs` in ../ first; there is no offline copy of the app.
+rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = true }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "socialmaker-db"
+database_id = "0760dae4-a860-4e47-a25e-9c12105bbcf7"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "socialmaker-images"
+
+# One shared password guarded against guessing. 10 attempts a minute per IP.
+[[unsafe.bindings]]
+name = "LOGIN_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+# Interim address until the custom domain below is freed up.
+workers_dev = true
+
+# socialmaker.muns.dev is the intended home. muns.dev is a zone on this
+# account, so custom_domain creates the DNS record and cert on deploy -- a
+# bare [[routes]] pattern would not. It is commented out because the hostname
+# already carries a manually-created DNS record, and Cloudflare refuses to
+# take it over ("externally managed DNS records", code 100117). Delete that
+# record in the dashboard (DNS > Records), uncomment these three lines, and
+# redeploy; workers_dev above can then be turned off.
+#[[routes]]
+#pattern = "socialmaker.muns.dev"
+#custom_domain = true
+
+# --- Secrets (never put these here) ---
+# Set with `wrangler secret put <NAME>`:
+#   GATE_PASSWORD   the one shared password
+#   GATE_SECRET     random key that signs the session cookie
