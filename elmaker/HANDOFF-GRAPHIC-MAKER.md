@@ -330,3 +330,84 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
+- **The library has no producer.** Section 10's API is built and tested, but
+  nothing in `app.js` calls it. There is no save-to-library UI, no
+  `createGraphic` call, no render upload. The library is an empty room with
+  the plumbing in. That is the next thing to build, and it is where the
+  per-size crops and the brand get captured.
+- **The 45 graphics in the editor are stranded.** They predate the library and
+  there is no in-app path to bring them across, because creation is being
+  reshaped to one graphic at a time. They need a one-time migration that
+  drives the real renderer through headless Chromium. A migration is not a
+  feature, so it does not reopen bulk creation.
+
+
+## 1 0 — T H E   L I B R A R Y   A N D   B R A N D S
+
+**Library > Collections > Graphics. A finished graphic is finished.**
+
+**THE RULE THAT REMOVES THE MACHINERY**
+A graphic in the library is never edited again. That single rule is why there
+is no version history, no publishes table and no staleness tracking: nothing
+can drift from a source it no longer has. Two tables do the whole job,
+`collections` and `graphics`, plus `brands`.
+
+**THE ROW KEEPS THE RECIPE**
+`graphics` stores what a graphic was made from -- words, layout, align, photo,
+per-size crops. This is not live state and nothing reads it back into an
+editor. It exists so the library can be searched by wording, so alt text can
+be written without decoding a PNG, and -- the reason that matters -- so a
+collection can be re-rendered in a different brand. Delete the recipe and a
+restyle becomes 46 graphics remade by hand.
+
+**THE REVISION IS IN THE KEY**
+R2 keys are `renders/<id>/<rev>/<size>.png`, served immutable for a year.
+That `rev` is not decoration. Without it a restyle overwrites in place and
+every browser that already loaded a graphic keeps serving the old bytes until
+the cache expires -- the restyle appears to work and silently does nothing.
+This was a real bug, shipped and then caught.
+
+A restyle writes `rev+1`, and `/finish` commits the row only after confirming
+every size is really in the bucket. The superseded revision is swept after.
+So an abandoned restyle -- closed tab, dropped connection -- is a no-op: the
+graphic still points at renders that all exist. Deleting sweeps every
+revision, not just the live one. **Do not remove the rev from the key to tidy
+it up.**
+
+**BRANDS ARE ROLES, NOT COLOURS**
+A brand names `ground`, `on_ground`, `accent`, `on_accent`, `muted`, `bar`,
+`on_bar`, `accent_on_bar` and a display face. The renderer asks for "the type
+on the accent", never for "gold". Section 4's rule that gold carries dark text
+stops being three hardcoded constants at three call sites and becomes a
+property of the brand that can be checked.
+
+Twenty brands are seeded from the site's theme set. Those are *site* themes:
+light paper, dark ink, wordmark knocked out of a dark band. The graphics
+invert that. Copying tokens across ships `letterpress` with a near-white mark
+on the near-white bar -- it renders, it exports, nobody sees it until it is
+posted. So roles are derived **by luminance, not by token name**, and each
+brand takes whichever polarity gives its accent room to read. That is what
+rescues `docket`, `gadsden`, `plain` and `riso`, whose accents are dark
+colours meant for light paper.
+
+**THE CONTRAST FLOOR IS 3:1, DELIBERATELY**
+A brand edit that drops any of the four pairs below 3:1 is refused, naming
+what failed. It is not 4.5:1 because that would reject the house style: the
+gold LOG on the near-white mark bar is 1.9:1 and always has been. Every line
+goes through `fitText()` and lands as display type at 1080px wide, which is
+WCAG large text, where 3:1 is the correct threshold.
+
+**FONTS**
+The renderer draws with the display face at weight 400 and nothing else. `FM`
+is declared on line 9 and never reaches an export. So a brand costs one woff2
+of about 19KB, not the 445KB of all 28 faces. They no longer need base64
+inlining either -- that existed only for `file://`, which is gone.
+
+**TWO HAZARDS FOR WHOEVER BUILDS THE RE-RENDER**
+- Load photos into `IMG` before drawing. `effVariant()` downgrades `stack` to
+  `type` when the lookup misses, so a harness that renders before its images
+  resolve will silently produce the wrong layout across a whole collection,
+  with no error.
+- Create the readback canvas with `{willReadFrequently:true}`.
+  `ensureContrast()` reads pixels back on every draw; over a 138-render batch
+  that hint stops being noise.
