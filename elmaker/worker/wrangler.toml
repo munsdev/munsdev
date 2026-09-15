@@ -22,19 +22,12 @@ type = "ratelimit"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
 
-# Interim address until the custom domain below is freed up.
-workers_dev = true
-
-# socialmaker.muns.dev is the intended home. muns.dev is a zone on this
-# account, so custom_domain creates the DNS record and cert on deploy -- a
-# bare [[routes]] pattern would not. It is commented out because the hostname
-# already carries a manually-created DNS record, and Cloudflare refuses to
-# take it over ("externally managed DNS records", code 100117). Delete that
-# record in the dashboard (DNS > Records), uncomment these three lines, and
-# redeploy; workers_dev above can then be turned off.
-#[[routes]]
-#pattern = "socialmaker.muns.dev"
-#custom_domain = true
+# muns.dev is a zone on this account, so custom_domain creates the DNS record
+# and cert on deploy -- a bare [[routes]] pattern would not, which is the trap
+# that leaves a route configured and the hostname not resolving.
+[[routes]]
+pattern = "socialmaker.muns.dev"
+custom_domain = true
 
 # --- Secrets (never put these here) ---
 # Set with `wrangler secret put <NAME>`:
