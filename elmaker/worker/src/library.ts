@@ -11,7 +11,14 @@ const json = (body: unknown, status = 200) =>
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-const renderKey = (graphicId: string, sizeId: string) => `renders/${graphicId}/${sizeId}.png`;
+/* The revision is in the key, not just the row. Renders are served immutable
+   for a year, so overwriting in place would leave every browser that already
+   loaded a graphic serving pre-restyle bytes until 2027. A restyle writes
+   rev+1 and commits only once every size has landed: the old renders keep
+   serving until then, so a closed tab mid-restyle is a no-op rather than a
+   half-rebranded collection. */
+const renderKey = (graphicId: string, rev: number, sizeId: string) =>
+  `renders/${graphicId}/${rev}/${sizeId}.png`;
 
 function slugify(s: string): string {
   return (
@@ -105,6 +112,8 @@ function rowToGraphic(r: any) {
     scrim: r.scrim,
     per_size: parse(r.per_size, {}),
     sizes: parse<string[]>(r.sizes, []),
+    rev: Number(r.rev) || 1,
+    brand_id: r.brand_id,
     alt: r.alt,
     created_at: r.created_at,
     created_by: r.created_by,
@@ -161,18 +170,23 @@ export async function createGraphic(env: Env, body: any): Promise<Response> {
 export async function putRender(
   env: Env,
   graphicId: string,
+  rev: number,
   sizeId: string,
   request: Request,
 ): Promise<Response> {
   if (!SIZE_RE.test(sizeId)) return json({ error: "bad size" }, 400);
-  const row = await env.DB.prepare("SELECT id FROM graphics WHERE id = ?").bind(graphicId).first();
+  if (!Number.isInteger(rev) || rev < 1 || rev > 1e6) return json({ error: "bad rev" }, 400);
+  const row = await env.DB.prepare("SELECT rev FROM graphics WHERE id = ?").bind(graphicId).first();
   if (!row) return json({ error: "no such graphic" }, 404);
+  /* Only the live revision or the next one. Anything else is a stale client. */
+  const live = Number(row.rev) || 1;
+  if (rev !== live && rev !== live + 1) return json({ error: "stale rev" }, 409);
 
   const bytes = await request.arrayBuffer();
   if (!bytes.byteLength) return json({ error: "empty" }, 400);
   if (bytes.byteLength > MAX_RENDER_BYTES) return json({ error: "too large" }, 413);
 
-  await env.IMAGES.put(renderKey(graphicId, sizeId), bytes, {
+  await env.IMAGES.put(renderKey(graphicId, rev, sizeId), bytes, {
     httpMetadata: { contentType: "image/png" },
   });
   return json({ ok: true, bytes: bytes.byteLength });
@@ -185,33 +199,63 @@ export async function finishGraphic(env: Env, graphicId: string, body: any): Pro
   if (!sizes.length || !sizes.every((s) => SIZE_RE.test(s)))
     return json({ error: "sizes required" }, 400);
 
+  const row = await env.DB.prepare("SELECT rev, sizes FROM graphics WHERE id = ?")
+    .bind(graphicId)
+    .first();
+  if (!row) return json({ error: "not found" }, 404);
+
+  const live = Number(row.rev) || 1;
+  const rev = Number(body?.rev) || live;
+  if (rev !== live && rev !== live + 1) return json({ error: "stale rev" }, 409);
+
   // Trust nothing: confirm each PNG is really in the bucket before saying so.
   for (const s of sizes) {
-    const head = await env.IMAGES.head(renderKey(graphicId, s));
+    const head = await env.IMAGES.head(renderKey(graphicId, rev, s));
     if (!head) return json({ error: `missing render for ${s}` }, 409);
   }
 
-  const r = await env.DB.prepare("UPDATE graphics SET sizes = ? WHERE id = ?")
-    .bind(JSON.stringify(sizes), graphicId)
+  /* The commit. Until this line the graphic still points at its old renders,
+     which is what makes an abandoned restyle cost nothing. */
+  await env.DB.prepare("UPDATE graphics SET sizes = ?, rev = ?, brand_id = COALESCE(?, brand_id) WHERE id = ?")
+    .bind(JSON.stringify(sizes), rev, body?.brand_id ? String(body.brand_id) : null, graphicId)
     .run();
-  if (!r.meta.changes) return json({ error: "not found" }, 404);
-  return json({ ok: true, sizes });
+
+  /* Sweep the superseded revision only after the new one is committed. */
+  if (rev > live) {
+    const old = parse<string[]>(row.sizes as string, []);
+    if (old.length) {
+      await env.IMAGES.delete(old.map((s) => renderKey(graphicId, live, s)));
+    }
+  }
+  return json({ ok: true, sizes, rev });
 }
 
 export async function deleteGraphic(env: Env, id: string): Promise<Response> {
-  const row = await env.DB.prepare("SELECT sizes FROM graphics WHERE id = ?").bind(id).first();
+  const row = await env.DB.prepare("SELECT sizes, rev FROM graphics WHERE id = ?").bind(id).first();
   if (!row) return json({ error: "not found" }, 404);
   const sizes = parse<string[]>(row.sizes as string, []);
-  if (sizes.length) await env.IMAGES.delete(sizes.map((s) => renderKey(id, s)));
+  const rev = Number(row.rev) || 1;
+  /* Sweep every revision, not just the live one, or a restyled-then-deleted
+     graphic leaves its superseded renders in the bucket forever. */
+  if (sizes.length) {
+    const keys: string[] = [];
+    for (let r = 1; r <= rev; r++) for (const s of sizes) keys.push(renderKey(id, r, s));
+    await env.IMAGES.delete(keys);
+  }
   await env.DB.prepare("DELETE FROM graphics WHERE id = ?").bind(id).run();
   return json({ ok: true });
 }
 
 /** Serve a finished PNG. Same reasoning as the source photos: proxied through
     the Worker so the gate applies and the bytes stay same-origin. */
-export async function getRender(env: Env, graphicId: string, sizeId: string): Promise<Response> {
+export async function getRender(
+  env: Env,
+  graphicId: string,
+  rev: number,
+  sizeId: string,
+): Promise<Response> {
   if (!SIZE_RE.test(sizeId)) return new Response("bad size", { status: 400 });
-  const obj = await env.IMAGES.get(renderKey(graphicId, sizeId));
+  const obj = await env.IMAGES.get(renderKey(graphicId, rev, sizeId));
   if (!obj) return new Response("not found", { status: 404 });
 
   const headers = new Headers();
@@ -220,4 +264,81 @@ export async function getRender(env: Env, graphicId: string, sizeId: string): Pr
   /* A finished graphic is never re-rendered, so its bytes cannot change. */
   headers.set("Cache-Control", "private, max-age=31536000, immutable");
   return new Response(obj.body, { headers });
+}
+
+/* ---------- brands ---------- */
+
+const ROLE_COLS = [
+  "ground", "on_ground", "accent", "on_accent",
+  "muted", "bar", "on_bar", "accent_on_bar",
+] as const;
+const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+
+export async function listBrands(env: Env): Promise<Response> {
+  const { results } = await env.DB.prepare(
+    `SELECT b.*, (SELECT COUNT(*) FROM collections c WHERE c.brand_id = b.id) AS used
+     FROM brands b ORDER BY b.builtin DESC, b.name ASC`,
+  ).all();
+  return json({ brands: results });
+}
+
+/* --- contrast, the same maths the renderer's legibility floor assumes --- */
+function lum(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function ratio(a: string, b: string): number {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
+/* 3:1, not 4.5:1. Every line on a graphic goes through fitText(), which sizes
+   type to fill its box -- this is display type at 1080px wide, which is WCAG
+   "large text". Asserting 4.5 here would reject the house style itself: the
+   gold LOG on the near-white mark bar is 1.9:1 and has always been. */
+const FLOOR = 3.0;
+
+export async function updateBrand(env: Env, id: string, body: any): Promise<Response> {
+  const row = await env.DB.prepare("SELECT * FROM brands WHERE id = ?").bind(id).first();
+  if (!row) return json({ error: "not found" }, 404);
+
+  const next: Record<string, string> = {};
+  for (const c of ROLE_COLS) {
+    const v = body?.[c];
+    if (v === undefined) continue;
+    if (typeof v !== "string" || !HEX_RE.test(v)) return json({ error: `bad colour for ${c}` }, 400);
+    next[c] = v.toUpperCase();
+  }
+  const merged = { ...(row as any), ...next };
+
+  /* The pairs a graphic actually depends on. Refusing here is the whole point
+     of roles: a brand edit cannot ship type nobody can read. */
+  const pairs: [string, string, string][] = [
+    ["type on the background", merged.on_ground, merged.ground],
+    ["the accent against the background", merged.accent, merged.ground],
+    ["type on the accent", merged.on_accent, merged.accent],
+    ["the mark against its bar", merged.on_bar, merged.bar],
+  ];
+  const failed = pairs
+    .filter(([, a, b]) => ratio(a, b) < FLOOR)
+    .map(([what, a, b]) => `${what} is ${ratio(a, b).toFixed(2)}:1 (needs ${FLOOR}:1)`);
+  if (failed.length) return json({ error: "unreadable", failed }, 422);
+
+  if (body?.name !== undefined) merged.name = String(body.name).trim().slice(0, 80);
+  if (body?.display !== undefined) merged.display = String(body.display).slice(0, 80);
+
+  await env.DB.prepare(
+    `UPDATE brands SET name=?1, ground=?2, on_ground=?3, accent=?4, on_accent=?5,
+     muted=?6, bar=?7, on_bar=?8, accent_on_bar=?9, display=?10 WHERE id=?11`,
+  )
+    .bind(
+      merged.name, merged.ground, merged.on_ground, merged.accent, merged.on_accent,
+      merged.muted, merged.bar, merged.on_bar, merged.accent_on_bar, merged.display, id,
+    )
+    .run();
+  return json({ ok: true });
 }
