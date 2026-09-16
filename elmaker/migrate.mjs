@@ -16,13 +16,13 @@
  * skipped, so an interrupted run resumes rather than duplicating.
  */
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, assertServer } from './testlib.mjs';
+import { BASE, launchOpts, openApp, assertServer } from './testlib.mjs';
 
 const INTO = process.env.SM_COLLECTION || 'See It, Log It';
 const DRY  = process.argv.includes('--dry-run');
 
 await assertServer();
-const b = await chromium.launch({ executablePath: CHROMIUM });
+const b = await chromium.launch(launchOpts);
 const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
 p.on('pageerror', e => console.error('  page error:', e.message));
 await openApp(p);

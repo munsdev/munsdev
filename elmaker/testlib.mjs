@@ -11,6 +11,24 @@ export const BASE = process.env.SM_BASE || 'http://127.0.0.1:8787';
 export const PASSWORD = process.env.SM_PASSWORD || 'VOTE';
 export const CHROMIUM = '/opt/pw-browsers/chromium';
 
+/* Reaching a remote SM_BASE from a sandboxed session means going through the
+   egress proxy. Node's built-in fetch and Chromium both ignore HTTPS_PROXY
+   unless told, and localhost must bypass it or wrangler dev is unreachable. */
+const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || '';
+const REMOTE = !/^https?:\/\/(127\.0\.0\.1|localhost)\b/.test(BASE);
+/* The egress proxy re-terminates TLS, so Chromium sees its CA and not the
+   real one. Rather than turning verification off, pin that single CA by its
+   public-key hash: every other certificate is still checked normally.
+   SM_PROXY_CA_SPKI overrides it if the CA is ever rotated. */
+const CA_SPKI = process.env.SM_PROXY_CA_SPKI || 'KnP1OnzHv/y42eRQmbGwoYTHcSJF448m6CU5mdngwKk=';
+export const launchOpts = (PROXY && REMOTE)
+  ? {
+      executablePath: CHROMIUM,
+      proxy: { server: PROXY, bypass: 'localhost,127.0.0.1' },
+      args: ['--ignore-certificate-errors-spki-list=' + CA_SPKI],
+    }
+  : { executablePath: CHROMIUM };
+
 /* Wipe the local D1 so each run starts on an empty database and the app
    seeds its 46 lines, the way it did when state lived in localStorage.
    --local is deliberate: this must never be pointed at the real database. */
@@ -22,7 +40,7 @@ export function resetDb() {
 
 export async function assertServer() {
   try {
-    const r = await fetch(BASE + '/login');
+    const r = await fetch(BASE + '/login', PROXY && REMOTE ? { dispatcher: undefined } : undefined);
     if (!r.ok) throw new Error(String(r.status));
   } catch (e) {
     console.error('No server at ' + BASE + '. Start one: cd worker && npx wrangler dev --port 8787');
