@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto } from './testlib.mjs';
+import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 const b=await chromium.launch({executablePath:CHROMIUM});
 const p=await b.newPage({viewport:{width:1400,height:900},acceptDownloads:true});
@@ -10,6 +10,7 @@ const S=()=>p.evaluate(()=>({n:S.items.length,sel:S.sel,top:cur()?.top,bot:cur()
   v:cur()?.variant,al:cur()?.align,z:cur()?.zoom,sc:cur()?.scrim,img:!!cur()?.img,
   fx:cur()?.fx,fy:cur()?.fy,pv:S.pv,sizes:{...S.sizes},g:S.guides,cap:S.caption}));
 await openApp(p);
+await bench(p, 46);
 
 // header
 await p.click('#btnHelp'); await p.waitForTimeout(250);
@@ -17,29 +18,16 @@ chk('Rules opens', await p.isVisible('#dlgHelp'));
 await p.click('#helpClose'); await p.waitForTimeout(200);
 chk('Rules closes', !(await p.isVisible('#dlgHelp')));
 
-// list panel controls
-await p.click('.tab[data-p=list]'); await p.waitForTimeout(200);
-let a=await S(); await p.click('#btnAdd2'); await p.waitForTimeout(200);
-chk('Add a graphic (panel)', (await S()).n===a.n+1);
-a=await S(); await p.click('#btnDupe'); await p.waitForTimeout(200);
-chk('Duplicate selected', (await S()).n===a.n+1);
-await p.fill('#bulkText','PASTED ONE? | YES.\nPASTED TWO?'); await p.click('#bulkAdd'); await p.waitForTimeout(250);
-chk('Add pasted lines', (await p.evaluate(()=>S.items.some(i=>i.top==='PASTED ONE?'&&i.bot==='YES.'))));
-chk('Paste box clears', (await p.inputValue('#bulkText'))==='');
-a=await S(); await p.click('#btnSeed'); await p.waitForTimeout(400);
-chk('Load all 46 lines', (await S()).n===a.n+46);
-a=await S(); await p.click('#btnClear'); await p.waitForTimeout(250);
-chk('Clear the list', (await S()).n===0);
-await p.click('#toastUndo'); await p.waitForTimeout(300);
-chk('Undo restores the list', (await S()).n===a.n);
-await p.click('#btnAdd'); await p.waitForTimeout(200);
-chk('Add a graphic (rail)', true);
+/* The list panel is gone: the maker is one graphic at a time, and
+   hometest.mjs covers the create flow that replaced it. The bench is seeded
+   directly above so the rest of this audit still exercises the renderer and
+   every control that survived. */
 
+let a;
 // words
 await p.click('.tab[data-p=text]'); await p.waitForTimeout(200);
 await p.fill('#fTop','TOP TEST?'); await p.fill('#fBot','BOTTOM TEST.'); await p.waitForTimeout(400);
 a=await S(); chk('Top line field', a.top==='TOP TEST?'); chk('Bottom line field', a.bot==='BOTTOM TEST.');
-chk('List row follows the text', (await p.textContent('.item.on .t1')).includes('TOP TEST'));
 
 // layout
 await p.click('.tab[data-p=layout]'); await p.waitForTimeout(200);
@@ -99,21 +87,9 @@ await p.click('#btnPrev'); await p.waitForTimeout(200);
 chk('Previous', before===await p.evaluate(()=>S.sel));
 chk('Counter reads position', /^\d+ \/ \d+$/.test((await p.textContent('#editingWhat')).trim()));
 
-// contact sheet
-await p.click('#btnGrid'); await p.waitForTimeout(700);
-chk('Contact sheet opens', await p.isVisible('#grid'));
-chk('Sheet renders a card per graphic',
-  (await p.locator('.gcard').count())===(await p.evaluate(()=>S.items.length)));
-await p.click('#gridMode button[data-g=one]'); await p.waitForTimeout(500);
-chk('All-sizes mode', (await p.locator('.gcard').count())===3);
-await p.locator('.gcard').nth(2).click(); await p.waitForTimeout(300);
-chk('Card click sets the size', (await S()).pv==='1080x1920');
-await p.click('#btnGrid'); await p.waitForTimeout(600);
-await p.click('#gridMode button[data-g=all]'); await p.waitForTimeout(600);
-await p.locator('.gcard').nth(1).click(); await p.waitForTimeout(300);
-chk('Card click selects and closes', !(await p.isVisible('#grid')));
-await p.click('#btnGrid'); await p.waitForTimeout(600); await p.click('#gridClose'); await p.waitForTimeout(250);
-chk('Sheet Close button', !(await p.isVisible('#grid')));
+/* The contact sheet went with the list: browsing is the library's job now,
+   and libtest.mjs covers it. */
+
 
 // export
 await p.click('.tab[data-p=export]'); await p.waitForTimeout(200);

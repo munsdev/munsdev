@@ -1,7 +1,7 @@
 /* Drives the real save-to-library flow in a browser: photo upload, brand
    swap, save, and the restyle path. */
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto } from './testlib.mjs';
+import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer();
 const R=[]; const chk=(n,ok,note='')=>R.push((ok?'PASS ':'FAIL ')+n+(note?'   ['+note+']':''));
 
@@ -17,6 +17,9 @@ p.on('console',m=>{
   errs.push('CONSOLE '+m.text());
 });
 await openApp(p);
+/* Boot leaves the bench empty now, so put a graphic on it. hometest.mjs
+   covers the real create flow. */
+await bench(p, 1);
 
 // brands reached the client
 const brands=await p.evaluate(()=>BRANDS.length);
@@ -37,7 +40,9 @@ const ch=await Promise.all([p.waitForEvent('filechooser'), p.click('#drop')]).th
 await ch.setFiles(testPhoto()); await p.waitForTimeout(2500);
 chk('photo attached', await p.evaluate(()=>!!cur().img));
 
-// save it
+// save it. The bench is cleared once a graphic is finished, so read the
+// words before they go.
+const wordsBefore=await p.evaluate(()=>cur().top);
 await p.click('.tab[data-p=library]'); await p.waitForTimeout(250);
 await p.click('#btnSaveLib');
 await p.waitForFunction(()=>/Saved\.|could not|Could not/.test(document.getElementById('libStatus').textContent),null,{timeout:90000});
@@ -57,7 +62,7 @@ const saved=await p.evaluate(async()=>{
 });
 chk('all three sizes recorded', saved.g.sizes.length===3, saved.g.sizes.join(','));
 chk('every render serves 200', Object.values(saved.codes).every(c=>c===200), JSON.stringify(saved.codes));
-chk('recipe stored', saved.g.top===(await p.evaluate(()=>cur().top)));
+chk('recipe stored', saved.g.top===wordsBefore, saved.g.top);
 chk('photo recorded on the row', !!saved.g.photo_sha);
 chk('alt text written', (saved.g.alt||'').length>40);
 chk('brand recorded', saved.g.brand_id==='mk2', String(saved.g.brand_id));

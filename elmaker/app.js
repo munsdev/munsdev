@@ -1020,7 +1020,10 @@ $('#btnAdd').addEventListener('click',addOne);
 $('#btnAdd2').addEventListener('click',addOne);
 $('#btnDupe').addEventListener('click',()=>{
   const it=cur(); if(!it) return;
-  const c={...it,id:nid()}; S.items.splice(S.items.indexOf(it)+1,0,c); S.sel=c.id; commit();
+  /* per is a nested object, so a spread would hand the copy the SAME crop
+     overrides and tuning one graphic would silently retune the other. */
+  const c={...it, id:nid(), per:JSON.parse(JSON.stringify(it.per||{}))};
+  S.items.splice(S.items.indexOf(it)+1,0,c); S.sel=c.id; commit();
 });
 $('#btnSeed').addEventListener('click',()=>addLines(ALL_LINES,'All lines'));
 $('#btnSeed2').addEventListener('click',()=>addLines(ALL_LINES,'All lines'));
@@ -1484,6 +1487,9 @@ document.addEventListener('click', async e=>{
       document.getElementById('fCollection').value=cid;
       libStatus('Saved. '+r.sizes.length+' sizes filed under '+(c?c.name:'the collection')+'.','ok');
       afterSave(cid);
+      /* Saved means finished. Clear the bench rather than leave a graphic
+         open that further edits would not change in the library. */
+      S.items=[]; S.sel=null; commit();
     }catch(err){
       libStatus(String(err.message||err),'bad');
     }finally{ t.disabled=false; }
@@ -1761,6 +1767,77 @@ async function afterSave(collectionId){
   await openCollection(c);
 }
 
+/* ===========================================================
+   HOME, AND STARTING ONE GRAPHIC
+   The tool makes one graphic, saves it, and makes another. The question it
+   opens with -- photo or not -- is what decides which layouts you are shown,
+   because four of the seven never take a picture.
+   =========================================================== */
+const homeView=document.getElementById('home');
+const dlgStart=document.getElementById('dlgStart');
+const PHOTO_VARIANTS=['stack','bleed','band'];
+
+function showHome(){
+  homeView.hidden=false;
+  document.getElementById('homeClose').hidden = !S.items.length;
+  document.getElementById('homeSub').textContent =
+    S.items.length ? 'A graphic is open' : '';
+  const box=document.getElementById('homeCols');
+  box.innerHTML = COLLECTIONS.length
+    ? '<div class="eyebrow" style="margin-bottom:7px">Collections</div>'+
+      COLLECTIONS.map(c=>'<button class="btn" data-col="'+c.id+'" style="margin:0 7px 7px 0">'+
+        esc(c.name)+' &middot; '+c.count+'</button>').join('')
+    : '<div class="note">No collections yet. One is made for you when you save.</div>';
+}
+function hideHome(){ homeView.hidden=true; }
+
+/* Only offer the layouts that can actually hold what you said you have.
+   This is also what retires effVariant()'s stack-with-no-photo fallback as
+   something a person can reach by accident. */
+function limitVariants(withPhoto){
+  const seg=document.getElementById('segVariant'); if(!seg) return;
+  [...seg.children].forEach(b=>{
+    const ok = withPhoto ? PHOTO_VARIANTS.includes(b.dataset.v) : TEXT_ONLY.has(b.dataset.v);
+    b.hidden=!ok;
+  });
+  document.getElementById('photoBlock').hidden=!withPhoto;
+  const t=document.getElementById('tuneBlock'); if(t) t.hidden=!withPhoto;
+}
+
+function startGraphic(withPhoto){
+  const it=newItem('LONG LINE?','LOG IT.');
+  it.variant = withPhoto ? 'stack' : 'type';
+  /* One graphic at a time: the working set is this one draft. */
+  S.items=[it]; S.sel=it.id;
+  S.withPhoto=withPhoto;
+  limitVariants(withPhoto);
+  hideHome();
+  commit();
+  showPanel('text');
+}
+
+document.getElementById('btnHome').addEventListener('click',async()=>{
+  await loadLibraryMeta(); showHome();
+});
+homeView.addEventListener('click',async e=>{
+  const t=e.target;
+  if(t.id==='homeClose'){ hideHome(); return; }
+  if(t.id==='homeNew'){ dlgStart.showModal(); return; }
+  if(t.id==='homeBrowse'){ hideHome(); await openLib(); return; }
+  const col=t.closest && t.closest('[data-col]');
+  if(col){
+    hideHome();
+    await openLib();
+    const c=COLLECTIONS.find(x=>x.id===col.dataset.col);
+    if(c) await openCollection(c);
+  }
+});
+dlgStart.addEventListener('click',e=>{
+  if(e.target.id==='startCancel'){ dlgStart.close(); return; }
+  if(e.target.id==='startPhoto'){ dlgStart.close(); startGraphic(true); return; }
+  if(e.target.id==='startType'){ dlgStart.close(); startGraphic(false); return; }
+});
+
 /* ---------- boot ---------- */
 /* The server is the truth. The localStorage cache is only what we fall back
    to when it cannot be reached, so that a flaky connection shows the team
@@ -1805,16 +1882,18 @@ async function pull(){
   await hydrate();
   /* First visit starts with the whole campaign word list already in the
      list, not an empty placeholder. Saved work is never overwritten. */
-  if(!had || !S.items.length){
-    S.items=ALL_LINES.map(([a,b])=>newItem(a,b));
-    S.sel=S.items[0].id;
-  }
-  if(!had && online) saveNow();          // first run: seed the empty database
-  if(!S.sel||!S.items.find(i=>i.id===S.sel)) S.sel=S.items[0].id;
+  /* The 46-line seed belonged to the list. One graphic at a time means
+     starting with nothing on the bench and choosing what to make. */
+  if(!S.items.length) S.sel=null;
+  if(S.items.length && (!S.sel || !S.items.find(i=>i.id===S.sel))) S.sel=S.items[0].id;
+
   if(S.guides){ const g=$('#btnGuides'); g.setAttribute('aria-pressed','true'); g.textContent='Hide safe margins'; }
   el.caption.value=S.caption||'';
   buildChips(); commit();
-  loadLibraryMeta();
-  if(!had) showPanel('text');            // first visit: show where the words go
+  await loadLibraryMeta();
+  if(S.withPhoto!==undefined) limitVariants(!!S.withPhoto);
+  /* Nothing on the bench means there is nothing to edit, so open on home. */
+  if(!S.items.length) showHome();
+
   document.body.classList.add('ready');
 })();

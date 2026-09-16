@@ -92,3 +92,22 @@ function crc32(buf) {
   for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
+
+/* Put graphics on the bench without going through the UI.
+ *
+ * The maker is one graphic at a time now, so there is no longer a button
+ * that loads 46 lines. The renderer tests still need a populated bench --
+ * they are testing drawing and geometry, not the create flow -- so they seed
+ * it directly. hometest.mjs is what covers the real create flow.
+ */
+export async function bench(p, n = 1) {
+  await p.evaluate((count) => {
+    S.items = ALL_LINES.slice(0, count).map(([a, b]) => newItem(a, b));
+    S.sel = S.items[0].id;
+    if (typeof limitVariants === 'function') limitVariants(true);
+    const home = document.getElementById('home');
+    if (home) home.hidden = true;
+    commit();
+  }, n);
+  await p.waitForTimeout(250);
+}

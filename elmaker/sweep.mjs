@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto } from './testlib.mjs';
+import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 const b=await chromium.launch({executablePath:CHROMIUM});
 const p=await b.newPage({viewport:{width:1400,height:900},acceptDownloads:true});
@@ -9,6 +9,7 @@ const R=[];
 const chk=(name,pass,note='')=>R.push((pass?'PASS':'FAIL')+'  '+name+(note?'  ['+note+']':''));
 
 await openApp(p);
+await bench(p, 46);
 await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(1000);
 
 // 1 persistence round trip with a photo, crop and reorder
@@ -16,7 +17,7 @@ await p.click('.tab[data-p=photo]'); await p.waitForTimeout(150);
 const [ch]=await Promise.all([p.waitForEvent('filechooser'), p.click('#drop')]);
 await ch.setFiles(testPhoto()); await p.waitForTimeout(800);
 await p.evaluate(()=>{ cur().zoom=180; cur().fx=20; cur().fy=80; cur().variant='bleed'; commit(); });
-await p.click('.tab[data-p=list]'); await p.waitForTimeout(150); await p.click('#btnSeed'); await p.waitForTimeout(400);
+
 await p.evaluate(()=>{ moveItem(S.items[3].id,-1); });
 const before=await p.evaluate(()=>({n:S.items.length,order:S.items.slice(0,5).map(i=>i.top),
   crop:{z:S.items[0].zoom,fx:S.items[0].fx,fy:S.items[0].fy,v:S.items[0].variant,img:!!S.items[0].img}}));
@@ -28,24 +29,14 @@ chk('state survives reload', JSON.stringify(before)===JSON.stringify({n:after.n,
    JSON.stringify(after.crop));
 chk('photo re-decoded on reload', after.decoded===1);
 
-// 2 arrow keys must not move the selection while the contact sheet is open
-await p.click('#btnGrid'); await p.waitForTimeout(600);
-const selBefore=await p.evaluate(()=>S.sel);
-await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(200);
-const selAfter=await p.evaluate(()=>S.sel);
-const hl=await p.evaluate(()=>{const c=document.querySelector('.gcard.on');const i=S.items.findIndex(x=>x.id===S.sel);
-  return c===document.querySelectorAll('.gcard')[i];});
-chk('arrows move the sheet highlight', selBefore!==selAfter && hl);
-await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+/* The contact sheet went with the list. The library replaced it and
+   libtest.mjs drives it. */
 
-// 3 messy paste
-await p.click('.tab[data-p=list]'); await p.waitForTimeout(150);
-const n0=await p.evaluate(()=>S.items.length);
-await p.fill('#bulkText','\n\n|\n   \nGOOD LINE? | LOG IT.\n|ONLY BOTTOM\nTRAILING |   \n');
-await p.click('#bulkAdd'); await p.waitForTimeout(400);
-const added=await p.evaluate(()=>S.items.slice(-4).map(i=>i.top+' / '+i.bot));
-chk('messy paste does not crash', true, JSON.stringify(added));
-chk('blank-only lines skipped', (await p.evaluate(()=>S.items.length))-n0<=4);
+
+
+/* Bulk paste belonged to the list panel. One graphic at a time means messy
+   input arrives through the Words fields, which the injection test below
+   still covers. */
 
 // 4 whitespace-only item exports with a usable filename
 await p.evaluate(()=>{ const it=newItem('   ','   '); S.items.push(it); S.sel=it.id; commit(); });

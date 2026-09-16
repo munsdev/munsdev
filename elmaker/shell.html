@@ -40,6 +40,12 @@ header.top{
 .lockup .a{color:#fff}.lockup .b{color:var(--gold)}.lockup .c{color:var(--grey)}
 .tool-name{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey)}
 .hdr-right{display:flex;gap:8px;align-items:center}
+/* One graphic at a time: the rail, the contact sheet and the List panel were
+   the multi-graphic UI. The code behind them still runs on hidden nodes; a
+   later pass can take it out properly. */
+.rail{display:none!important}
+#btnGrid{display:none!important}
+.tab[data-p="list"]{display:none!important}
 
 /* ---------- main: stage + rail ---------- */
 .main{display:grid;grid-template-columns:minmax(0,1fr) 272px;min-height:0}
@@ -444,6 +450,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <div class="tool-name">Graphic Maker</div>
   </div>
   <div class="hdr-right">
+    <button class="btn ghost sm" id="btnHome">Home</button>
     <button class="btn ghost sm" id="btnLibrary">Library</button>
     <button class="btn ghost sm" id="btnGrid">All graphics</button>
     <button class="btn ghost sm" id="btnHelp">Rules</button>
@@ -653,6 +660,35 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   </div>
   <div class="gridwrap" id="gridWrap"></div>
 </div>
+
+<div class="sheetview" id="home" hidden>
+  <div class="gridhead">
+    <span class="panel-num">&#9632;</span>
+    <span class="panel-title">ElectionLog Graphic Maker</span>
+    <span class="rail-title" id="homeSub" style="flex:1"></span>
+    <button class="btn gold sm" id="homeClose" hidden>Back to the graphic</button>
+  </div>
+  <div class="gridwrap" id="homeWrap" style="display:block">
+    <div style="max-width:620px;margin:0 auto">
+      <div class="row wrap" style="gap:10px">
+        <button class="btn gold lg" id="homeNew">Make a graphic</button>
+        <button class="btn lg" id="homeBrowse">Browse the library</button>
+      </div>
+      <div class="note" style="margin-top:12px">One graphic at a time. It is saved to a collection when it is done, and finished graphics are not edited again &mdash; make another one instead.</div>
+      <div id="homeCols" style="margin-top:20px"></div>
+    </div>
+  </div>
+</div>
+
+<dialog id="dlgStart">
+  <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title">Does this one use a photo?</span></div>
+  <p class="hint">It decides which layouts you get. Four of them are type only and never take a picture.</p>
+  <div class="row wrap" style="margin-top:14px">
+    <button class="btn gold" id="startPhoto">With a photo</button>
+    <button class="btn" id="startType">Type only</button>
+    <button class="btn ghost" id="startCancel">Cancel</button>
+  </div>
+</dialog>
 
 <div class="sheetview" id="libview" hidden>
   <div class="gridhead">

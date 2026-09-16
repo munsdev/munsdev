@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, resetDb, assertServer } from './testlib.mjs';
+import { BASE, CHROMIUM, openApp, resetDb, assertServer , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 const b=await chromium.launch({executablePath:CHROMIUM});
 const p=await b.newPage({viewport:{width:1400,height:900},acceptDownloads:true});
@@ -7,6 +7,7 @@ const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR '+e.message));
 p.on('console',m=>{if(m.type()==='error')errs.push('CONSOLE '+m.text())});
 const R=[]; const chk=(n,ok,note='')=>R.push((ok?'PASS':'FAIL')+'  '+n+(note?'  ['+note+']':''));
 await openApp(p);
+await bench(p, 46);
 await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(1000);
 
 // scale: 200 graphics
@@ -14,10 +15,8 @@ let t=Date.now();
 await p.evaluate(()=>{ S.items=[]; for(let i=0;i<200;i++) S.items.push(newItem('LINE NUMBER '+i+'?','LOG IT.'));
   S.sel=S.items[0].id; commit(); });
 chk('200 items commit', Date.now()-t<4000, (Date.now()-t)+'ms');
-t=Date.now(); await p.click('#btnGrid'); await p.waitForTimeout(100);
-await p.waitForFunction(()=>document.querySelectorAll('.gcard').length===200,{timeout:60000});
-chk('200-card contact sheet', true, ((Date.now()-t)/1000).toFixed(1)+'s');
-await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+/* The 200-card contact sheet is gone with the list; what still matters is
+   that the renderer copes with a large bench, which the commit above times. */
 
 // text injection must never become markup
 await p.evaluate(()=>{ cur().top='<img src=x onerror=alert(1)> & "quotes"'; commit(); });
@@ -26,7 +25,7 @@ chk('list row is text not markup', await p.evaluate(()=>{
 
 // duplicate is independent
 await p.evaluate(()=>{ S.items=S.items.slice(0,1); S.items[0].top='ORIGINAL?'; S.sel=S.items[0].id; commit(); });
-await p.click('.tab[data-p=list]'); await p.waitForTimeout(150); await p.click('#btnDupe'); await p.waitForTimeout(250);
+await p.evaluate(()=>{ $('#btnDupe').click(); }); await p.waitForTimeout(250);
 await p.evaluate(()=>{ cur().top='CHANGED?'; cur().zoom=200; commit(); });
 chk('duplicate does not share state', await p.evaluate(()=>S.items[0].top==='ORIGINAL?'&&S.items[0].zoom===100));
 
@@ -62,7 +61,7 @@ const grid=await p.evaluate(async()=>{
 chk('all layouts x all sizes render', grid.every(x=>x.endsWith(':ok')), grid.filter(x=>!x.endsWith(':ok')).join(', ')||'12/12');
 
 // rapid tab switching leaves exactly one panel open
-for(const tb of ['text','layout','photo','list','sizes','export','text','export']){
+for(const tb of ['text','layout','photo','sizes','library','export','text','export']){
   await p.click(`.tab[data-p=${tb}]`);
 }
 await p.waitForTimeout(250);

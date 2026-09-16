@@ -330,12 +330,14 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
-- **The editor is still a list, not one graphic at a time.** The rail, the
-  46-line seed and the contact sheet are all still there. The create flow was
-  meant to become one graphic from a photo-or-not question; that has not been
-  done, and until it is the tool has two overlapping ideas of what it is.
-- **The 45 graphics in the editor are still stranded.** Nothing saves them
-  into the library in bulk, by design, so they need the one-time migration.
+- **The multi-graphic machinery is hidden, not gone.** The rail, the List
+  panel and the contact sheet are `display:none` and their code still runs on
+  nodes nobody can see. It was hidden rather than cut so the change stayed
+  reviewable; taking it out properly is a tidy-up that is still owed.
+- **`migrate.mjs` has not been run against production.** It was rehearsed
+  against a local copy of the real rows, 46 of 46. Running it for real is one
+  command, and the editor's own rows should be cleared afterwards or the app
+  will keep opening on a bench full of graphics that are already filed.
 - **A restyle is one browser tab's work.** Remaking 46 graphics renders and
   uploads 138 PNGs from the page that started it. Close the tab and it stops;
   the collection keeps its old renders, which is the intended outcome, but
@@ -416,6 +418,18 @@ half-finished in the library. `restyleGraphic()` is the same path at rev+1.
 
 `savetest.mjs` drives the whole flow in a real browser and is the test to
 run after touching any of it.
+
+**ONE GRAPHIC AT A TIME**
+The app opens on `#home`: make one, or browse. Making one asks whether it
+uses a photo before anything else, and that answer decides which layouts you
+are offered -- `PHOTO_VARIANTS` or `TEXT_ONLY`. That is also what stops
+anyone reaching `effVariant()`'s stack-with-no-photo fallback by accident.
+
+Saving clears the bench. A finished graphic is finished, and leaving it open
+would invite edits that change nothing in the library.
+
+`audit-geom`'s baseline is **12**, not 89. Most of that count was the rail,
+the List panel and the contact sheet, and they are gone.
 
 **BROWSING**
 The library reads finished PNGs straight out of R2 and never re-renders. A

@@ -3,7 +3,7 @@
    exports still download under it -- that is the thing a tightened policy
    silently breaks. */
 import { chromium } from 'playwright';
-import { BASE, CHROMIUM, openApp, resetDb, assertServer } from './testlib.mjs';
+import { BASE, CHROMIUM, openApp, resetDb, assertServer , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 
 /* The tool talks to its own origin and nowhere else. If a directive here
@@ -25,6 +25,7 @@ p.on('console', m => { const t = m.text(); if (/Content Security Policy|Refused 
 p.on('pageerror', e => errs.push(e.message));
 
 await openApp(p);
+await bench(p, 46);
 
 const csp = await p.evaluate(async () => (await fetch('/', { credentials: 'same-origin' })).headers.get('content-security-policy'));
 console.log('CSP served:', csp);
@@ -41,8 +42,7 @@ if (foreign) bad++;
 
 console.log('fonts loaded:', await p.evaluate(() => document.fonts.check('400 40px "ElectionLog Display"')));
 
-await p.click('.tab[data-p=list]'); await p.waitForTimeout(180);
-await p.click('#btnSeed'); await p.waitForTimeout(400);
+
 await p.evaluate(() => { S.items = S.items.slice(0, 2); commit(); });
 
 const dl = p.waitForEvent('download', { timeout: 60000 });

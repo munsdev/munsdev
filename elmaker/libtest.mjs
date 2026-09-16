@@ -1,7 +1,7 @@
 /* Drives the library browser: browse, platform bar, the three download
    paths, per-size crops, and a whole-collection restyle. */
 import { chromium } from 'playwright';
-import { CHROMIUM, openApp, assertServer, testPhoto } from './testlib.mjs';
+import { CHROMIUM, openApp, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer();
 /* showPanel() toggles, so asking for a panel that is already open closes it. */
 const panel=async(pg,n)=>{ await pg.evaluate(x=>{ if(openPanel!==x) showPanel(x); }, n); await pg.waitForTimeout(250); };
@@ -13,6 +13,9 @@ const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR '+e.message));
 p.on('console',m=>{if(m.type()==='error')errs.push('CONSOLE '+m.text())});
 p.on('dialog',d=>d.accept());
 await openApp(p);
+/* Boot leaves the bench empty now, so put a graphic on it. hometest.mjs
+   covers the real create flow. */
+await bench(p, 2);
 
 // a collection with two saved graphics, one with a photo
 await panel(p,'library');
@@ -46,7 +49,10 @@ await p.waitForFunction(()=>!document.getElementById('libview').hidden,null,{tim
 chk('landed in the library after saving', !(await p.locator('#libview').isHidden()));
 await p.click('#libClose'); await p.waitForTimeout(200);
 
-await p.evaluate(()=>{ S.sel=S.items[1].id; commit(); });
+/* One graphic at a time: the second one is a new graphic, not the next row
+   of a list. */
+await p.evaluate(()=>{ startGraphic(false); cur().top='SECOND ONE?'; commit(); });
+await p.waitForTimeout(300);
 await panel(p,'library');
 await p.selectOption('#fCollection', cid);
 await p.click('#btnSaveLib');

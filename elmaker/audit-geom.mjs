@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { CHROMIUM, openApp, resetDb, assertServer, testPhoto } from './testlib.mjs';
+import { CHROMIUM, openApp, resetDb, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 const b=await chromium.launch({executablePath:CHROMIUM});
 const VIEWS=[
@@ -9,14 +9,15 @@ const VIEWS=[
   {n:'phone SE 375x667', w:375, h:667,mob:true, min:32},
   {n:'landscape 844x390',w:844, h:390,mob:true, min:28}
 ];
-const PANELS=['text','layout','photo','list','sizes','export'];
+const PANELS=['text','layout','photo','sizes','library','export'];
 const problems=[];
 for(const v of VIEWS){
   const p=await b.newPage({viewport:{width:v.w,height:v.h},isMobile:v.mob,hasTouch:v.mob});
   p.on('pageerror',e=>problems.push(v.n+' PAGEERROR '+e.message));
   await openApp(p);
+  await bench(p, 46);
   await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(900);
-  await p.click('.tab[data-p=list]'); await p.waitForTimeout(150); await p.click('#btnSeed'); await p.waitForTimeout(350);
+
   // give it a photo so the Photo panel is fully populated
   await p.click('.tab[data-p=photo]'); await p.waitForTimeout(200);
   const [ch]=await Promise.all([p.waitForEvent('filechooser'), p.click('#drop')]);
@@ -64,29 +65,8 @@ for(const v of VIEWS){
     },{panel,min:v.min});
     bad.forEach(x=>problems.push(v.n+' :: '+x));
   }
-  // the contact sheet, both modes
-  await p.click('#stage').catch(()=>{});
-  await p.click('#btnGrid'); await p.waitForTimeout(700);
-  for(const mode of ['all','one']){
-    await p.click(`#gridMode button[data-g=${mode}]`); await p.waitForTimeout(500);
-    const bad=await p.evaluate(({mode,min})=>{
-      const out=[];
-      for(const el of document.querySelectorAll('#grid button')){
-        const r=el.getBoundingClientRect();
-        if(r.width===0) continue;
-        const id=(el.id||el.textContent.trim().slice(0,16));
-        if(r.height<min) out.push('grid:'+mode+' | '+id+' | small '+Math.round(r.height));
-        if(r.right>innerWidth+1) out.push('grid:'+mode+' | '+id+' | offscreen');
-        const hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
-        if(hit&&el!==hit&&!el.contains(hit)&&!hit.contains(el)) out.push('grid:'+mode+' | '+id+' | covered');
-      }
-      const gw=document.getElementById('gridWrap');
-      if(gw.scrollWidth>gw.clientWidth+1) out.push('grid:'+mode+' | wrap | horizontal overflow');
-      return out;
-    },{mode,min:v.min});
-    bad.forEach(x=>problems.push(v.n+' :: '+x));
-  }
-  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+  /* The contact sheet went with the list; the library replaced it and
+     libtest.mjs drives it. */
   // the Rules card
   await p.click('#btnHelp'); await p.waitForTimeout(300);
   const dlg=await p.evaluate(()=>{const d=document.getElementById('dlgHelp');

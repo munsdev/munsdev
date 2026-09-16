@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { CHROMIUM, openApp, resetDb, assertServer } from './testlib.mjs';
+import { CHROMIUM, openApp, resetDb, assertServer , bench} from './testlib.mjs';
 await assertServer(); resetDb();
 const b=await chromium.launch({executablePath:CHROMIUM});
 const errs=[];
@@ -10,10 +10,10 @@ for(const c of [{n:'desktop',w:1400,h:900,mob:false},{n:'laptop',w:1180,h:760,mo
   const p=await b.newPage({viewport:{width:c.w,height:c.h},isMobile:c.mob,hasTouch:c.mob,deviceScaleFactor:c.mob?2:1});
   p.on('pageerror',e=>errs.push(c.n+': '+e.message));
   await openApp(p);
-  await p.click('.tab[data-p=list]'); await p.waitForTimeout(180); await p.click('#btnSeed');
+  await bench(p, 46);
 
   const sizes=[]; sizes.push(['closed',await canvasSize(p)]);
-  for(const t of ['text','layout','photo','list','sizes','export']){
+  for(const t of ['text','layout','photo','sizes','library','export']){
     await p.click(`.tab[data-p=${t}]`); await p.waitForTimeout(180);
     sizes.push([t,await canvasSize(p)]);
   }
