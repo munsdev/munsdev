@@ -5,8 +5,59 @@
    =========================================================== */
 'use strict';
 
-const GOLD='#E9A81C', DARK='#121A24', WHITE='#FFFFFF', GREY='#999999';
-const FD='"ElectionLog Display"', FM='"ElectionLog Mono"';
+/* Roles, never colour names. The renderer asks for "the type on the accent",
+   so HANDOFF section 4's rule that gold carries dark text is a property of
+   the brand that can be checked, not three constants at three call sites.
+   Swapped wholesale by setBrand(); every draw reads through B. */
+const HOUSE={
+  id:'mk2', name:'ElectionLog (house)',
+  ground:'#121A24', onGround:'#FFFFFF', accent:'#E9A81C', onAccent:'#121A24',
+  muted:'#999999', bar:'#FAFAFA', onBar:'#121A24', accentOnBar:'#E9A81C',
+  display:'ElectionLog Display'
+};
+let B={...HOUSE};
+let FD='"'+B.display+'"';
+const FM='"ElectionLog Mono"';
+
+const rgbOf=h=>{
+  const n=parseInt(String(h).replace('#',''),16);
+  return [(n>>16)&255,(n>>8)&255,n&255];
+};
+/* The scrim and the legibility floor paint with the ground, so they follow
+   the brand instead of a navy hardcoded as a decomposed rgb triple. */
+const groundRGB=()=>rgbOf(B.ground).join(',');
+const lumOf=h=>{ const [r,g,b]=rgbOf(h); return 0.2126*r+0.7152*g+0.0722*b; };
+
+/* One face per brand, fetched on demand and cached for a year. The house
+   face is already embedded, so it is not in here. */
+const FACES={"Alfa Slab One": {"file": "alfa-slab-one-400.woff2","weight": "400"},"Oswald": {"file": "oswald-500.woff2","weight": "500"},"Courier Prime": {"file": "courier-prime-400.woff2","weight": "400"},"Archivo Black": {"file": "archivo-black-400.woff2","weight": "400"},"Space Grotesk": {"file": "space-grotesk-500.woff2","weight": "500"},"IBM Plex Mono": {"file": "ibm-plex-mono-400.woff2","weight": "400"},"Libre Baskerville": {"file": "libre-baskerville-400.woff2","weight": "400"},"Anton": {"file": "anton-400.woff2","weight": "400"},"Archivo": {"file": "archivo-500.woff2","weight": "500"},"Jost": {"file": "jost-400.woff2","weight": "400"}};
+const LOADED=new Set(['ElectionLog Display']);
+
+async function loadFace(family){
+  if(LOADED.has(family)) return true;
+  const f=FACES[family];
+  if(!f) return false;
+  try{
+    const face=new FontFace(family, 'url(/f/'+f.file+')', {weight:f.weight, style:'normal'});
+    await face.load();
+    document.fonts.add(face);
+    LOADED.add(family);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* A brand whose face has not arrived would render in a fallback and export
+   type at the wrong size, because fitText measures whatever is loaded. So
+   applying a brand waits for its font. */
+async function applyBrand(brand){
+  if(brand && brand.display) await loadFace(brand.display);
+  setBrand(brand);
+}
+
+function setBrand(brand){
+  B={...HOUSE, ...(brand||{})};
+  FD='"'+B.display+'"';
+}
 const MAXPX=2000;                 // longest edge kept for a photo
 
 const SIZES=[
@@ -290,9 +341,9 @@ function drawCover(ctx,img,r,zoom,fx,fy){
 }
 
 function drawBar(ctx,W,H,m){
-  ctx.fillStyle='#FAFAFA'; ctx.fillRect(0,m.barY,W,m.barH);
+  ctx.fillStyle=B.bar; ctx.fillRect(0,m.barY,W,m.barH);
   const maxW=W-m.M*2, maxH=m.barH*0.50, cy=m.barY+m.barH/2;
-  const parts=[['ELECTION',DARK],['LOG',GOLD],['.ORG',GREY]];
+  const parts=[['ELECTION',B.onBar],['LOG',B.accentOnBar],['.ORG',B.muted]];
   const widthAt=sz=>{ ctx.font='400 '+sz+'px '+FD;
     return parts.reduce((a,p)=>a+ctx.measureText(p[0]).width,0); };
   let size=Math.round(maxH*1.34);
@@ -308,12 +359,13 @@ function drawBar(ctx,W,H,m){
 
 function scrimGrad(ctx,W,H,strength){
   const a=strength/100; if(a<=0) return;
+  const c=groundRGB();
   const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,   'rgba(18,26,36,'+(a*0.95).toFixed(3)+')');
-  g.addColorStop(0.34,'rgba(18,26,36,'+(a*0.26).toFixed(3)+')');
-  g.addColorStop(0.55,'rgba(18,26,36,'+(a*0.38).toFixed(3)+')');
-  g.addColorStop(0.78,'rgba(18,26,36,'+(a*0.82).toFixed(3)+')');
-  g.addColorStop(1,   'rgba(18,26,36,'+(a*0.98).toFixed(3)+')');
+  g.addColorStop(0,   'rgba('+c+','+(a*0.95).toFixed(3)+')');
+  g.addColorStop(0.34,'rgba('+c+','+(a*0.26).toFixed(3)+')');
+  g.addColorStop(0.55,'rgba('+c+','+(a*0.38).toFixed(3)+')');
+  g.addColorStop(0.78,'rgba('+c+','+(a*0.82).toFixed(3)+')');
+  g.addColorStop(1,   'rgba('+c+','+(a*0.98).toFixed(3)+')');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
 }
 
@@ -328,13 +380,18 @@ function ensureContrast(ctx,W,H,box,target){
   for(let i=0;i<d.length;i+=4*23){ sum+=0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2]; n++; }
   const lum=sum/Math.max(1,n);
   if(lum<=target) return;
-  const a=Math.min(0.88,Math.max(0,(lum-target)/(lum-21)));
+  /* The floor is the luma of the paint itself -- it used to be 21, hand-tuned
+     to the house navy. A brand with a lighter ground cannot darken past its
+     own colour, and pretending otherwise overshoots the alpha. */
+  const floor=lumOf(B.ground);
+  const a=Math.min(0.88,Math.max(0,(lum-target)/Math.max(1,lum-floor)));
+  const c=groundRGB();
   const pad=Math.round(h*0.42);
   const g=ctx.createLinearGradient(0,y-pad,0,y+h+pad);
-  g.addColorStop(0,'rgba(18,26,36,0)');
-  g.addColorStop(0.22,'rgba(18,26,36,'+a.toFixed(3)+')');
-  g.addColorStop(0.78,'rgba(18,26,36,'+a.toFixed(3)+')');
-  g.addColorStop(1,'rgba(18,26,36,0)');
+  g.addColorStop(0,'rgba('+c+',0)');
+  g.addColorStop(0.22,'rgba('+c+','+a.toFixed(3)+')');
+  g.addColorStop(0.78,'rgba('+c+','+a.toFixed(3)+')');
+  g.addColorStop(1,'rgba('+c+',0)');
   ctx.fillStyle=g; ctx.fillRect(0,y-pad,W,h+pad*2);
 }
 
@@ -347,7 +404,7 @@ function render(ctx,W,H,it,guides){
   const V=effVariant(it);
   const pr=photoRect(it,W,H);
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=DARK; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=B.ground; ctx.fillRect(0,0,W,H);
   const bw=W-m.M*2, lh=0.96;
 
   if(V==='bleed'){
@@ -361,53 +418,53 @@ function render(ctx,W,H,it,guides){
       ensureContrast(ctx,W,H,{x:m.M,y:topBox.y,w:bw,h:Math.min(topBox.h,topFit.h*1.08)},104);
       ensureContrast(ctx,W,H,{x:m.M,y:botBox.y+botBox.h-botFit.h,w:bw,h:botFit.h*1.08},84);
     }
-    drawFit(ctx, topFit, FD,'400',topBox,lh,it.align,WHITE,'top');
-    drawFit(ctx, botFit, FD,'400',botBox,lh,it.align,GOLD,'bottom');
+    drawFit(ctx, topFit, FD,'400',topBox,lh,it.align,B.onGround,'top');
+    drawFit(ctx, botFit, FD,'400',botBox,lh,it.align,B.accent,'bottom');
   }
 
   else if(V==='band'){
     if(img) drawCover(ctx,img,pr,it.zoom,it.fx,it.fy);
-    else { ctx.fillStyle='#0B1219'; ctx.fillRect(pr.x,pr.y,pr.w,pr.h); }
+    else { ctx.fillStyle=B.ground; ctx.fillRect(pr.x,pr.y,pr.w,pr.h); }
     const photoBottom=pr.y+pr.h, bandH=Math.round(m.ch*0.30);
-    ctx.fillStyle=GOLD; ctx.fillRect(0,photoBottom,W,bandH);
+    ctx.fillStyle=B.accent; ctx.fillRect(0,photoBottom,W,bandH);
     const tb={x:m.M,y:photoBottom+Math.round(bandH*0.14),w:bw,h:Math.round(bandH*0.72)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,DARK,'center');
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'center');
     const bb={x:m.M,y:photoBottom+bandH+Math.round(m.ch*0.05),w:bw,
               h:m.contentBot-(photoBottom+bandH)-Math.round(m.ch*0.05)};
-    if(bb.h>40) drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,WHITE,'center');
+    if(bb.h>40) drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onGround,'center');
   }
 
   else if(V==='type'){
     /* a full bleed rule: a short dash floating in the corner read as an accident */
     const rh=Math.max(8,Math.round(W*0.014));
-    ctx.fillStyle=GOLD; ctx.fillRect(0,m.contentTop,W,rh);
+    ctx.fillStyle=B.accent; ctx.fillRect(0,m.contentTop,W,rh);
     const topBox={x:m.M,y:m.contentTop+rh+Math.round(m.ch*0.06),w:bw,h:Math.round(m.ch*0.58)};
     const botBox={x:m.M,y:m.contentBot-Math.round(m.ch*0.20),w:bw,h:Math.round(m.ch*0.20)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,WHITE,'top');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,GOLD,'bottom');
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'top');
+    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'bottom');
   }
 
   /* --- text only: the canvas cut in half, dark question over gold answer --- */
   else if(V==='split'){
     const splitY=Math.round(m.contentTop+m.ch*0.52);
-    ctx.fillStyle=GOLD; ctx.fillRect(0,splitY,W,m.barY-splitY);
+    ctx.fillStyle=B.accent; ctx.fillRect(0,splitY,W,m.barY-splitY);
     const pad=Math.round(m.ch*0.07);
     const tb={x:m.M,y:m.contentTop,w:bw,h:(splitY-m.contentTop)-pad};
     const bb={x:m.M,y:splitY+pad*0.7,w:bw,h:(m.barY-splitY)-pad*1.4};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,WHITE,'center');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,DARK,'center');
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
+    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onAccent,'center');
   }
 
   /* --- text only: gold sheet, the answer reversed out of a dark block --- */
   else if(V==='slab'){
-    ctx.fillStyle=GOLD; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=B.accent; ctx.fillRect(0,0,W,H);
     const sqs=(H/W)<1.2;
     const blockH=Math.round(m.ch*(sqs?0.31:0.26)), blockY=m.contentBot-blockH;
     const tb={x:m.M,y:m.contentTop,w:bw,h:(blockY-m.contentTop)-Math.round(m.ch*0.07)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,DARK,'top');
-    ctx.fillStyle=DARK; ctx.fillRect(0,blockY,W,blockH);
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'top');
+    ctx.fillStyle=B.ground; ctx.fillRect(0,blockY,W,blockH);
     const bb={x:m.M,y:blockY+Math.round(blockH*0.17),w:bw,h:Math.round(blockH*0.66)};
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,GOLD,'center');
+    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'center');
   }
 
   /* --- text only: a gold rule drawn all the way round, type centred inside --- */
@@ -416,14 +473,14 @@ function render(ctx,W,H,it,guides){
     const fx=Math.round(m.M*0.60);
     const fy=m.tall ? Math.round(m.safeT*0.74) : fx;
     const fb=m.barY-Math.round(m.M*0.45);
-    ctx.strokeStyle=GOLD; ctx.lineWidth=lw;
+    ctx.strokeStyle=B.accent; ctx.lineWidth=lw;
     ctx.strokeRect(fx+lw/2, fy+lw/2, W-fx*2-lw, (fb-fy)-lw);
     const inx=fx+Math.round(W*0.06), inw=W-inx*2;
     const inH=(fb-fy)*0.82, inY=fy+(fb-fy)*0.09;
     const tb={x:inx,y:Math.round(inY),w:inw,h:Math.round(inH*0.60)};
     const bb={x:inx,y:Math.round(inY+inH*0.66),w:inw,h:Math.round(inH*0.34)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,WHITE,'center');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,GOLD,'bottom');
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
+    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'bottom');
   }
 
   else { /* stack */
@@ -431,9 +488,9 @@ function render(ctx,W,H,it,guides){
     const topH=Math.round(m.ch*(sq?0.25:0.29)), botH=Math.round(m.ch*(sq?0.125:0.15));
     const topBox={x:m.M,y:m.contentTop,w:bw,h:topH};
     const botBox={x:m.M,y:pr.y+pr.h+Math.round(m.ch*0.045),w:bw,h:botH};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,WHITE,'center');
+    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'center');
     drawCover(ctx,img,pr,it.zoom,it.fx,it.fy);
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,GOLD,'center');
+    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'center');
   }
 
   drawBar(ctx,W,H,m);
@@ -603,8 +660,8 @@ function drawPreview(){
   el.pvSize.textContent=sz.label;
   if(!it){
     el.canvas.width=sz.w; el.canvas.height=sz.h;
-    previewCtx.fillStyle=DARK; previewCtx.fillRect(0,0,sz.w,sz.h);
-    previewCtx.fillStyle=GREY; previewCtx.textAlign='center'; previewCtx.font='500 34px '+FM;
+    previewCtx.fillStyle=B.ground; previewCtx.fillRect(0,0,sz.w,sz.h);
+    previewCtx.fillStyle=B.muted; previewCtx.textAlign='center'; previewCtx.font='500 34px '+FM;
     previewCtx.fillText('NOTHING SELECTED',sz.w/2,sz.h/2);
     el.dragHint.hidden=true;
     el.canvas.classList.remove('grab'); fitCanvasToStage(); return;
@@ -949,6 +1006,100 @@ $('#bulkAdd').addEventListener('click',()=>{
 /* ---------- export ---------- */
 let cancelExport=false;
 function canvasBlob(c){ return new Promise(r=>c.toBlob(r,'image/png')); }
+
+/* ===========================================================
+   SAVE TO LIBRARY
+   A graphic is finished when it is saved, and never edited again. The row
+   keeps the recipe so a collection can be re-rendered in another brand; the
+   PNGs are what everything downstream actually uses.
+   =========================================================== */
+
+/* toBlob falls back to PNG for a type it cannot encode, silently, and the
+   Worker hardcodes image/png on the way in. Check rather than trust. */
+async function pngBlob(c){
+  const b=await canvasBlob(c);
+  if(!b) throw new Error('the browser would not encode this canvas');
+  if(b.type && b.type!=='image/png') throw new Error('unexpected encoding '+b.type);
+  return b;
+}
+
+/* effVariant() quietly downgrades stack to type when the photo is missing,
+   so rendering before the image has decoded produces the WRONG LAYOUT with
+   no error at all. Everything that renders for real waits on this first. */
+async function ensurePhoto(it){
+  if(!it.img) return true;
+  if(IMG.get(it.img)) return true;
+  const url=S.images[it.img];
+  if(!url) return false;
+  try{ IMG.set(it.img, await decode(url)); return true; }
+  catch(e){ return false; }
+}
+
+/* Render one graphic at every size and hand back blobs. per_size holds the
+   crop overrides for a size; anything absent used the graphic's own crop. */
+async function renderAll(it, sizes, perSize){
+  const out=[];
+  for(const sz of sizes){
+    const o=(perSize||{})[sz.id]||{};
+    const shot={...it, zoom:o.zoom??it.zoom, fx:o.fx??it.fx, fy:o.fy??it.fy};
+    const c=renderTo(document.createElement('canvas'), sz.w, sz.h, shot, false);
+    out.push({size:sz.id, blob:await pngBlob(c)});
+  }
+  return out;
+}
+
+async function saveToLibrary(it, collectionId, opts){
+  const o=opts||{};
+  const sizes=SIZES;                       // always every size: see HANDOFF 10
+  if(!await ensurePhoto(it)) throw new Error('that photo could not be loaded, so the layout would come out wrong');
+
+  const renders=await renderAll(it, sizes, o.perSize);
+
+  const created=await (await api('/api/graphics',{method:'POST',...asJson({
+    collection_id:collectionId,
+    title:String(it.top).replace(/\n/g,' ').trim(),
+    top:it.top, bot:it.bot, variant:it.variant, align:it.align,
+    photo_sha:it.img||null, scrim:it.scrim,
+    per_size:o.perSize||{}, alt:altText(it), brand_id:B.id
+  })})).json();
+  const id=created.id;
+
+  /* rev 1: uploads first, commit last. The row only points at these renders
+     once every one of them is confirmed in the bucket, so a save that dies
+     halfway leaves nothing half-finished in the library. */
+  for(const r of renders){
+    await api('/api/graphics/'+id+'/renders/1/'+r.size,
+              {method:'PUT', headers:{'Content-Type':'image/png'}, body:r.blob});
+  }
+  await api('/api/graphics/'+id+'/finish',{method:'POST',...asJson({
+    sizes:renders.map(r=>r.size), rev:1, brand_id:B.id
+  })});
+  return {id, rev:1, sizes:renders.map(r=>r.size)};
+}
+
+/* Re-render an existing graphic under the current brand. Writes rev+1 and
+   commits only at the end, so an abandoned restyle is a no-op and the old
+   renders keep serving until the new set is complete. */
+async function restyleGraphic(g){
+  const it={id:g.id, top:g.top, bot:g.bot, variant:g.variant, align:g.align,
+            img:g.photo_sha, zoom:100, fx:50, fy:50, scrim:g.scrim};
+  if(g.photo_sha && !S.images[g.photo_sha]){
+    S.images[g.photo_sha]='/img/'+g.photo_sha;
+  }
+  if(!await ensurePhoto(it)) throw new Error('photo missing for '+g.id);
+
+  const sizes=SIZES.filter(sz=>(g.sizes||[]).includes(sz.id));
+  const renders=await renderAll(it, sizes.length?sizes:SIZES, g.per_size);
+  const rev=(g.rev||1)+1;
+  for(const r of renders){
+    await api('/api/graphics/'+g.id+'/renders/'+rev+'/'+r.size,
+              {method:'PUT', headers:{'Content-Type':'image/png'}, body:r.blob});
+  }
+  await api('/api/graphics/'+g.id+'/finish',{method:'POST',...asJson({
+    sizes:renders.map(r=>r.size), rev, brand_id:B.id
+  })});
+  return rev;
+}
 function download(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click();
@@ -1189,6 +1340,86 @@ document.getElementById('btnGrid').addEventListener('click',()=>{
 document.getElementById('gridClose').addEventListener('click',closeGrid);
 gridView.addEventListener('click',e=>{ if(e.target===gridView) closeGrid(); });
 
+/* ---------- library panel ---------- */
+let COLLECTIONS=[], BRANDS=[];
+const libStatus=(msg,kind)=>{
+  const n=document.getElementById('libStatus'); if(!n) return;
+  n.textContent=msg||''; n.className='status'+(kind?' '+kind:'');
+};
+
+async function loadLibraryMeta(){
+  try{
+    const [cs,bs]=await Promise.all([
+      (await api('/api/collections')).json(),
+      (await api('/api/brands')).json()
+    ]);
+    COLLECTIONS=cs.collections||[]; BRANDS=bs.brands||[];
+  }catch(e){ COLLECTIONS=[]; BRANDS=[]; }
+  fillCollections(); fillBrands();
+}
+function fillCollections(){
+  const sel=document.getElementById('fCollection'); if(!sel) return;
+  sel.innerHTML=COLLECTIONS.length
+    ? COLLECTIONS.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' ('+c.count+')</option>').join('')
+    : '<option value="">No collections yet</option>';
+}
+function fillBrands(){
+  const sel=document.getElementById('fBrand'); if(!sel) return;
+  sel.innerHTML=BRANDS.map(b=>'<option value="'+b.id+'"'+(b.id===B.id?' selected':'')+'>'+esc(b.name)+'</option>').join('');
+}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function brandFromRow(r){
+  return {id:r.id, name:r.name, ground:r.ground, onGround:r.on_ground,
+          accent:r.accent, onAccent:r.on_accent, muted:r.muted, bar:r.bar,
+          onBar:r.on_bar, accentOnBar:r.accent_on_bar, display:r.display};
+}
+
+document.addEventListener('change', async e=>{
+  if(e.target && e.target.id==='fBrand'){
+    const row=BRANDS.find(b=>b.id===e.target.value); if(!row) return;
+    libStatus('Loading '+row.name+'...');
+    await applyBrand(brandFromRow(row));
+    commit();
+    libStatus('Previewing in '+row.name+'. Saving files it under this brand.','ok');
+  }
+});
+
+document.addEventListener('click', async e=>{
+  const t=e.target;
+  if(!t) return;
+
+  if(t.id==='btnNewCollection'){
+    const name=prompt('Name for the new collection');
+    if(!name||!name.trim()) return;
+    try{
+      const c=await (await api('/api/collections',{method:'POST',...asJson({name:name.trim()})})).json();
+      COLLECTIONS.push({...c, count:0}); fillCollections();
+      document.getElementById('fCollection').value=c.id;
+      libStatus('Collection "'+c.name+'" created.','ok');
+    }catch(err){ libStatus('Could not create that collection.','bad'); }
+    return;
+  }
+
+  if(t.id==='btnSaveLib'){
+    const it=cur(); if(!it) return libStatus('Select a graphic first','bad');
+    const cid=(document.getElementById('fCollection')||{}).value;
+    if(!cid) return libStatus('Make a collection first.','bad');
+    t.disabled=true;
+    libStatus('Rendering every size...');
+    try{
+      const r=await saveToLibrary(it, cid);
+      const c=COLLECTIONS.find(x=>x.id===cid); if(c) c.count++;
+      fillCollections();
+      document.getElementById('fCollection').value=cid;
+      libStatus('Saved. '+r.sizes.length+' sizes filed under '+(c?c.name:'the collection')+'.','ok');
+    }catch(err){
+      libStatus(String(err.message||err),'bad');
+    }finally{ t.disabled=false; }
+    return;
+  }
+});
+
 /* ---------- boot ---------- */
 /* The server is the truth. The localStorage cache is only what we fall back
    to when it cannot be reached, so that a flaky connection shows the team
@@ -1242,6 +1473,7 @@ async function pull(){
   if(S.guides){ const g=$('#btnGuides'); g.setAttribute('aria-pressed','true'); g.textContent='Hide safe margins'; }
   el.caption.value=S.caption||'';
   buildChips(); commit();
+  loadLibraryMeta();
   if(!had) showPanel('text');            // first visit: show where the words go
   document.body.classList.add('ready');
 })();

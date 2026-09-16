@@ -7,7 +7,7 @@ import { haveImage, putImage, putThumb, getImage, deleteImage } from "./images";
 import {
   listCollections, createCollection, renameCollection,
   listGraphics, getGraphic, createGraphic, putRender, finishGraphic,
-  deleteGraphic, getRender, listBrands, updateBrand,
+  deleteGraphic, getRender, listBrands, updateBrand, getFont,
 } from "./library";
 
 /* The tool used to be a single file with `connect-src 'none'` and no server.
@@ -95,6 +95,9 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    const fontMatch = /^\/f\/([a-z0-9-]{1,60}\.woff2)$/.exec(path);
+    if (fontMatch) return harden(await getFont(env, fontMatch[1]));
 
     if (path === "/login") {
       if (request.method === "POST") return handleLogin(request, env);

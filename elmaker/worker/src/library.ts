@@ -342,3 +342,23 @@ export async function updateBrand(env: Env, id: string, body: any): Promise<Resp
     .run();
   return json({ ok: true });
 }
+
+/* ---------- brand fonts ---------- */
+
+/* The renderer draws with one face at one weight, so a brand costs a single
+   ~18KB woff2. They live in R2 rather than inlined: the base64 embedding in
+   embedded-fonts.css only ever existed to make file:// work, and file:// is
+   gone. Ten families inlined would have put 200KB on every page load to
+   serve one of them. */
+const FONT_FILE_RE = /^[a-z0-9-]{1,60}\.woff2$/;
+
+export async function getFont(env: Env, file: string): Promise<Response> {
+  if (!FONT_FILE_RE.test(file)) return new Response("bad font", { status: 400 });
+  const obj = await env.IMAGES.get(`fonts/${file}`);
+  if (!obj) return new Response("not found", { status: 404 });
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set("Content-Type", "font/woff2");
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  return new Response(obj.body, { headers });
+}

@@ -529,6 +529,28 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     </div>
   </section>
 
+  <section class="panel" id="p-library" hidden>
+    <div class="panel-head"><span class="panel-num">06</span><span class="panel-title">Library</span><span class="panel-sub">Save this graphic, finished</span></div>
+    <div class="cols">
+      <div>
+        <label class="field">
+          <span class="eyebrow">Collection</span>
+          <select id="fCollection"></select>
+        </label>
+        <label class="field" style="margin-top:10px">
+          <span class="eyebrow">Brand style</span>
+          <select id="fBrand"></select>
+        </label>
+        <button class="btn gold lg" id="btnSaveLib" style="margin-top:12px">Save to the library</button>
+        <div class="row wrap" style="margin-top:9px">
+          <button class="btn" id="btnNewCollection">New collection</button>
+        </div>
+        <div class="status" id="libStatus"></div>
+      </div>
+      <div class="note" style="margin-top:0">Saving renders every size and files them under the collection. A saved graphic is finished: it is not edited again, so make another one if it needs to change.</div>
+    </div>
+  </section>
+
   <section class="panel" id="p-export" hidden>
     <div class="panel-head"><span class="panel-num">06</span><span class="panel-title">Export</span><span class="panel-sub" id="exportCount">nothing yet</span></div>
     <div class="cols">
@@ -581,6 +603,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <button class="tab" data-p="photo"  aria-expanded="false">Photo</button>
     <button class="tab" data-p="list"   aria-expanded="false">List</button>
     <button class="tab" data-p="sizes"  aria-expanded="false">Sizes</button>
+    <button class="tab" data-p="library" aria-expanded="false">Library</button>
     <button class="tab go" data-p="export" aria-expanded="false">Export</button>
   </div>
 </div>
