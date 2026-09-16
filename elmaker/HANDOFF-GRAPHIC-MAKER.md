@@ -330,11 +330,13 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
-- **The library has no producer.** Section 10's API is built and tested, but
-  nothing in `app.js` calls it. There is no save-to-library UI, no
-  `createGraphic` call, no render upload. The library is an empty room with
-  the plumbing in. That is the next thing to build, and it is where the
-  per-size crops and the brand get captured.
+- **The library has no browser yet.** Saving works; reading back does not.
+  There is no home screen, no collection browse, no platform bar and no
+  download packs. The graphics are in R2 and the rows are in D1, reachable
+  only through the API.
+- **Per-size crops are stored but never set.** `per_size` is honoured by the
+  save and restyle paths, and nothing in the UI writes it. Stepping the sizes
+  to tune each crop is part of the create flow that has not been built.
 - **The 45 graphics in the editor are stranded.** They predate the library and
   there is no in-app path to bring them across, because creation is being
   reshaped to one graphic at a time. They need a one-time migration that
@@ -403,11 +405,31 @@ is declared on line 9 and never reaches an export. So a brand costs one woff2
 of about 19KB, not the 445KB of all 28 faces. They no longer need base64
 inlining either -- that existed only for `file://`, which is gone.
 
-**TWO HAZARDS FOR WHOEVER BUILDS THE RE-RENDER**
-- Load photos into `IMG` before drawing. `effVariant()` downgrades `stack` to
-  `type` when the lookup misses, so a harness that renders before its images
-  resolve will silently produce the wrong layout across a whole collection,
-  with no error.
-- Create the readback canvas with `{willReadFrequently:true}`.
-  `ensureContrast()` reads pixels back on every draw; over a 138-render batch
-  that hint stops being noise.
+**SAVING**
+`saveToLibrary()` renders every size, uploads each, then calls `/finish`.
+The row only points at the new renders once the Worker has confirmed every
+one is really in the bucket, so a save that dies halfway leaves nothing
+half-finished in the library. `restyleGraphic()` is the same path at rev+1.
+
+`savetest.mjs` drives the whole flow in a real browser and is the test to
+run after touching any of it.
+
+**TWO HAZARDS, BOTH ALREADY HANDLED -- DO NOT UNDO THEM**
+- `ensurePhoto()` is awaited before every real render. `effVariant()`
+  downgrades `stack` to `type` when the `IMG` lookup misses, so rendering
+  before the image has decoded produces the wrong layout, with no error, for
+  every graphic in a collection. Removing that await reintroduces it.
+- `pngBlob()` checks what `toBlob` returned. It falls back to PNG for a type
+  it cannot encode without saying so, and `putRender` hardcodes the content
+  type, so an unchecked blob would file the wrong bytes under a .png key.
+- A render served from `/r/` is `immutable` for a year. Anything asserting a
+  superseded revision is gone must fetch with `cache:'no-store'`, or the
+  browser answers from its own cache and the assertion proves nothing.
+
+**FONTS ARE NOT INLINED ANY MORE**
+Ten display faces live in R2 and are served from `/f/<file>.woff2`, immutable.
+They sit **outside** the password gate on purpose: they are public typefaces
+carrying no campaign content, and a font request made from the login page
+would fail if they were behind it. `applyBrand()` awaits the face before
+swapping, because `fitText()` measures whatever is loaded and a fallback
+would export type at the wrong size.
