@@ -330,13 +330,16 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
-- **The library has no browser yet.** Saving works; reading back does not.
-  There is no home screen, no collection browse, no platform bar and no
-  download packs. The graphics are in R2 and the rows are in D1, reachable
-  only through the API.
-- **Per-size crops are stored but never set.** `per_size` is honoured by the
-  save and restyle paths, and nothing in the UI writes it. Stepping the sizes
-  to tune each crop is part of the create flow that has not been built.
+- **The editor is still a list, not one graphic at a time.** The rail, the
+  46-line seed and the contact sheet are all still there. The create flow was
+  meant to become one graphic from a photo-or-not question; that has not been
+  done, and until it is the tool has two overlapping ideas of what it is.
+- **The 45 graphics in the editor are still stranded.** Nothing saves them
+  into the library in bulk, by design, so they need the one-time migration.
+- **A restyle is one browser tab's work.** Remaking 46 graphics renders and
+  uploads 138 PNGs from the page that started it. Close the tab and it stops;
+  the collection keeps its old renders, which is the intended outcome, but
+  there is no resume and no progress beyond a counter.
 - **The 45 graphics in the editor are stranded.** They predate the library and
   there is no in-app path to bring them across, because creation is being
   reshaped to one graphic at a time. They need a one-time migration that
@@ -413,6 +416,23 @@ half-finished in the library. `restyleGraphic()` is the same path at rev+1.
 
 `savetest.mjs` drives the whole flow in a real browser and is the test to
 run after touching any of it.
+
+**BROWSING**
+The library reads finished PNGs straight out of R2 and never re-renders. A
+row whose `sizes` is empty is skipped: that is a save that died before its
+renders landed, and its PNGs would 404.
+
+**PLATFORMS ARE NOT SIZES**
+`PLATFORMS` maps each place you post to the shape it wants. Several share a
+shape, so they share the render; only the download duplicates the bytes into
+a folder per platform. Do not add a platform folder to R2 -- that would
+triple the storage for 9:16 to no purpose.
+
+**PER-SIZE CROPS**
+`forSize()` resolves a size's override wherever a size is known. A size with
+no override uses the graphic's own crop, which is why `per` stays empty until
+somebody tunes one. Choosing a size to tune also switches the preview to it,
+because showing a 9:16 crop on a 4:5 preview would be a lie.
 
 **TWO HAZARDS, BOTH ALREADY HANDLED -- DO NOT UNDO THEM**
 - `ensurePhoto()` is awaited before every real render. `effVariant()`
