@@ -210,6 +210,16 @@ label.field{display:block}
   font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)
 }
 .seg button[aria-pressed=true]{background:var(--gold);color:#121A24}
+/* Four columns overflow a 375px panel, and HANDOFF section 9 says 375 is
+   supposed to be fine. Let this one wrap rather than push the page sideways. */
+#segTune{grid-template-columns:repeat(4,minmax(0,1fr))}
+#segTune button{padding:8px 2px;letter-spacing:.04em;min-width:0}
+#tuneBlock{margin-bottom:10px}
+/* A size whose crop has been tuned away from the graphic's own. */
+.seg button.tuned::after{content:'';position:absolute;top:3px;right:4px;width:5px;height:5px;
+  border-radius:50%;background:var(--gold)}
+.seg button.tuned[aria-pressed=true]::after{background:#121A24}
+.seg button{position:relative}
 
 .row{display:flex;gap:10px;align-items:center}
 .row.wrap{flex-wrap:wrap}
@@ -253,6 +263,13 @@ label.field{display:block}
 .gcard:hover{border-color:var(--grey)}
 .gcard.on{border-color:var(--gold);background:var(--panel2)}
 .gcard canvas{width:100%;height:auto;display:block;border-radius:2px}
+#libview .gcard.sel{outline:2px solid var(--gold);outline-offset:2px}
+#libview .gcard .pick{position:absolute;top:9px;left:9px;width:18px;height:18px;border-radius:3px;
+  border:2px solid var(--white);background:rgba(18,26,36,.6)}
+#libview .gcard.sel .pick{background:var(--gold);border-color:var(--gold)}
+#libview .gcard{position:relative}
+#platList label{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--white)}
+#dlgPlatforms{max-width:420px;width:calc(100% - 32px)}
 .gcard .gl{
   font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--grey);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
@@ -336,7 +353,11 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   header.top{padding:9px 12px;gap:8px}
   .lockup{font-size:15px}
   .tool-name{display:none}
-  .hdr-right{gap:6px}
+  .hdr-right{gap:5px}
+  /* A third header button pushed 375px into sideways scrolling, and HANDOFF
+     section 9 says 375 works. Shrink them to fit rather than hide one --
+     audit-geom drives every header control and a hidden one fails it. */
+  .hdr-right .btn.sm{padding:5px 6px;font-size:9.5px;letter-spacing:.04em}
   .chip{padding:5px 10px;font-size:10px}
 
   .stage-tag{display:none}
@@ -423,6 +444,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <div class="tool-name">Graphic Maker</div>
   </div>
   <div class="hdr-right">
+    <button class="btn ghost sm" id="btnLibrary">Library</button>
     <button class="btn ghost sm" id="btnGrid">All graphics</button>
     <button class="btn ghost sm" id="btnHelp">Rules</button>
   </div>
@@ -484,6 +506,16 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
       </div>
       <div id="cropBlock">
         <div class="hint" style="margin-bottom:10px">Drag the photo on the graphic itself to move it. Scroll or pinch over it to zoom.</div>
+        <div class="field" id="tuneBlock">
+          <span class="eyebrow">Crop for</span>
+          <div class="seg" id="segTune">
+            <button data-t="" aria-pressed="true">All</button>
+            <button data-t="1080x1080">1:1</button>
+            <button data-t="1080x1350">4:5</button>
+            <button data-t="1080x1920">9:16</button>
+          </div>
+          <div class="note" id="tuneNote" style="margin-top:4px">Tune one size and only that size changes.</div>
+        </div>
         <label class="field"><span class="eyebrow">Zoom <span id="vZoom" style="color:var(--gold)">100%</span></span><input type="range" id="fZoom" min="100" max="400" value="100"></label>
         <label class="field" id="darkenField"><span class="eyebrow">Darken <span id="vScrim" style="color:var(--gold)">70%</span></span><input type="range" id="fScrim" min="0" max="100" value="70"></label>
         <div class="hint" id="darkenNote" hidden>Darkening only applies to Full bleed, the one layout with type sitting on the photo. On the others the type is on its own ground already.</div>
@@ -621,6 +653,31 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   </div>
   <div class="gridwrap" id="gridWrap"></div>
 </div>
+
+<div class="sheetview" id="libview" hidden>
+  <div class="gridhead">
+    <button class="btn sm ghost" id="libBack" hidden>&#8592; Back</button>
+    <span class="panel-num">&#9632;</span>
+    <span class="panel-title" id="libTitle">Library</span>
+    <span class="rail-title" id="libCount" style="flex:1"></span>
+    <button class="btn sm" id="libSelect" hidden>Select</button>
+    <button class="btn sm" id="libDownloadSel" hidden>Download selected</button>
+    <button class="btn sm ghost" id="libRestyle" hidden>Restyle collection</button>
+    <button class="btn gold sm" id="libClose">Close</button>
+  </div>
+  <div class="gridwrap" id="libWrap"></div>
+</div>
+
+<dialog id="dlgPlatforms">
+  <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title">Which platforms?</span></div>
+  <p class="hint" id="platSub">Pick what goes in the download. Platforms that share a shape get the same picture under their own name.</p>
+  <div id="platList" style="display:grid;gap:7px;margin:12px 0"></div>
+  <div class="row wrap">
+    <button class="btn gold" id="platGo">Download</button>
+    <button class="btn ghost" id="platCancel">Cancel</button>
+    <span class="hint" id="platCount"></span>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" hidden>
   <span id="toastText"></span>

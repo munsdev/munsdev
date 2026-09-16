@@ -69,6 +69,18 @@ const SIZES=[
    platforms:'Stories, Reels, TikTok (1080 x 1920)'}
 ];
 
+/* A size is a shape; a platform is a place. Several platforms want the same
+   shape, so they share the render and only the download folders duplicate it. */
+const PLATFORMS=[
+  {id:'instagram-feed',  name:'Instagram feed',        size:'1080x1350'},
+  {id:'instagram-story', name:'Instagram story / reel',size:'1080x1920'},
+  {id:'facebook',        name:'Facebook',              size:'1080x1080'},
+  {id:'threads',         name:'Threads',               size:'1080x1350'},
+  {id:'bluesky',         name:'Bluesky',               size:'1080x1080'},
+  {id:'tiktok',          name:'TikTok',                size:'1080x1920'},
+  {id:'youtube-shorts',  name:'YouTube Shorts',        size:'1080x1920'}
+];
+
 /* ---------- state ---------- */
 let S={
   items:[], sel:null,
@@ -84,8 +96,27 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 function newItem(top,bot){
   return {id:nid(), top:top||'LONG LINE?', bot:bot||'LOG IT.',
-          variant:'stack', align:'center', img:null, zoom:100, fx:50, fy:50, scrim:70};
+          variant:'stack', align:'center', img:null, zoom:100, fx:50, fy:50, scrim:70,
+          per:{}};
 }
+
+/* A crop that works square loses someone's head at 9:16, so each size may
+   carry its own zoom/fx/fy. A size with no override uses the graphic's own
+   crop, which is why `per` stays empty until somebody actually tunes one. */
+function forSize(it, sizeId){
+  const o=(it&&it.per)?it.per[sizeId]:null;
+  if(!o) return it;
+  return {...it, zoom:o.zoom??it.zoom, fx:o.fx??it.fx, fy:o.fy??it.fy};
+}
+/* Which crop the controls are editing: the graphic's own, or one size's. */
+let tuning=null;
+function cropTarget(it){
+  if(!tuning) return it;
+  if(!it.per) it.per={};
+  if(!it.per[tuning]) it.per[tuning]={zoom:it.zoom, fx:it.fx, fy:it.fy};
+  return it.per[tuning];
+}
+function cropView(it){ return tuning ? (it.per&&it.per[tuning]) || it : it; }
 
 /* ---------- persistence ---------- */
 /* Words and layouts go to D1, photos to R2. localStorage stays on as a
@@ -666,7 +697,7 @@ function drawPreview(){
     el.dragHint.hidden=true;
     el.canvas.classList.remove('grab'); fitCanvasToStage(); return;
   }
-  renderTo(el.canvas,sz.w,sz.h,it,S.guides);
+  renderTo(el.canvas,sz.w,sz.h,forSize(it,sz.id),S.guides);
   fitCanvasToStage();
   const room=panRoom(it);
   const movable=!!room;
@@ -880,8 +911,10 @@ function syncEditor(){
   el.top.value=it.top; el.bot.value=it.bot;
   [...el.segV.children].forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===it.variant)));
   [...el.segA.children].forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.a===it.align)));
-  el.zoom.value=it.zoom; el.scrim.value=it.scrim;
-  el.vZoom.textContent=it.zoom+'%'; el.vScrim.textContent=it.scrim+'%';
+  const cv=cropView(it);
+  el.zoom.value=cv.zoom; el.scrim.value=it.scrim;
+  el.vZoom.textContent=cv.zoom+'%'; el.vScrim.textContent=it.scrim+'%';
+  syncTuneBar(it);
 
   const V=effVariant(it), hasPhoto=!!(it.img && IMG.get(it.img));
   el.cropBlock.style.display = (hasPhoto && !TEXT_ONLY.has(V)) ? '' : 'none';
@@ -920,10 +953,16 @@ el.top.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.top=el.t
 el.bot.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.bot=el.bot.value; drawPreview(); save(); });
 el.segV.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.variant=b.dataset.v; commit(); });
 el.segA.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.align=b.dataset.a; commit(); });
-el.zoom.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.zoom=+el.zoom.value; el.vZoom.textContent=it.zoom+'%'; drawPreview(); save(); });
+el.zoom.addEventListener('input',()=>{ const it=cur(); if(!it)return;
+  cropTarget(it).zoom=+el.zoom.value; el.vZoom.textContent=el.zoom.value+'%';
+  /* The first nudge is what creates the override, so the bar has to restate
+     which sizes now differ -- this path does not go through commit(). */
+  syncTuneBar(it);
+  drawPreview(); save(); });
 el.scrim.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.scrim=+el.scrim.value; el.vScrim.textContent=it.scrim+'%'; drawPreview(); save(); });
 el.caption.addEventListener('input',()=>{ S.caption=el.caption.value; save(); });
-$('#btnRecentre').addEventListener('click',()=>{ const it=cur(); if(!it)return; it.fx=50; it.fy=50; it.zoom=100; commit(); });
+$('#btnRecentre').addEventListener('click',()=>{ const it=cur(); if(!it)return;
+  const t=cropTarget(it); t.fx=50; t.fy=50; t.zoom=100; commit(); });
 $('#btnFillAll').addEventListener('click',()=>{
   const it=cur(); if(!it||!it.img) return;
   const before=S.items.map(i=>i.img);
@@ -1198,6 +1237,7 @@ document.getElementById('stage').addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(document.querySelector('dialog[open]')) return;
+  if(e.key==='Escape'&&!libView.hidden){ closeLib(); return; }
   if(e.key==='Escape'&&!gridView.hidden){ closeGrid(); return; }
   if(e.key==='Escape'&&openPanel){ closeDrawer(); return; }
   if(/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
@@ -1340,6 +1380,31 @@ document.getElementById('btnGrid').addEventListener('click',()=>{
 document.getElementById('gridClose').addEventListener('click',closeGrid);
 gridView.addEventListener('click',e=>{ if(e.target===gridView) closeGrid(); });
 
+/* ---------- per-size crop bar ---------- */
+function syncTuneBar(it){
+  const bar=document.getElementById('segTune'); if(!bar) return;
+  [...bar.children].forEach(b=>{
+    const id=b.dataset.t||'';
+    b.setAttribute('aria-pressed', String(id===(tuning||'')));
+    /* Mark a size that has actually been tuned, so it is obvious which ones
+       differ from the graphic's own crop. */
+    const has=!!(it&&it.per&&it.per[id]);
+    b.classList.toggle('tuned', !!id && has);
+  });
+  const n=document.getElementById('tuneNote');
+  if(n) n.textContent = tuning
+    ? 'Editing '+tuning.replace('x',' x ')+' only.'
+    : 'Tune one size and only that size changes.';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest && e.target.closest('#segTune button');
+  if(!b) return;
+  tuning=b.dataset.t||null;
+  /* Showing you a 9:16 crop on a 4:5 preview would be a lie. */
+  if(tuning && S.pv!==tuning){ S.pv=tuning; buildChips(); }
+  commit();
+});
+
 /* ---------- library panel ---------- */
 let COLLECTIONS=[], BRANDS=[];
 const libStatus=(msg,kind)=>{
@@ -1359,9 +1424,14 @@ async function loadLibraryMeta(){
 }
 function fillCollections(){
   const sel=document.getElementById('fCollection'); if(!sel) return;
+  /* Refilling must not silently move you to a different collection. Saving
+     reloads the counts, and losing the selection there would file the next
+     graphic somewhere you did not choose. */
+  const keep=sel.value;
   sel.innerHTML=COLLECTIONS.length
     ? COLLECTIONS.map(c=>'<option value="'+c.id+'">'+esc(c.name)+' ('+c.count+')</option>').join('')
     : '<option value="">No collections yet</option>';
+  if(keep && COLLECTIONS.some(c=>c.id===keep)) sel.value=keep;
 }
 function fillBrands(){
   const sel=document.getElementById('fBrand'); if(!sel) return;
@@ -1413,12 +1483,283 @@ document.addEventListener('click', async e=>{
       fillCollections();
       document.getElementById('fCollection').value=cid;
       libStatus('Saved. '+r.sizes.length+' sizes filed under '+(c?c.name:'the collection')+'.','ok');
+      afterSave(cid);
     }catch(err){
       libStatus(String(err.message||err),'bad');
     }finally{ t.disabled=false; }
     return;
   }
 });
+
+/* ===========================================================
+   THE LIBRARY BROWSER
+   Three views behind one overlay: collections, a collection's graphics, and
+   one graphic with a platform bar. Browsing reads finished PNGs out of R2 --
+   it never re-renders, because a finished graphic is finished.
+   =========================================================== */
+const libView=document.getElementById('libview');
+let libWhere={view:'home', collection:null, graphic:null, platform:null};
+let libSelecting=false;
+const libSel=new Set();
+let libGraphics=[];
+
+const libEl=id=>document.getElementById(id);
+const renderURL=(g,size)=>'/r/'+g.id+'/'+(g.rev||1)+'/'+size+'.png';
+const platformsFor=g=>PLATFORMS.filter(pl=>(g.sizes||[]).includes(pl.size));
+
+async function openLib(){
+  libView.hidden=false;
+  await loadLibraryMeta();
+  libWhere={view:'home', collection:null, graphic:null, platform:null};
+  drawLib();
+}
+function closeLib(){ libView.hidden=true; libSelecting=false; libSel.clear(); }
+
+function libChrome(){
+  libEl('libBack').hidden = libWhere.view==='home';
+  libEl('libSelect').hidden = libWhere.view!=='collection';
+  libEl('libRestyle').hidden = libWhere.view!=='collection';
+  libEl('libDownloadSel').hidden = !(libWhere.view==='collection' && libSelecting);
+  libEl('libSelect').textContent = libSelecting ? 'Done' : 'Select';
+  libEl('libTitle').textContent =
+    libWhere.view==='home' ? 'Library'
+    : libWhere.view==='collection' ? libWhere.collection.name
+    : (libWhere.graphic.title||'Graphic');
+  libEl('libCount').textContent =
+    libWhere.view==='home' ? COLLECTIONS.length+' collections'
+    : libWhere.view==='collection' ? (libSelecting? libSel.size+' selected' : libGraphics.length+' graphics')
+    : '';
+}
+
+function drawLib(){
+  libChrome();
+  const w=libEl('libWrap'); w.innerHTML='';
+  if(libWhere.view==='home') return drawLibHome(w);
+  if(libWhere.view==='collection') return drawLibCollection(w);
+  return drawLibGraphic(w);
+}
+
+function drawLibHome(w){
+  if(!COLLECTIONS.length){
+    w.innerHTML='<p class="hint">No collections yet. Make one in the Library panel, then save a graphic into it.</p>';
+    return;
+  }
+  for(const c of COLLECTIONS){
+    const card=document.createElement('div');
+    card.className='gcard';
+    card.innerHTML='<div class="gl" style="font-size:15px;color:var(--white)">'+esc(c.name)+'</div>'+
+                   '<div class="gl">'+c.count+' graphic'+(c.count===1?'':'s')+'</div>';
+    card.addEventListener('click',()=>openCollection(c));
+    w.appendChild(card);
+  }
+}
+
+async function openCollection(c){
+  libWhere={view:'collection', collection:c, graphic:null, platform:null};
+  libSel.clear(); libSelecting=false;
+  const d=await (await api('/api/collections/'+c.id+'/graphics')).json();
+  /* Only finished graphics. A row with no sizes is a save that died before
+     its renders landed, and its PNGs would 404. */
+  libGraphics=(d.graphics||[]).filter(g=>(g.sizes||[]).length);
+  drawLib();
+}
+
+function drawLibCollection(w){
+  if(!libGraphics.length){
+    w.innerHTML='<p class="hint">Nothing saved here yet.</p>';
+    return;
+  }
+  for(const g of libGraphics){
+    const card=document.createElement('div');
+    card.className='gcard'+(libSel.has(g.id)?' sel':'');
+    const first=(g.sizes||[])[0];
+    card.innerHTML=(libSelecting?'<span class="pick"></span>':'')+
+      '<img src="'+renderURL(g,first)+'" alt="'+esc(g.alt||'')+'" style="width:100%;display:block;border-radius:2px">'+
+      '<div class="gl">'+esc(g.title||'')+'</div>';
+    card.addEventListener('click',()=>{
+      if(libSelecting){
+        libSel.has(g.id)?libSel.delete(g.id):libSel.add(g.id);
+        drawLib(); return;
+      }
+      libWhere={view:'graphic', collection:libWhere.collection, graphic:g,
+                platform:(platformsFor(g)[0]||null)};
+      drawLib();
+    });
+    w.appendChild(card);
+  }
+}
+
+function drawLibGraphic(w){
+  const g=libWhere.graphic;
+  const pls=platformsFor(g);
+  const cur=libWhere.platform||pls[0];
+  w.style.display='block';
+  w.innerHTML=
+    '<div style="max-width:560px;margin:0 auto">'+
+      '<img id="libShot" src="'+renderURL(g,cur.size)+'" alt="'+esc(g.alt||'')+'" '+
+        'style="width:100%;display:block;border-radius:4px;background:#000">'+
+      '<div class="seg" id="libPlat" style="margin-top:12px;flex-wrap:wrap">'+
+        pls.map(pl=>'<button data-p="'+pl.id+'" aria-pressed="'+(pl.id===cur.id)+'">'+pl.name+'</button>').join('')+
+      '</div>'+
+      '<div class="row wrap" style="margin-top:12px">'+
+        '<button class="btn" id="libOne">Download this one</button>'+
+        '<button class="btn gold" id="libPack">Download every platform</button>'+
+      '</div>'+
+      '<div class="note" style="margin-top:10px">'+esc(cur.name)+' &middot; '+cur.size.replace('x',' x ')+
+        (pls.filter(x=>x.size===cur.size).length>1
+          ? ' &middot; the same picture also serves '+pls.filter(x=>x.size===cur.size&&x.id!==cur.id).map(x=>esc(x.name)).join(' and ')
+          : '')+'</div>'+
+      '<label class="field" style="margin-top:12px"><span class="eyebrow">Image description</span>'+
+        '<textarea rows="3" readonly>'+esc(g.alt||'')+'</textarea></label>'+
+    '</div>';
+}
+
+libView.addEventListener('click', async e=>{
+  const t=e.target;
+  if(t.id==='libClose'){ closeLib(); return; }
+  if(t.id==='libBack'){
+    if(libWhere.view==='graphic'){ libWhere.view='collection'; libWhere.graphic=null; drawLib(); }
+    else { libWhere={view:'home',collection:null,graphic:null,platform:null}; drawLib(); }
+    return;
+  }
+  if(t.id==='libSelect'){ libSelecting=!libSelecting; libSel.clear(); drawLib(); return; }
+  const pb=t.closest && t.closest('#libPlat button');
+  if(pb){
+    libWhere.platform=PLATFORMS.find(x=>x.id===pb.dataset.p);
+    drawLib(); return;
+  }
+  if(t.id==='libOne'){ await downloadOne(libWhere.graphic, libWhere.platform); return; }
+  if(t.id==='libPack'){ await downloadPack([libWhere.graphic]); return; }
+  if(t.id==='libDownloadSel'){
+    const chosen=libGraphics.filter(g=>libSel.has(g.id));
+    if(!chosen.length) return;
+    askPlatforms(chosen);
+    return;
+  }
+  if(t.id==='libRestyle'){ await restyleCollection(); return; }
+});
+
+/* ---------- downloads ---------- */
+
+async function fetchRender(g,size){
+  const r=await fetch(renderURL(g,size),{credentials:'same-origin'});
+  if(!r.ok) throw new Error('missing render '+size+' for '+(g.title||g.id));
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+async function downloadOne(g,pl){
+  try{
+    const bytes=await fetchRender(g,pl.size);
+    download(new Blob([bytes],{type:'image/png'}), pl.id+'_'+slug(g.title||g.top)+'_'+pl.size+'.png');
+  }catch(e){ alert(String(e.message||e)); }
+}
+
+/* A platform folder each, duplicating the bytes where two platforms want the
+   same shape. It is a few MB inside a zip nobody keeps, and it means whoever
+   posts opens "tiktok" rather than working out which number is 9:16. */
+async function buildPack(graphics, platforms){
+  const files=[];
+  const cache=new Map();
+  for(const g of graphics){
+    const want=platforms.filter(pl=>(g.sizes||[]).includes(pl.size));
+    for(const pl of want){
+      const key=g.id+'/'+pl.size;
+      if(!cache.has(key)) cache.set(key, await fetchRender(g,pl.size));
+      files.push({name:pl.id+'/'+slug(g.title||g.top)+'_'+pl.size+'.png', data:cache.get(key)});
+    }
+  }
+  const missing=graphics.filter(g=>!platforms.some(pl=>(g.sizes||[]).includes(pl.size)));
+  return {files, missing};
+}
+
+async function downloadPack(graphics, platforms){
+  const pls=platforms||PLATFORMS;
+  try{
+    const {files,missing}=await buildPack(graphics,pls);
+    if(!files.length){ alert('Nothing in those platforms for what you picked.'); return; }
+    files.push({name:'image-descriptions.txt', data:new TextEncoder().encode(
+      'Image descriptions, for the alt text field when you post.\n'+
+      'Generated from the layout and the words. Read it before you use it.\n\n'+
+      graphics.map(g=>(g.title||g.top)+'\n  '+(g.alt||'')).join('\n\n')+'\n')});
+    download(zip(files), 'electionlog_'+slug(libWhere.collection?libWhere.collection.name:'graphics')+'.zip');
+    if(missing.length) alert(missing.length+' graphic'+(missing.length===1?' was':'s were')+
+      ' left out: nothing saved for those platforms.');
+  }catch(e){ alert(String(e.message||e)); }
+}
+
+/* ---------- the platform checklist ---------- */
+const dlgPlat=document.getElementById('dlgPlatforms');
+let platTargets=[];
+
+function askPlatforms(graphics){
+  platTargets=graphics;
+  const have=new Set();
+  graphics.forEach(g=>(g.sizes||[]).forEach(sz=>have.add(sz)));
+  const list=libEl('platList');
+  list.innerHTML=PLATFORMS.map(pl=>{
+    const ok=have.has(pl.size);
+    return '<label'+(ok?'':' style="opacity:.45"')+'>'+
+      '<input type="checkbox" value="'+pl.id+'"'+(ok?' checked':' disabled')+'>'+
+      '<span>'+esc(pl.name)+' <span class="hint">'+pl.size.replace('x',' x ')+
+      (ok?'':' &middot; nothing saved for this')+'</span></span></label>';
+  }).join('');
+  libEl('platSub').textContent=graphics.length+' graphic'+(graphics.length===1?'':'s')+
+    '. Platforms that share a shape get the same picture under their own name.';
+  syncPlatCount();
+  dlgPlat.showModal();
+}
+function syncPlatCount(){
+  const n=[...libEl('platList').querySelectorAll('input:checked')].length;
+  libEl('platCount').textContent=n?(n+' platform'+(n===1?'':'s')):'nothing ticked';
+  libEl('platGo').disabled=!n;
+}
+dlgPlat.addEventListener('change',syncPlatCount);
+dlgPlat.addEventListener('click',async e=>{
+  if(e.target.id==='platCancel'){ dlgPlat.close(); return; }
+  if(e.target.id==='platGo'){
+    const ids=[...libEl('platList').querySelectorAll('input:checked')].map(i=>i.value);
+    dlgPlat.close();
+    await downloadPack(platTargets, PLATFORMS.filter(pl=>ids.includes(pl.id)));
+  }
+});
+
+/* ---------- restyle a whole collection ---------- */
+async function restyleCollection(){
+  const c=libWhere.collection; if(!c) return;
+  const brand=BRANDS.find(b=>b.id===B.id);
+  const n=libGraphics.length;
+  if(!n) return;
+  const ok=confirm(
+    'Remake all '+n+' graphic'+(n===1?'':'s')+' in "'+c.name+'" using '+(brand?brand.name:B.id)+'?\n\n'+
+    'This replaces the pictures in the library for this collection. Anything already '+
+    'downloaded or posted stays as it is.\n\n'+
+    'It cannot be undone from here, but switching back to the old brand and doing this '+
+    'again restores the look.');
+  if(!ok) return;
+
+  let done=0, failed=[];
+  for(const g of libGraphics){
+    libEl('libCount').textContent='Remaking '+(done+1)+' of '+n+'...';
+    try{ await restyleGraphic(g); done++; }
+    catch(e){ failed.push(g.title||g.id); }
+  }
+  await openCollection(c);
+  libEl('libCount').textContent = failed.length
+    ? done+' remade, '+failed.length+' failed'
+    : done+' graphics remade';
+  if(failed.length) alert('These could not be remade:\n'+failed.join('\n'));
+}
+
+document.getElementById('btnLibrary').addEventListener('click',openLib);
+/* Land in the library after a save, with the collection open, so the graphic
+   you just finished is visibly filed rather than vanished. */
+async function afterSave(collectionId){
+  await loadLibraryMeta();
+  const c=COLLECTIONS.find(x=>x.id===collectionId);
+  if(!c) return;
+  libView.hidden=false;
+  await openCollection(c);
+}
 
 /* ---------- boot ---------- */
 /* The server is the truth. The localStorage cache is only what we fall back
