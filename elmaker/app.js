@@ -72,13 +72,15 @@ const SIZES=[
 /* A size is a shape; a platform is a place. Several platforms want the same
    shape, so they share the render and only the download folders duplicate it. */
 const PLATFORMS=[
-  {id:'instagram-feed',  name:'Instagram feed',        size:'1080x1350'},
-  {id:'instagram-story', name:'Instagram story / reel',size:'1080x1920'},
-  {id:'facebook',        name:'Facebook',              size:'1080x1080'},
-  {id:'threads',         name:'Threads',               size:'1080x1350'},
-  {id:'bluesky',         name:'Bluesky',               size:'1080x1080'},
-  {id:'tiktok',          name:'TikTok',                size:'1080x1920'},
-  {id:'youtube-shorts',  name:'YouTube Shorts',        size:'1080x1920'}
+  /* `short` is for the platform bar, where a three-line label looked broken;
+     `name` is what the checklist and the download folders use. */
+  {id:'instagram-feed',  short:'IG feed',  name:'Instagram feed',         size:'1080x1350'},
+  {id:'instagram-story', short:'IG story', name:'Instagram story / reel', size:'1080x1920'},
+  {id:'facebook',        short:'Facebook', name:'Facebook',               size:'1080x1080'},
+  {id:'threads',         short:'Threads',  name:'Threads',                size:'1080x1350'},
+  {id:'bluesky',         short:'Bluesky',  name:'Bluesky',                size:'1080x1080'},
+  {id:'tiktok',          short:'TikTok',   name:'TikTok',                 size:'1080x1920'},
+  {id:'youtube-shorts',  short:'Shorts',   name:'YouTube Shorts',         size:'1080x1920'}
 ];
 
 /* ---------- state ---------- */
@@ -962,13 +964,8 @@ el.scrim.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.scrim=
 
 $('#btnRecentre').addEventListener('click',()=>{ const it=cur(); if(!it)return;
   const t=cropTarget(it); t.fx=50; t.fy=50; t.zoom=100; commit(); });
-$('#btnFillAll').addEventListener('click',()=>{
-  const it=cur(); if(!it||!it.img) return;
-  const before=S.items.map(i=>i.img);
-  S.items.forEach(i=>{ i.img=it.img; });
-  offerUndo('Photo applied to all '+S.items.length,()=>{ S.items.forEach((i,k)=>i.img=before[k]); });
-  commit();
-});
+/* "Use this photo for all" applied it across the list. One graphic at a
+   time means there is no all. */
 $('#btnGuides').addEventListener('click',e=>{
   S.guides=!S.guides; e.currentTarget.setAttribute('aria-pressed',String(S.guides));
   e.currentTarget.textContent = S.guides?'Hide safe margins':'Show safe margins';
@@ -1092,8 +1089,10 @@ async function renderAll(it, sizes, perSize){
 async function saveToLibrary(it, collectionId, opts){
   const o=opts||{};
   const sizes=SIZES;                       // always every size: see HANDOFF 10
+  const step=o.onStep||(()=>{});
   if(!await ensurePhoto(it)) throw new Error('that photo could not be loaded, so the layout would come out wrong');
 
+  step('Drawing '+sizes.length+' sizes...');
   const renders=await renderAll(it, sizes, o.perSize);
 
   const created=await (await api('/api/graphics',{method:'POST',...asJson({
@@ -1108,10 +1107,13 @@ async function saveToLibrary(it, collectionId, opts){
   /* rev 1: uploads first, commit last. The row only points at these renders
      once every one of them is confirmed in the bucket, so a save that dies
      halfway leaves nothing half-finished in the library. */
+  let n=0;
   for(const r of renders){
+    step('Uploading '+(++n)+' of '+renders.length+'...');
     await api('/api/graphics/'+id+'/renders/1/'+r.size,
               {method:'PUT', headers:{'Content-Type':'image/png'}, body:r.blob});
   }
+  step('Filing it...');
   await api('/api/graphics/'+id+'/finish',{method:'POST',...asJson({
     sizes:renders.map(r=>r.size), rev:1, brand_id:B.id
   })});
@@ -1531,9 +1533,11 @@ document.addEventListener('click', async e=>{
     const cid=(document.getElementById('fCollection')||{}).value;
     if(!cid) return libStatus('Make a collection first.','bad');
     t.disabled=true;
-    libStatus('Rendering every size...');
+    const label=t.textContent;
+    t.textContent='Saving...';
+    libStatus('Starting...');
     try{
-      const r=await saveToLibrary(it, cid);
+      const r=await saveToLibrary(it, cid, {onStep:m=>libStatus(m)});
       const c=COLLECTIONS.find(x=>x.id===cid); if(c) c.count++;
       fillCollections();
       document.getElementById('fCollection').value=cid;
@@ -1546,7 +1550,8 @@ document.addEventListener('click', async e=>{
       afterSave(cid);
     }catch(err){
       libStatus(String(err.message||err),'bad');
-    }finally{ t.disabled=false; }
+      say(String(err.message||err),'bad');
+    }finally{ t.disabled=false; t.textContent=label; }
     return;
   }
 });
@@ -1586,8 +1591,10 @@ function libChrome(){
     : libWhere.view==='collection' ? libWhere.collection.name
     : (libWhere.graphic.title||'Graphic');
   libEl('libCount').textContent =
-    libWhere.view==='home' ? COLLECTIONS.length+' collections'
-    : libWhere.view==='collection' ? (libSelecting? libSel.size+' selected' : libGraphics.length+' graphics')
+    libWhere.view==='home' ? COLLECTIONS.length+' collection'+(COLLECTIONS.length===1?'':'s')
+    : libWhere.view==='collection'
+        ? (libSelecting ? libSel.size+' selected'
+                        : libGraphics.length+' graphic'+(libGraphics.length===1?'':'s'))
     : '';
 }
 
@@ -1653,24 +1660,24 @@ function drawLibGraphic(w){
   const g=libWhere.graphic;
   const pls=platformsFor(g);
   const cur=libWhere.platform||pls[0];
+  const shares=pls.filter(x=>x.size===cur.size && x.id!==cur.id);
   w.style.display='block';
   w.innerHTML=
-    '<div style="max-width:560px;margin:0 auto">'+
-      '<img id="libShot" src="'+renderURL(g,cur.size)+'" alt="'+esc(g.alt||'')+'" '+
-        'style="width:100%;display:block;border-radius:4px;background:#000">'+
-      '<div class="seg" id="libPlat" style="margin-top:12px;flex-wrap:wrap">'+
-        pls.map(pl=>'<button data-p="'+pl.id+'" aria-pressed="'+(pl.id===cur.id)+'">'+pl.name+'</button>').join('')+
-      '</div>'+
-      '<div class="row wrap" style="margin-top:12px">'+
-        '<button class="btn" id="libOne">Download this one</button>'+
+    '<div class="oneview">'+
+      '<div><img id="libShot" class="oneshot" src="'+renderURL(g,cur.size)+'" alt="'+esc(g.alt||'')+'"></div>'+
+      '<div class="oneside">'+
+        '<div class="eyebrow" style="margin-bottom:6px">Looks like this on</div>'+
+        '<div class="seg" id="libPlat" style="margin-bottom:14px">'+
+          pls.map(pl=>'<button data-p="'+pl.id+'" aria-pressed="'+(pl.id===cur.id)+'">'+esc(pl.short)+'</button>').join('')+
+        '</div>'+
         '<button class="btn gold" id="libPack">Download every platform</button>'+
+        '<button class="btn" id="libOne">Just '+esc(cur.short)+'</button>'+
+        '<div class="note" style="margin-top:4px">'+cur.size.replace('x',' \u00d7 ')+
+          (shares.length ? ' &middot; the same picture serves '+shares.map(x=>esc(x.short)).join(' and ') : '')+'</div>'+
+        '<div class="eyebrow" style="margin:16px 0 6px">Image description</div>'+
+        '<textarea rows="5" readonly>'+esc(g.alt||'')+'</textarea>'+
+        '<div class="note" style="margin-top:6px">Copy this into the alt text field when you post.</div>'+
       '</div>'+
-      '<div class="note" style="margin-top:10px">'+esc(cur.name)+' &middot; '+cur.size.replace('x',' x ')+
-        (pls.filter(x=>x.size===cur.size).length>1
-          ? ' &middot; the same picture also serves '+pls.filter(x=>x.size===cur.size&&x.id!==cur.id).map(x=>esc(x.name)).join(' and ')
-          : '')+'</div>'+
-      '<label class="field" style="margin-top:12px"><span class="eyebrow">Image description</span>'+
-        '<textarea rows="3" readonly>'+esc(g.alt||'')+'</textarea></label>'+
     '</div>';
 }
 
@@ -1735,6 +1742,7 @@ async function buildPack(graphics, platforms){
 async function downloadPack(graphics, platforms){
   const pls=platforms||PLATFORMS;
   try{
+    say('Collecting '+graphics.length+' graphic'+(graphics.length===1?'':'s')+'...');
     const {files,missing}=await buildPack(graphics,pls);
     if(!files.length){ say('Nothing saved for those platforms.','bad'); return; }
     files.push({name:'image-descriptions.txt', data:new TextEncoder().encode(
@@ -1761,7 +1769,7 @@ function askPlatforms(graphics){
     const ok=have.has(pl.size);
     return '<label'+(ok?'':' style="opacity:.45"')+'>'+
       '<input type="checkbox" value="'+pl.id+'"'+(ok?' checked':' disabled')+'>'+
-      '<span>'+esc(pl.name)+' <span class="hint">'+pl.size.replace('x',' x ')+
+      '<span>'+esc(pl.name)+' <span class="hint">'+pl.size.replace('x',' \u00d7 ')+
       (ok?'':' &middot; nothing saved for this')+'</span></span></label>';
   }).join('');
   libEl('platSub').textContent=graphics.length+' graphic'+(graphics.length===1?'':'s')+

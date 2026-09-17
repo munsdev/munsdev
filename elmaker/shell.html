@@ -277,7 +277,7 @@ label.field{display:block}
 }
 .gridwrap{
   flex:1;min-height:0;overflow-y:auto;padding:16px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;align-content:start
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px;align-content:start
 }
 .gcard{cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:7px;background:var(--panel)}
 .gcard:hover{border-color:var(--grey)}
@@ -298,6 +298,17 @@ label.field{display:block}
 .homeactions .btn{flex:0 0 auto;width:auto;min-width:220px;justify-content:center}
 #homeCols .eyebrow{display:block}
 @media (max-width:560px){ .homeactions .btn{width:100%;min-width:0} }
+/* The library's single-graphic view. The picture used to fill the screen and
+   push the download buttons and the description below the fold. */
+.oneview{display:grid;gap:18px;align-items:start;max-width:1080px;margin:0 auto}
+@media (min-width:980px){ .oneview{grid-template-columns:minmax(0,1fr) 300px} }
+.oneshot{width:auto;max-width:100%;max-height:64vh;object-fit:contain;display:block;
+  margin:0 auto;border-radius:4px}
+.oneside .seg{flex-direction:column}
+@media (min-width:980px){ .oneside .seg button{min-width:0;text-align:left;justify-content:flex-start;padding-left:12px} }
+.oneside .btn{width:100%;margin-bottom:8px}
+.oneside textarea{width:100%;background:var(--panel);color:var(--white);border:1px solid var(--line);
+  border-radius:6px;padding:9px 11px;font:inherit;font-size:12px;line-height:1.5;resize:vertical}
 .notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));
   z-index:200;max-width:min(560px,calc(100% - 28px));padding:11px 16px;border-radius:8px;
   background:var(--panel2);border:1px solid var(--line);color:var(--white);
@@ -317,9 +328,11 @@ label.field{display:block}
 .btn.sm{min-height:32px}
 .lib .p .x{min-width:28px;min-height:28px;font-size:16px;line-height:1}
 .gcard .gl{
-  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--grey);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--grey);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
+.gcard{transition:border-color .12s, transform .12s}
+.gcard:hover{transform:translateY(-1px)}
 /* size chips carry platform names, so they read as a list rather than pills */
 #sizes{flex-direction:column;align-items:stretch;gap:6px}
 .sizechip{text-transform:none;letter-spacing:.01em;font-size:12px;padding:9px 12px;
@@ -350,7 +363,14 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .stage{--panelw:0px; --sheeth:158px;
          padding:12px; padding-bottom:calc(var(--sheeth) + 12px)}
   .drawer{top:auto;left:0;right:0;bottom:0;width:auto;height:var(--sheeth);
-          border-left:0;border-top:1px solid var(--line);padding:9px 10px 10px}
+          border-left:0;border-top:1px solid var(--line);padding:9px 10px 10px;
+          /* The sheet is a fixed height, so anything past it used to be simply
+             unreachable -- the safe-margins button in Sizes was covered by the
+             tab bar. Let it scroll instead. */
+          overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* Bigger where a finger has to land. */
+  .drawer input[type=range]{height:34px}
+  .lib .p .x{min-width:32px;min-height:32px}
   /* a control strip, not a form: no headings, no prose, labels beside the control */
   .drawer .panel-head,.drawer .note,.drawer .hint{display:none}
   .drawer .cols{display:block}
@@ -372,6 +392,13 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .drawer .lib{margin-top:7px}
   .drawer .lib .p{width:42px;height:42px}
   #storeWarn:not([hidden]){display:block;font-size:11px;padding:5px 0 0 9px;margin:0}
+  /* Sizes: the chips and the safe-margins toggle on one line, so the panel
+     fits the sheet. --sheeth has to stay constant across panels (see the
+     reserved-space rule), so the content is what gives. */
+  #p-sizes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  #p-sizes .chips{flex:1;min-width:0;margin:0}
+  #p-sizes .row{margin:0;flex:0 0 auto}
+  #p-sizes #btnGuides{white-space:nowrap}
   #cropBlock .row{gap:6px;margin-top:2px}
   #cropBlock .row .btn{flex:1}
   .stage-sizes{right:50%;transform:translateX(50%);bottom:0}
@@ -567,7 +594,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
         <div class="hint" id="darkenNote" hidden>Darkening only applies to Full bleed, the one layout with type sitting on the photo. On the others the type is on its own ground already.</div>
         <div class="row" style="margin-top:4px">
           <button class="btn sm ghost" id="btnRecentre">Recentre</button>
-          <button class="btn sm ghost" id="btnFillAll">Use this photo for all</button>
         </div>
       </div>
     </div>
@@ -781,10 +807,10 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 <dialog id="dlgHelp">
   <div class="panel-head"><span class="panel-num">??</span><span class="panel-title">What this tool will not let you do</span></div>
   <p class="hint" style="line-height:1.7">
-  There are no colour pickers and no font controls. The palette, the type and the layout are fixed, so a graphic made here cannot come out off brand.<br><br>
+  You cannot set a colour or a typeface on a single graphic. Both come from the brand style the collection is made in, and the layouts are a fixed set of seven, so a graphic made here cannot come out off brand.<br><br>
   <b style="color:#fff">One idea per graphic.</b> One top line, one bottom line. A second point is a second graphic.<br><br>
   <b style="color:#fff">The mark sits in the white bar and nothing else goes in there.</b><br><br>
-  <b style="color:#fff">Gold carries dark text, never white.</b> That is why the gold band flips the text colour.<br><br>
+  <b style="color:#fff">The accent carries dark text, never white.</b> In the house style that is gold, and it is why the gold band flips the text colour. A brand style cannot be saved that breaks it.<br><br>
   <b style="color:#fff">A card may not characterise a report or draw a conclusion from one.</b> Describe what someone saw. Never why it happened, never who did it.<br><br>
   <b style="color:#fff">Words that do not go on a graphic:</b> defend, fight, resist, stolen, rigged, crisis.
   </p>

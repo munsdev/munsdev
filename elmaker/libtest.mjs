@@ -77,7 +77,7 @@ const src1=await p.getAttribute('#libShot','src');
 await p.click('#libPlat button[data-p="tiktok"]'); await p.waitForTimeout(400);
 const src2=await p.getAttribute('#libShot','src');
 chk('switching platform switches the picture', src1!==src2 && src2.includes('1080x1920'), src2);
-chk('shared-shape platforms named', /also serves/.test(await p.textContent('#libWrap .note')));
+chk('shared-shape platforms named', /same picture serves/.test(await p.textContent('#libWrap .note')));
 
 // DOWNLOAD: single
 let dl=p.waitForEvent('download',{timeout:30000});

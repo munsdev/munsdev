@@ -53,10 +53,8 @@ chk('Darken slider', (await S()).sc===40);
 await p.evaluate(()=>{cur().fx=10;cur().fy=90;commit();});
 await p.click('#btnRecentre'); await p.waitForTimeout(250);
 a=await S(); chk('Recentre', a.fx===50&&a.fy===50&&a.z===100);
-await p.click('#btnFillAll'); await p.waitForTimeout(300);
-chk('Use photo for all', await p.evaluate(()=>S.items.every(i=>!!i.img)));
-await p.click('#toastUndo'); await p.waitForTimeout(250);
-chk('Undo photo-for-all', await p.evaluate(()=>S.items.some(i=>!i.img)));
+/* "Use this photo for all" spread one photo across the list. One graphic at
+   a time means there is no all. */
 await p.locator('.lib .p .x').first().click({force:true}); await p.waitForTimeout(300);
 chk('Delete image', await p.evaluate(()=>Object.keys(S.images).length===0));
 await p.click('#toastUndo'); await p.waitForTimeout(300);
