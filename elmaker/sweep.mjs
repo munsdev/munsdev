@@ -18,7 +18,9 @@ const [ch]=await Promise.all([p.waitForEvent('filechooser'), p.click('#drop')]);
 await ch.setFiles(testPhoto()); await p.waitForTimeout(800);
 await p.evaluate(()=>{ cur().zoom=180; cur().fx=20; cur().fy=80; cur().variant='bleed'; commit(); });
 
-await p.evaluate(()=>{ moveItem(S.items[3].id,-1); });
+/* Reordering went with the list; the persistence round trip below is what
+   this was setting up, so just permute the array. */
+await p.evaluate(()=>{ const [m]=S.items.splice(3,1); S.items.splice(2,0,m); commit(); });
 const before=await p.evaluate(()=>({n:S.items.length,order:S.items.slice(0,5).map(i=>i.top),
   crop:{z:S.items[0].zoom,fx:S.items[0].fx,fy:S.items[0].fy,v:S.items[0].variant,img:!!S.items[0].img}}));
 await p.waitForTimeout(700); await p.reload(); await p.waitForTimeout(1100);

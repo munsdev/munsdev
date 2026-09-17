@@ -335,18 +335,14 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
-- **The multi-graphic machinery is hidden, not gone.** The rail, the List
-  panel and the contact sheet are `display:none` and their code still runs on
-  nodes nobody can see. It was hidden rather than cut so the change stayed
-  reviewable; taking it out properly is a tidy-up that is still owed.
 - **`migrate.mjs` has not been run against production.** It was rehearsed
   against a local copy of the real rows, 46 of 46. Running it for real is one
   command, and the editor's own rows should be cleared afterwards or the app
   will keep opening on a bench full of graphics that are already filed.
-- **A restyle is one browser tab's work.** Remaking 46 graphics renders and
-  uploads 138 PNGs from the page that started it. Close the tab and it stops;
-  the collection keeps its old renders, which is the intended outcome, but
-  there is no resume and no progress beyond a counter.
+- **A restyle is still one browser tab's work.** It renders and uploads from
+  the page that started it, so closing the tab stops it. That is survivable:
+  it can be stopped on purpose, and running it again skips whatever already
+  carries the new brand, so it resumes rather than starting over.
 - **The 45 graphics in the editor are stranded.** They predate the library and
   there is no in-app path to bring them across, because creation is being
   reshaped to one graphic at a time. They need a one-time migration that
@@ -435,6 +431,18 @@ would invite edits that change nothing in the library.
 
 `audit-geom`'s baseline is **12**, not 89. Most of that count was the rail,
 the List panel and the contact sheet, and they are gone.
+
+**BRAND STYLES**
+`brandview` lists the twenty and edits one: a name, a typeface from the ten
+that ship, and the eight colour roles. The preview draws **every layout** in
+the draft style, because a colour is only judged properly on the thing it
+will produce. Nothing is written until Save, and Save goes through the
+Worker's contrast gate -- a refusal comes back naming the pairing that
+failed, which is the only reason that gate is worth having.
+
+Editing a style does not touch collections already made in it. Restyling a
+collection is what applies it, and that is deliberate: a brand edit should
+not silently rewrite 46 finished graphics.
 
 **BROWSING**
 The library reads finished PNGs straight out of R2 and never re-renders. A

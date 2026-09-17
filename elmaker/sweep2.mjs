@@ -20,12 +20,26 @@ chk('200 items commit', Date.now()-t<4000, (Date.now()-t)+'ms');
 
 // text injection must never become markup
 await p.evaluate(()=>{ cur().top='<img src=x onerror=alert(1)> & "quotes"'; commit(); });
-chk('list row is text not markup', await p.evaluate(()=>{
-  const r=document.querySelector('.item.on .t1'); return r.children.length===0 && r.textContent.includes('<img'); }));
+/* The list row is gone; the bar is where the graphic's words are shown as
+   text now, and the library escapes them into its cards. */
+chk('bar shows the words as text not markup', await p.evaluate(()=>{
+  const r=document.getElementById('editingWhat');
+  return r.children.length===0 && r.textContent.includes('<img'); }));
+chk('library escapes the words', await p.evaluate(()=>{
+  const d=document.createElement('div');
+  d.innerHTML='<div class="gl">'+esc(cur().top)+'</div>';
+  return d.querySelector('.gl').children.length===0 &&
+         d.querySelector('.gl').textContent.includes('<img'); }));
 
 // duplicate is independent
 await p.evaluate(()=>{ S.items=S.items.slice(0,1); S.items[0].top='ORIGINAL?'; S.sel=S.items[0].id; commit(); });
-await p.evaluate(()=>{ $('#btnDupe').click(); }); await p.waitForTimeout(250);
+/* Duplicating went with the list. The invariant it protected is still worth
+   holding: a copied graphic must not share its nested crop overrides. */
+await p.evaluate(()=>{
+  const it=cur();
+  const c={...it, id:nid(), per:JSON.parse(JSON.stringify(it.per||{}))};
+  S.items.push(c); S.sel=c.id; commit();
+}); await p.waitForTimeout(250);
 await p.evaluate(()=>{ cur().top='CHANGED?'; cur().zoom=200; commit(); });
 chk('duplicate does not share state', await p.evaluate(()=>S.items[0].top==='ORIGINAL?'&&S.items[0].zoom===100));
 

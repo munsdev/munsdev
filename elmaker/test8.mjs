@@ -25,7 +25,6 @@ for(const c of [{n:'desktop',w:1400,h:900,mob:false},{n:'laptop',w:1180,h:760,mo
   const over = await p.evaluate(()=>({
     bodyScroll:document.body.scrollWidth-document.body.clientWidth,
     tabsFit:(()=>{const t=document.getElementById('tabs');return t.scrollWidth<=t.clientWidth+1})(),
-    railVisible:document.querySelector('.rail').getBoundingClientRect().height>10
   }));
   console.log('   ', JSON.stringify(over));
   await p.click('.tab[data-p=photo]'); await p.waitForTimeout(200);

@@ -43,9 +43,6 @@ header.top{
 /* One graphic at a time: the rail, the contact sheet and the List panel were
    the multi-graphic UI. The code behind them still runs on hidden nodes; a
    later pass can take it out properly. */
-.rail{display:none!important}
-#btnGrid{display:none!important}
-.tab[data-p="list"]{display:none!important}
 
 /* ---------- main: stage + rail ---------- */
 /* One column. The second used to hold the rail; with the rail gone it was
@@ -309,6 +306,29 @@ label.field{display:block}
 .oneside .btn{width:100%;margin-bottom:8px}
 .oneside textarea{width:100%;background:var(--panel);color:var(--white);border:1px solid var(--line);
   border-radius:6px;padding:9px 11px;font:inherit;font-size:12px;line-height:1.5;resize:vertical}
+/* Brand styles */
+.bcard{cursor:pointer;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);
+  transition:border-color .12s, transform .12s}
+.bcard:hover{border-color:var(--grey);transform:translateY(-1px)}
+.bcard.on{border-color:var(--gold)}
+.bswatch{height:96px;display:flex;align-items:center;justify-content:center;position:relative}
+.bswatch b{font-size:26px;line-height:1;letter-spacing:-.01em}
+.bswatch i{position:absolute;right:9px;bottom:9px;width:20px;height:20px;border-radius:4px;font-style:normal}
+.bmeta{padding:9px 11px}
+.bname{font-family:var(--struct);font-weight:600;font-size:13px;color:var(--white)}
+.bface{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--grey);margin-top:3px}
+.bedit{display:grid;gap:18px;max-width:1020px;margin:0 auto}
+@media (min-width:980px){ .bedit{grid-template-columns:minmax(0,1fr) 320px} }
+.brow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.brow label{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey)}
+.brow input[type=color]{width:46px;height:34px;padding:0;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel);cursor:pointer}
+.brow .hex{width:88px;padding:7px 8px;font-family:var(--mono);font-size:11px;color:var(--white);
+  background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.bpreview{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
+.bpreview canvas{width:100%;height:auto;display:block}
+.bwarn{border-left:3px solid var(--crimson);padding:8px 11px;margin-top:10px;font-size:12px;
+  line-height:1.55;color:#ff9b9b;background:rgba(206,32,39,.08)}
 .notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));
   z-index:200;max-width:min(560px,calc(100% - 28px));padding:11px 16px;border-radius:8px;
   background:var(--panel2);border:1px solid var(--line);color:var(--white);
@@ -465,6 +485,26 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .toast{top:52px}
   .main{grid-template-columns:minmax(0,1fr) 196px}
   .stage{--panelw:264px; --sheeth:0px; padding:10px; padding-right:274px}
+  /* The side drawer runs to the bottom of the window where the tab bar sits
+     over it, so the last control could not be reached even by scrolling. */
+  .drawer{padding-bottom:86px}
+  /* A landscape phone leaves about 270px of drawer. Headings and prose are
+     what give: the controls have to fit without scrolling. */
+  .drawer .panel-head,.drawer .note{display:none}
+  .drawer .field{margin-bottom:9px}
+  .drawer .hint{display:none}
+  /* Same trick as the phone sheet: chooser and photo strip side by side. */
+  .drawer #photoBlock{display:flex;gap:8px;align-items:center}
+  .drawer #photoBlock .drop{flex:0 0 104px;padding:8px;font-size:11px;line-height:1.25;min-height:44px}
+  .drawer #photoBlock .lib{flex:1;min-width:0;margin:0;flex-wrap:nowrap;overflow-x:auto}
+  .drawer #photoBlock .lib .p{flex:none;width:40px;height:40px}
+  /* The crop controls are what the panel is for; put the labels beside them
+     and the buttons on one line so the whole set clears the bar. */
+  .drawer label.field{display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:8px;margin:0 0 7px}
+  .drawer .eyebrow{margin:0;font-size:9px;letter-spacing:.09em}
+  #cropBlock .row{gap:6px;margin-top:4px}
+  #cropBlock .row .btn{flex:1}
+  #tuneBlock{margin-bottom:8px}
   .frame{padding-bottom:26px}
   .stage-tag{display:none}
   .drawer{width:var(--panelw);padding:12px;top:0;right:0;bottom:0;left:auto;height:auto;
@@ -599,29 +639,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     </div>
   </section>
 
-  <section class="panel" id="p-list" hidden>
-    <div class="panel-head"><span class="panel-num">04</span><span class="panel-title">The list</span><span class="panel-sub">Adding always appends</span></div>
-    <div class="cols">
-      <div>
-        <label class="field">
-          <span class="eyebrow">Paste lines</span>
-          <textarea id="bulkText" rows="3" placeholder="LONG LINE? | LOG IT.&#10;MACHINE DOWN? | LOG IT."></textarea>
-        </label>
-        <div class="row wrap">
-          <button class="btn" id="bulkAdd">Add pasted lines</button>
-          <button class="btn" id="btnSeed">Load all 46 lines</button>
-        </div>
-      </div>
-      <div>
-        <div class="row wrap">
-          <button class="btn" id="btnAdd2">+ Add a graphic</button>
-          <button class="btn" id="btnDupe">Duplicate selected</button>
-          <button class="btn ghost danger" id="btnClear">Clear the list</button>
-        </div>
-        <div class="note">One line each. Anything before a <code>|</code> is the top line, anything after it is the bottom line. Without a <code>|</code> the bottom line stays LOG IT.</div>
-      </div>
-    </div>
-  </section>
 
   <section class="panel" id="p-sizes" hidden>
     <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Sizes</span><span class="panel-sub">What you are looking at</span></div>
@@ -648,6 +665,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
         <button class="btn gold lg" id="btnSaveLib" style="margin-top:12px">Save to the library</button>
         <div class="row wrap" style="margin-top:9px">
           <button class="btn" id="btnNewCollection">New collection</button>
+          <button class="btn ghost" id="btnEditBrands">Brand styles</button>
         </div>
         <div class="status" id="libStatus"></div>
       </div>
@@ -674,17 +692,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 </div>
   </div>
 
-  <aside class="rail">
-    <div class="rail-head">
-      <span class="rail-title">Graphics</span>
-      <span class="rail-title" id="itemCount" style="flex:none"></span>
-    </div>
-    <div class="items" id="items"></div>
-    <div class="rail-foot">
-      <button class="btn sm grow" id="btnAdd">+ Add a graphic</button>
-      <button class="btn sm ghost" id="btnSeed2" title="Add all 46 campaign lines to the list">All 46</button>
-    </div>
-  </aside>
 </div>
 
 
@@ -697,7 +704,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <button class="tab" data-p="text"   aria-expanded="false">Words</button>
     <button class="tab" data-p="layout" aria-expanded="false">Layout</button>
     <button class="tab" data-p="photo"  aria-expanded="false">Photo</button>
-    <button class="tab" data-p="list"   aria-expanded="false">List</button>
     <button class="tab" data-p="sizes"  aria-expanded="false">Sizes</button>
     <button class="tab" data-p="library" aria-expanded="false">Library</button>
     <button class="tab go" data-p="export" aria-expanded="false">Export</button>
@@ -731,6 +737,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
       <div class="homeactions">
         <button class="btn gold lg" id="homeNew">Make a graphic</button>
         <button class="btn lg" id="homeBrowse">Browse the library</button>
+        <button class="btn lg" id="homeBrands">Brand styles</button>
       </div>
       <div class="note" style="margin-top:14px">A graphic is saved into a collection when it is done. Finished graphics are not edited again &mdash; make another one instead.</div>
       <div id="homeCols" style="margin-top:24px"></div>
@@ -776,6 +783,17 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 <!-- In-app notices. alert() blocks the page, looks nothing like the rest of
      this, and cannot be shown over the library overlay. -->
 <div class="notice" id="notice" hidden><span id="noticeText"></span></div>
+
+<div class="sheetview" id="brandview" hidden>
+  <div class="gridhead">
+    <button class="btn sm ghost" id="brandBack" hidden>&#8592; Back</button>
+    <span class="panel-num">&#9632;</span>
+    <span class="panel-title" id="brandTitle">Brand styles</span>
+    <span class="rail-title" id="brandCount" style="flex:1"></span>
+    <button class="btn gold sm" id="brandClose">Close</button>
+  </div>
+  <div class="gridwrap" id="brandWrap"></div>
+</div>
 
 <dialog id="dlgAsk">
   <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title" id="askTitle">Name</span></div>

@@ -31,7 +31,7 @@ const clickIf=async(sel,label)=>{
   catch(e){
     const why=await p.evaluate(()=>({
       dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id),
-      overlays:['home','libview','grid'].filter(id=>{const n=document.getElementById(id);return n&&!n.hidden;})
+      overlays:['home','libview','grid','brandview'].filter(id=>{const n=document.getElementById(id);return n&&!n.hidden;})
     })).catch(()=>({dialogs:['?'],overlays:['?']}));
     note(label,'click blocked on '+sel+' | open dialogs: '+(why.dialogs.join(',')||'none')+
          ' | overlays: '+(why.overlays.join(',')||'none'));
@@ -132,7 +132,7 @@ if(!await vis('#tuneBlock')) note('photo-path','per-size crop bar hidden after a
 /* ---------- 4. EVERY VISIBLE CONTROL IN EVERY PANEL ---------- */
 const closeOverlays=async()=>{
   await p.evaluate(()=>{
-    for(const id of ['libview','home','grid']){ const n=document.getElementById(id); if(n) n.hidden=true; }
+    for(const id of ['libview','home','grid','brandview']){ const n=document.getElementById(id); if(n) n.hidden=true; }
   });
   await p.waitForTimeout(120);
 };

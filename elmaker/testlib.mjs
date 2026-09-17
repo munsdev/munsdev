@@ -60,7 +60,9 @@ export async function openApp(p, { clearLocal = true } = {}) {
     await p.evaluate(() => localStorage.clear());
     await p.reload();
   }
-  await p.waitForSelector('body.ready', { timeout: 15000 });
+  /* A cold Worker plus a font fetch can take a while on the first hit; a
+     local dev server never does. */
+  await p.waitForSelector('body.ready', { timeout: REMOTE ? 45000 : 15000 });
   await p.waitForTimeout(400);
   return p;
 }

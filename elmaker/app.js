@@ -603,7 +603,7 @@ function caption(it){
    =========================================================== */
 const $=s=>document.querySelector(s);
 const el={
-  items:$('#items'), count:$('#itemCount'), editing:$('#editingWhat'),
+  editing:$('#editingWhat'),
   top:$('#fTop'), bot:$('#fBot'), segV:$('#segVariant'), segA:$('#segAlign'),
   drop:$('#drop'), lib:$('#lib'), cropBlock:$('#cropBlock'),
   zoom:$('#fZoom'), scrim:$('#fScrim'), vZoom:$('#vZoom'), vScrim:$('#vScrim'),
@@ -798,61 +798,9 @@ el.canvas.addEventListener('pointerup',clearPt);
 el.canvas.addEventListener('pointercancel',clearPt);
 function dist(){ const a=[...pts.values()]; return Math.hypot(a[0].clientX-a[1].clientX,a[0].clientY-a[1].clientY); }
 
-/* ---------- the list ---------- */
-function moveItem(id,dir){
-  const i=S.items.findIndex(x=>x.id===id); if(i<0) return;
-  const j=i+dir; if(j<0||j>=S.items.length) return;
-  const [m]=S.items.splice(i,1); S.items.splice(j,0,m); commit();
-}
-function renderList(){
-  el.items.innerHTML='';
-  S.items.forEach((it,idx)=>{
-    const d=document.createElement('div');
-    d.className='item'+(it.id===S.sel?' on':''); d.draggable=true; d.dataset.id=it.id;
-    const tsrc=it.img?THUMB.get(it.img):null;
-    const thumb=tsrc ? '<div class="thumb" style="background-image:url('+tsrc+')"></div>'
-                     : '<div class="thumb">TYPE</div>';
-    d.innerHTML=thumb+
-      '<div class="txt"><div class="t1"></div><div class="t2"></div></div>'+
-      '<div class="ops">'+
-        '<button class="up" title="Move earlier">&#8593;</button>'+
-        '<button class="dn" title="Move later">&#8595;</button>'+
-        '<button class="rm" title="Remove">&times;</button>'+
-      '</div>';
-    d.querySelector('.t1').textContent=it.top.replace(/\n/g,' ');
-    d.querySelector('.t2').textContent=String(idx+1).padStart(2,'0')+' · '+effVariant(it);
-    d.querySelector('.up').disabled = idx===0;
-    d.querySelector('.dn').disabled = idx===S.items.length-1;
-    d.addEventListener('click',e=>{ if(e.target.closest('.ops')) return; select(it.id); });
-    d.querySelector('.up').addEventListener('click',e=>{e.stopPropagation();moveItem(it.id,-1)});
-    d.querySelector('.dn').addEventListener('click',e=>{e.stopPropagation();moveItem(it.id, 1)});
-    d.querySelector('.rm').addEventListener('click',e=>{
-      e.stopPropagation();
-      const at=S.items.indexOf(it), wasSel=S.sel===it.id;
-      S.items=S.items.filter(x=>x.id!==it.id);
-      if(wasSel) S.sel=S.items.length?S.items[Math.min(at,S.items.length-1)].id:null;
-      offerUndo('Removed "'+it.top.replace(/\n/g,' ')+'"',()=>{
-        S.items.splice(at,0,it); S.sel=it.id;
-      });
-      commit();
-    });
-    d.addEventListener('dragstart',e=>{ d.classList.add('dragging'); e.dataTransfer.setData('text/plain',it.id); });
-    d.addEventListener('dragend',()=>d.classList.remove('dragging'));
-    d.addEventListener('dragover',e=>e.preventDefault());
-    d.addEventListener('drop',e=>{
-      e.preventDefault();
-      const from=e.dataTransfer.getData('text/plain'); if(!from||from===it.id) return;
-      const a=S.items.findIndex(x=>x.id===from), b=S.items.findIndex(x=>x.id===it.id);
-      const [m]=S.items.splice(a,1); S.items.splice(b,0,m); commit();
-    });
-    el.items.appendChild(d);
-  });
-  const on=el.items.querySelector('.item.on');
-  if(on) on.scrollIntoView({block:'nearest',inline:'nearest'});
-  el.count.textContent=S.items.length;
-  const n=S.items.length*Object.values(S.sizes).filter(Boolean).length;
-  el.exportCount.textContent = cur()? 'before saving' : 'nothing open';
-}
+/* renderList stays as a no-op because commit() calls it, so every edit path
+   keeps the same shape. Reordering went with the list itself. */
+function renderList(){}
 
 function libHighlight(){
   const it=cur();
@@ -945,12 +893,7 @@ function buildChips(){
 }
 
 /* ---------- wiring ---------- */
-function touchRow(){
-  const it=cur(); if(!it) return;
-  const row=el.items.querySelector('.item[data-id="'+it.id+'"]'); if(!row) return;
-  row.querySelector('.t1').textContent=it.top.replace(/\n/g,' ');
-}
-el.top.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.top=el.top.value; touchRow(); drawPreview(); save(); });
+el.top.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.top=el.top.value; drawPreview(); save(); });
 el.bot.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.bot=el.bot.value; drawPreview(); save(); });
 el.segV.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.variant=b.dataset.v; commit(); });
 el.segA.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.align=b.dataset.a; commit(); });
@@ -1011,36 +954,11 @@ function hookDrop(node, handler){
 }
 hookDrop(el.drop, addFiles);
 
-function addOne(){ const it=newItem(); S.items.push(it); S.sel=it.id; commit(); }
-$('#btnAdd').addEventListener('click',addOne);
-$('#btnAdd2').addEventListener('click',addOne);
-$('#btnDupe').addEventListener('click',()=>{
-  const it=cur(); if(!it) return;
-  /* per is a nested object, so a spread would hand the copy the SAME crop
-     overrides and tuning one graphic would silently retune the other. */
-  const c={...it, id:nid(), per:JSON.parse(JSON.stringify(it.per||{}))};
-  S.items.splice(S.items.indexOf(it)+1,0,c); S.sel=c.id; commit();
-});
-$('#btnSeed').addEventListener('click',()=>addLines(ALL_LINES,'All lines'));
-$('#btnSeed2').addEventListener('click',()=>addLines(ALL_LINES,'All lines'));
-$('#btnClear').addEventListener('click',()=>{
-  const before={items:S.items.slice(), sel:S.sel, images:{...S.images}};
-  S.items=[]; S.sel=null;
-  offerUndo('Everything cleared',()=>{ S.items=before.items; S.sel=before.sel; S.images=before.images; });
-  commit();
-});
+/* Adding, duplicating, seeding, clearing and bulk paste all drove the list.
+   One graphic at a time means the home screen's photo question is the only
+   way a graphic starts. */
 $('#btnHelp').addEventListener('click',()=>$('#dlgHelp').showModal());
 $('#helpClose').addEventListener('click',()=>$('#dlgHelp').close());
-$('#bulkAdd').addEventListener('click',()=>{
-  const lines=$('#bulkText').value.split('\n').map(l=>l.trim()).filter(Boolean);
-  const before=S.items.slice(), beforeSel=S.sel;
-  lines.forEach(l=>{ const [a,b]=l.split('|'); S.items.push(newItem((a||'').trim(),(b||'LOG IT.').trim())); });
-  if(!S.sel&&S.items.length) S.sel=S.items[0].id;
-  $('#bulkText').value='';
-  offerUndo(lines.length+' added',()=>{ S.items=before; S.sel=beforeSel; });
-  commit();
-});
-
 /* ---------- export ---------- */
 let cancelExport=false;
 function canvasBlob(c){ return new Promise(r=>c.toBlob(r,'image/png')); }
@@ -1311,14 +1229,9 @@ const GROUPS=[
    ['A POST DISAPPEARS.',"A LOG DOESN'T."]]}
 ];
 
-function addLines(pairs,label){
-  const before=S.items.slice(), beforeSel=S.sel;
-  if(S.items.length===1 && S.items[0].top==='LONG LINE?' && !S.items[0].img){ S.items=[]; S.sel=null; }
-  pairs.forEach(([a,b])=>S.items.push(newItem(a,b)));
-  if(!S.sel&&S.items.length) S.sel=S.items[0].id;
-  offerUndo(label+': '+pairs.length+' added',()=>{ S.items=before; S.sel=beforeSel; });
-  commit();
-}
+/* ALL_LINES is the campaign's 46 lines. Nothing in the app adds them in
+   bulk any more -- the migration moved them into the library -- but the test
+   harness still seeds a bench from it. */
 const ALL_LINES=GROUPS.reduce((a,g)=>a.concat(g.lines),[]);
 
 /* ===========================================================
@@ -1515,6 +1428,8 @@ document.addEventListener('click', async e=>{
   const t=e.target;
   if(!t) return;
 
+  if(t.id==='btnEditBrands'){ await openBrands(); return; }
+
   if(t.id==='btnNewCollection'){
     const name=await ask({title:'New collection', label:'Name',
       hint:'A collection is a folder of finished graphics. You can rename it later.'});
@@ -1567,6 +1482,7 @@ let libWhere={view:'home', collection:null, graphic:null, platform:null};
 let libSelecting=false;
 const libSel=new Set();
 let libGraphics=[];
+let restyleStop=false;
 
 const libEl=id=>document.getElementById(id);
 const renderURL=(g,size)=>'/r/'+g.id+'/'+(g.rev||1)+'/'+size+'.png';
@@ -1703,7 +1619,196 @@ libView.addEventListener('click', async e=>{
     askPlatforms(chosen);
     return;
   }
-  if(t.id==='libRestyle'){ await restyleCollection(); return; }
+  if(t.id==='libRestyle'){
+    if(t.textContent==='Stop'){ restyleStop=true; t.disabled=true;
+      setTimeout(()=>{t.disabled=false;},400); return; }
+    await restyleCollection(); return;
+  }
+});
+
+/* ===========================================================
+   BRAND STYLES
+   Twenty of them, hand-authored. Editing is colours and a face, nothing
+   more: no layout controls, no spacing, no new roles. The contrast gate on
+   the Worker is what stops an edit shipping type nobody can read, and the
+   preview here shows every layout so you can see what a change does before
+   it lands on 46 graphics.
+   =========================================================== */
+const brandView=document.getElementById('brandview');
+let brandWhere={view:'list', brand:null};
+let brandDraft=null;
+
+const ROLE_FIELDS=[
+  ['ground','The graphic\u2019s background'],
+  ['on_ground','Type on the background'],
+  ['accent','Accent: rules, bands, second line'],
+  ['on_accent','Type sitting ON the accent'],
+  ['muted','The .ORG of the mark'],
+  ['bar','The mark bar'],
+  ['on_bar','ELECTION, in the bar'],
+  ['accent_on_bar','LOG, in the bar']
+];
+
+async function openBrands(){
+  brandView.hidden=false;
+  await loadLibraryMeta();
+  brandWhere={view:'list', brand:null};
+  drawBrands();
+}
+function closeBrands(){ brandView.hidden=true; brandDraft=null; }
+
+function drawBrands(){
+  document.getElementById('brandBack').hidden = brandWhere.view==='list';
+  document.getElementById('brandTitle').textContent =
+    brandWhere.view==='list' ? 'Brand styles' : brandDraft.name;
+  document.getElementById('brandCount').textContent =
+    brandWhere.view==='list' ? BRANDS.length+' styles' : 'in use by '+(brandWhere.brand.used||0)+' collection'+((brandWhere.brand.used||0)===1?'':'s');
+  const w=document.getElementById('brandWrap');
+  w.innerHTML='';
+  if(brandWhere.view==='list'){ w.style.display=''; return drawBrandList(w); }
+  w.style.display='block'; drawBrandEdit(w);
+}
+
+function drawBrandList(w){
+  for(const row of BRANDS){
+    const card=document.createElement('div');
+    card.className='bcard'+(row.id===B.id?' on':'');
+    card.innerHTML=
+      '<div class="bswatch" style="background:'+esc(row.ground)+'">'+
+        '<b style="color:'+esc(row.accent)+'">Aa</b>'+
+        '<i style="background:'+esc(row.on_ground)+'"></i>'+
+      '</div>'+
+      '<div class="bmeta"><div class="bname">'+esc(row.name)+(row.id===B.id?' \u00b7 in use':'')+'</div>'+
+      '<div class="bface">'+esc(row.display)+'</div></div>';
+    card.addEventListener('click',()=>openBrand(row));
+    w.appendChild(card);
+  }
+}
+
+async function openBrand(row){
+  brandWhere={view:'edit', brand:row};
+  brandDraft={...row};
+  await loadFace(row.display);
+  drawBrands();
+  paintBrandPreview();
+}
+
+function drawBrandEdit(w){
+  const faces=Object.keys(FACES).concat(['ElectionLog Display']).sort();
+  w.innerHTML=
+    '<div class="bedit">'+
+      '<div>'+
+        '<div class="eyebrow" style="margin-bottom:8px">Every layout, in this style</div>'+
+        '<div class="bpreview"><canvas id="bCanvas"></canvas></div>'+
+        '<div class="note" style="margin-top:8px">Nothing is saved until you press Save. Collections already made in this style are not touched until you restyle them.</div>'+
+      '</div>'+
+      '<div>'+
+        '<label class="field"><span class="eyebrow">Name</span>'+
+          '<input type="text" id="bName" value="'+esc(brandDraft.name)+'"></label>'+
+        '<label class="field"><span class="eyebrow">Typeface</span>'+
+          '<select id="bFace">'+faces.map(f=>'<option'+(f===brandDraft.display?' selected':'')+'>'+esc(f)+'</option>').join('')+'</select></label>'+
+        '<div class="eyebrow" style="margin:14px 0 8px">Colours</div>'+
+        ROLE_FIELDS.map(([k,lab])=>
+          '<div class="brow"><label for="c_'+k+'">'+esc(lab)+'</label>'+
+          '<input type="text" class="hex" id="h_'+k+'" value="'+esc(brandDraft[k])+'">'+
+          '<input type="color" id="c_'+k+'" value="'+esc(brandDraft[k])+'"></div>').join('')+
+        '<div id="bWarn"></div>'+
+        '<div class="row wrap" style="margin-top:14px">'+
+          '<button class="btn gold" id="bSave">Save style</button>'+
+          '<button class="btn ghost" id="bRevert">Revert</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  paintBrandPreview();
+}
+
+/* Every layout at once, so a colour change is judged on the thing it will
+   actually produce rather than on a swatch. */
+function paintBrandPreview(){
+  const c=document.getElementById('bCanvas'); if(!c) return;
+  const keep={...B};
+  setBrand(brandFromRow(brandDraft));
+  const order=['stack','bleed','band','type','split','slab','stamp'];
+  const cw=300, chh=375, cols=4, rows=2, gap=10;
+  c.width=cols*cw+(cols+1)*gap; c.height=rows*chh+(rows+1)*gap;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,c.width,c.height);
+  order.forEach((v,i)=>{
+    const x=gap+(i%cols)*(cw+gap), y=gap+Math.floor(i/cols)*(chh+gap);
+    const off=document.createElement('canvas');
+    const it={...newItem('SHORT LINE?','LOG IT.'), variant:v, align:'center',
+              img:TEXT_ONLY.has(v)?null:(Object.keys(S.images)[0]||null)};
+    renderTo(off, cw, chh, it, false);
+    ctx.drawImage(off,x,y);
+  });
+  setBrand(keep);
+}
+
+function brandWarn(msg){
+  const n=document.getElementById('bWarn'); if(!n) return;
+  n.innerHTML = msg ? '<div class="bwarn">'+msg+'</div>' : '';
+}
+
+brandView.addEventListener('input', e=>{
+  const t=e.target; if(!t.id) return;
+  if(t.id==='bName'){ brandDraft.name=t.value; return; }
+  const hex=t.id.startsWith('h_') && t.id.slice(2);
+  const col=t.id.startsWith('c_') && t.id.slice(2);
+  const key=hex||col;
+  if(!key) return;
+  let v=t.value.trim();
+  if(!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+  v=v.toUpperCase();
+  brandDraft[key]=v;
+  const other=document.getElementById((hex?'c_':'h_')+key);
+  if(other) other.value=v;
+  paintBrandPreview();
+});
+brandView.addEventListener('change', async e=>{
+  if(e.target.id!=='bFace') return;
+  const fam=e.target.value;
+  brandWarn('');
+  const ok=await loadFace(fam);
+  if(!ok && fam!=='ElectionLog Display'){ brandWarn('That typeface could not be loaded.'); return; }
+  brandDraft.display=fam;
+  paintBrandPreview();
+});
+
+brandView.addEventListener('click', async e=>{
+  const t=e.target;
+  if(t.id==='brandClose'){ closeBrands(); return; }
+  if(t.id==='brandBack'){ brandWhere={view:'list',brand:null}; brandDraft=null; drawBrands(); return; }
+  if(t.id==='bRevert'){ brandDraft={...brandWhere.brand}; drawBrands(); brandWarn(''); return; }
+  if(t.id==='bSave'){
+    t.disabled=true; brandWarn('');
+    try{
+      const body={name:brandDraft.name, display:brandDraft.display};
+      ROLE_FIELDS.forEach(([k])=>{ body[k]=brandDraft[k]; });
+      const r=await fetch('/api/brands/'+brandWhere.brand.id,
+        {method:'PATCH',credentials:'same-origin',
+         headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r.json();
+      if(r.status===422){
+        /* The Worker refuses an edit that would ship unreadable type. Say
+           which pairing failed rather than just "no". */
+        brandWarn('<b>Not saved.</b> '+(d.failed||[]).map(esc).join('<br>')+
+          '<br><br>Type on a graphic is set large, so the floor is 3:1.');
+        return;
+      }
+      if(!r.ok) throw new Error(d.error||('save failed: '+r.status));
+      await loadLibraryMeta();
+      const fresh=BRANDS.find(x=>x.id===brandWhere.brand.id);
+      brandWhere.brand=fresh||brandWhere.brand;
+      brandDraft={...brandWhere.brand};
+      if(B.id===brandWhere.brand.id){ await applyBrand(brandFromRow(brandDraft)); commit(); }
+      say('Saved '+brandDraft.name+'.','ok');
+      drawBrands();
+    }catch(err){ brandWarn(esc(String(err.message||err))); }
+    finally{ t.disabled=false; }
+    return;
+  }
+  const card=t.closest && t.closest('.bcard');
+  if(card) return;
 });
 
 /* ---------- downloads ---------- */
@@ -1808,16 +1913,32 @@ async function restyleCollection(){
       'Switching back to the old brand and doing this again restores the look.'});
   if(!ok) return;
 
-  let done=0, failed=[];
+  /* A restyle is one tab's work: it renders and uploads every size for every
+     graphic from the page that started it. It can be stopped, and because a
+     graphic only moves to rev+1 once all of its sizes are committed, stopping
+     leaves the ones not yet reached on their old renders. Running it again
+     skips whatever already carries the new brand, so it resumes rather than
+     starting over. */
+  restyleStop=false;
+  libEl('libRestyle').textContent='Stop';
+  let done=0, failed=[], skipped=0, stopped=false;
   for(const g of libGraphics){
-    libEl('libCount').textContent='Remaking '+(done+1)+' of '+n+'...';
+    if(restyleStop){ stopped=true; break; }
+    if(g.brand_id===B.id){ skipped++; continue; }
+    libEl('libCount').textContent='Remaking '+(done+skipped+1)+' of '+n+'...';
     try{ await restyleGraphic(g); done++; }
     catch(e){ failed.push(g.title||g.id); }
   }
+  libEl('libRestyle').textContent='Restyle collection';
   await openCollection(c);
+  if(stopped){
+    say('Stopped. '+done+' remade, '+(n-done-skipped)+' still on the old style \u2014 run it again to carry on.','bad');
+    return;
+  }
+  if(skipped) say(skipped+' already in this style, '+done+' remade.','ok');
   libEl('libCount').textContent = failed.length
     ? done+' remade, '+failed.length+' failed'
-    : done+' graphics remade';
+    : done+' graphic'+(done===1?'':'s')+' remade';
   if(failed.length) say('Could not remake: '+failed.join(', '),'bad');
   else say(done+' graphic'+(done===1?'':'s')+' remade in '+(brand?brand.name:B.id)+'.','ok');
 }
@@ -1900,6 +2021,7 @@ homeView.addEventListener('click',async e=>{
   if(t.id==='homeClose'){ hideHome(); return; }
   if(t.id==='homeNew'){ dlgStart.showModal(); return; }
   if(t.id==='homeBrowse'){ hideHome(); await openLib(); return; }
+  if(t.id==='homeBrands'){ hideHome(); await openBrands(); return; }
   const col=t.closest && t.closest('[data-col]');
   if(col){
     hideHome();
