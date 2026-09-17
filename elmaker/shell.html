@@ -48,7 +48,9 @@ header.top{
 .tab[data-p="list"]{display:none!important}
 
 /* ---------- main: stage + rail ---------- */
-.main{display:grid;grid-template-columns:minmax(0,1fr) 272px;min-height:0}
+/* One column. The second used to hold the rail; with the rail gone it was
+   just a dead strip, and the preview is better off with the width. */
+.main{display:grid;grid-template-columns:minmax(0,1fr);min-height:0}
 
 /* --panelw / --sheeth is the space permanently reserved for the open panel.
    It is reserved whether the panel is open or not, which is the whole point:
@@ -207,19 +209,31 @@ label.field{display:block}
 }
 .chip[aria-pressed=true]{background:var(--gold);color:#121A24;border-color:var(--gold)}
 
-.seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;
+/* The hidden ATTRIBUTE only sets display:none at the weakest possible
+   specificity, so every class here that sets its own display -- .btn,
+   .seg button, .chip -- silently defeated it. That is why the photo /
+   no-photo question appeared to do nothing: limitVariants() was setting
+   .hidden on the layout buttons and they carried on showing. HANDOFF
+   section 4 already records this trap for .drawer .field[hidden]; this
+   makes it true everywhere. Do not remove it. */
+[hidden]{display:none!important}
+
+/* Flex, not grid. A fixed column count leaves a hole wherever a button is
+   hidden -- which is exactly what the photo / no-photo question does to the
+   layout picker. Flex lets the row close up around whatever is showing. */
+.seg{display:flex;flex-wrap:wrap;gap:1px;
      background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 .seg button{
-  background:var(--panel);border:0;padding:9px 6px;cursor:pointer;
+  flex:1 1 0;min-width:74px;
+  background:var(--panel);border:0;padding:10px 6px;cursor:pointer;min-height:38px;
   display:flex;align-items:center;justify-content:center;text-align:center;
   font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)
 }
+.seg button:hover{background:var(--panel2);color:var(--white)}
 .seg button[aria-pressed=true]{background:var(--gold);color:#121A24}
 /* Four columns overflow a 375px panel, and HANDOFF section 9 says 375 is
    supposed to be fine. Let this one wrap rather than push the page sideways. */
-#segTune{grid-template-columns:repeat(4,minmax(0,1fr))}
-#segTune button{padding:8px 2px;letter-spacing:.04em;min-width:0}
+#segTune button{padding:9px 2px;letter-spacing:.04em;min-width:56px}
 #tuneBlock{margin-bottom:10px}
 /* A size whose crop has been tuned away from the graphic's own. */
 .seg button.tuned::after{content:'';position:absolute;top:3px;right:4px;width:5px;height:5px;
@@ -276,6 +290,32 @@ label.field{display:block}
 #libview .gcard{position:relative}
 #platList label{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--white)}
 #dlgPlatforms{max-width:420px;width:calc(100% - 32px)}
+/* Home */
+.homeinner{max-width:620px;margin:0 auto;padding:18px 0 40px}
+.homelede{margin:0 0 20px;font-family:var(--display);font-size:clamp(20px,3.2vw,30px);
+  line-height:1.15;color:var(--white);letter-spacing:-.01em}
+.homeactions{display:flex;flex-wrap:wrap;gap:10px}
+.homeactions .btn{flex:0 0 auto;width:auto;min-width:220px;justify-content:center}
+#homeCols .eyebrow{display:block}
+@media (max-width:560px){ .homeactions .btn{width:100%;min-width:0} }
+.notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  z-index:200;max-width:min(560px,calc(100% - 28px));padding:11px 16px;border-radius:8px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--white);
+  font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.notice.bad{border-color:var(--crimson)}
+.notice.ok{border-color:var(--gold)}
+#dlgAsk,#dlgConfirm{max-width:440px;width:calc(100% - 32px)}
+#askInput{width:100%;padding:10px 12px;font:inherit;color:var(--white);background:var(--panel);
+  border:1px solid var(--line);border-radius:6px}
+#askInput:focus{outline:2px solid var(--gold);outline-offset:1px}
+/* Controls people actually have to hit. A range input defaults to about
+   16px tall and a select to about 20px; both were too small to use. */
+.drawer input[type=range]{width:100%;height:30px;accent-color:var(--gold);cursor:pointer}
+.drawer select{width:100%;min-height:36px;padding:8px 10px;font:inherit;color:var(--white);
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.drawer select:focus{outline:2px solid var(--gold);outline-offset:1px}
+.btn.sm{min-height:32px}
+.lib .p .x{min-width:28px;min-height:28px;font-size:16px;line-height:1}
 .gcard .gl{
   font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--grey);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
@@ -452,7 +492,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   <div class="hdr-right">
     <button class="btn ghost sm" id="btnHome">Home</button>
     <button class="btn ghost sm" id="btnLibrary">Library</button>
-    <button class="btn ghost sm" id="btnGrid">All graphics</button>
     <button class="btn ghost sm" id="btnHelp">Rules</button>
   </div>
 </header>
@@ -490,7 +529,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
           <button data-v="slab" aria-pressed="false">Slab</button>
           <button data-v="stamp" aria-pressed="false">Stamp</button>
         </div>
-        <div class="hint">Type only, Split, Slab and Stamp take no photo.</div>
+        <div class="hint" id="variantHint">Only the layouts that suit this graphic are shown.</div>
       </div>
       <div class="field">
         <span class="eyebrow">Alignment</span>
@@ -500,11 +539,11 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
         </div>
       </div>
     </div>
-    <div class="note">Stack with no photo falls back to type only on its own, so a graphic is never left with a hole in it.</div>
+    <div class="note" id="variantNote">You chose this at the start. To switch between photo and type-only layouts, start a new graphic.</div>
   </section>
 
   <section class="panel" id="p-photo" hidden>
-    <div class="panel-head"><span class="panel-num">03</span><span class="panel-title">Photo</span><span class="panel-sub">Nothing is uploaded anywhere</span></div>
+    <div class="panel-head"><span class="panel-num">03</span><span class="panel-title">Photo</span><span class="panel-sub">Stored with the graphic</span></div>
     <div class="cols">
       <div class="field" id="photoBlock">
         <div class="drop" id="drop">Drop images here, or click to choose.</div>
@@ -559,9 +598,9 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   </section>
 
   <section class="panel" id="p-sizes" hidden>
-    <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Sizes</span><span class="panel-sub">Tick what you are posting to</span></div>
+    <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Sizes</span><span class="panel-sub">What you are looking at</span></div>
     <div class="chips" id="sizes"></div>
-    <div class="note">The 1080 x 1920 size holds 240px clear top and bottom so nothing lands under the platform's own buttons.</div>
+    <div class="note">Saving always stores all three, so these only choose what you preview and what a quick download includes. The 1080 x 1920 size holds 240px clear top and bottom so nothing lands under a platform's own buttons.</div>
     <div class="row" style="margin-top:12px">
       <button class="btn sm ghost" id="btnGuides" aria-pressed="false">Show safe margins</button>
       <span class="hint">Guides are preview only. They are never in an exported file.</span>
@@ -591,22 +630,18 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   </section>
 
   <section class="panel" id="p-export" hidden>
-    <div class="panel-head"><span class="panel-num">06</span><span class="panel-title">Export</span><span class="panel-sub" id="exportCount">nothing yet</span></div>
+    <div class="panel-head"><span class="panel-num">07</span><span class="panel-title">Quick download</span><span class="panel-sub" id="exportCount">before saving</span></div>
     <div class="cols">
       <div>
-        <button class="btn gold lg" id="btnExport">Generate and download everything</button>
+        <button class="btn gold lg" id="btnExport">Download all three sizes</button>
         <div class="row wrap" style="margin-top:9px">
-          <button class="btn" id="btnOne">Just this one</button>
+          <button class="btn" id="btnOne">Just the size on screen</button>
           <button class="btn ghost" id="btnCopy">Copy to clipboard</button>
           <button class="btn ghost danger" id="btnCancel" hidden>Stop</button>
         </div>
         <div class="status" id="status"></div>
-        <label class="field" style="margin-top:12px">
-          <span class="eyebrow">Caption under every post</span>
-          <textarea id="fCaption" rows="2"></textarea>
-        </label>
       </div>
-      <div class="note" style="margin-top:0">One zip: a PNG per graphic per ticked size, numbered in list order, plus captions.txt with the post text and an image description for every file.</div>
+      <div class="note" style="margin-top:0">For a graphic you have not saved yet. Saving it to a collection is the usual way &mdash; the library keeps every size and can hand you a pack per platform.</div>
     </div>
   </section>
 
@@ -630,11 +665,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 
 <div class="bar">
   <div class="barrow">
-    <div class="nav">
-      <button id="btnPrev" title="Previous graphic">&lsaquo;</button>
-      <button id="btnNext" title="Next graphic">&rsaquo;</button>
-    </div>
-    <div class="counter" id="editingWhat">0 / 0</div>
+    <div class="counter" id="editingWhat">Nothing open</div>
   </div>
   <div class="tabs" id="tabs">
     <button class="tab" data-p="text"   aria-expanded="false">Words</button>
@@ -669,13 +700,14 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <button class="btn gold sm" id="homeClose" hidden>Back to the graphic</button>
   </div>
   <div class="gridwrap" id="homeWrap" style="display:block">
-    <div style="max-width:620px;margin:0 auto">
-      <div class="row wrap" style="gap:10px">
+    <div class="homeinner">
+      <p class="homelede">Make the campaign&rsquo;s social graphics. One at a time, on brand, at every size.</p>
+      <div class="homeactions">
         <button class="btn gold lg" id="homeNew">Make a graphic</button>
         <button class="btn lg" id="homeBrowse">Browse the library</button>
       </div>
-      <div class="note" style="margin-top:12px">One graphic at a time. It is saved to a collection when it is done, and finished graphics are not edited again &mdash; make another one instead.</div>
-      <div id="homeCols" style="margin-top:20px"></div>
+      <div class="note" style="margin-top:14px">A graphic is saved into a collection when it is done. Finished graphics are not edited again &mdash; make another one instead.</div>
+      <div id="homeCols" style="margin-top:24px"></div>
     </div>
   </div>
 </div>
@@ -712,6 +744,32 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <button class="btn gold" id="platGo">Download</button>
     <button class="btn ghost" id="platCancel">Cancel</button>
     <span class="hint" id="platCount"></span>
+  </div>
+</dialog>
+
+<!-- In-app notices. alert() blocks the page, looks nothing like the rest of
+     this, and cannot be shown over the library overlay. -->
+<div class="notice" id="notice" hidden><span id="noticeText"></span></div>
+
+<dialog id="dlgAsk">
+  <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title" id="askTitle">Name</span></div>
+  <p class="hint" id="askHint"></p>
+  <label class="field" style="margin-top:12px">
+    <span class="eyebrow" id="askLabel">Name</span>
+    <input type="text" id="askInput" autocomplete="off">
+  </label>
+  <div class="row wrap">
+    <button class="btn gold" id="askOk">OK</button>
+    <button class="btn ghost" id="askCancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="dlgConfirm">
+  <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title" id="confTitle">Are you sure?</span></div>
+  <div class="hint" id="confBody" style="line-height:1.7"></div>
+  <div class="row wrap" style="margin-top:14px">
+    <button class="btn gold" id="confOk">Yes, do it</button>
+    <button class="btn ghost" id="confCancel">Cancel</button>
   </div>
 </dialog>
 

@@ -127,6 +127,9 @@ await p.evaluate(()=>{ const row=BRANDS.find(b=>b.id==='stadium'); return applyB
 await p.waitForTimeout(600);
 const before=await p.evaluate(()=>libGraphics.map(g=>g.rev));
 await p.click('#libRestyle');
+/* Restyling asks first, in an in-app dialog rather than a native confirm. */
+await p.waitForFunction(()=>document.getElementById('dlgConfirm').open,null,{timeout:15000});
+await p.click('#confOk');
 await p.waitForFunction(()=>/graphics remade|failed/.test(document.getElementById('libCount').textContent),null,{timeout:180000});
 const after=await p.evaluate(()=>libGraphics.map(g=>({rev:g.rev,brand:g.brand_id})));
 chk('every graphic re-rendered', after.every(a=>a.rev===2), JSON.stringify(after.map(a=>a.rev)));

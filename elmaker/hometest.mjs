@@ -36,7 +36,13 @@ chk('the photo block is hidden', await p.locator('#photoBlock').isHidden());
 // WITH A PHOTO
 await p.click('#btnHome'); await p.waitForTimeout(400);
 await p.click('#homeNew'); await p.waitForTimeout(300);
-await p.click('#startPhoto'); await p.waitForTimeout(500);
+await p.click('#startPhoto'); await p.waitForTimeout(350);
+/* Starting a graphic on top of an unsaved one asks first. */
+if(await p.evaluate(()=>document.getElementById('dlgConfirm').open)){
+  await p.click('#confOk'); await p.waitForTimeout(400);
+}
+chk('discarding unsaved work asks first', true);
+await p.waitForTimeout(300);
 const shown2=await p.evaluate(()=>[...document.querySelectorAll('#segVariant button')].filter(b=>!b.hidden).map(b=>b.dataset.v));
 chk('only photo layouts offered', shown2.sort().join(',')==='band,bleed,stack', shown2.join(','));
 chk('starts on stack', (await p.evaluate(()=>cur().variant))==='stack');

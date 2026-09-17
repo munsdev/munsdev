@@ -79,13 +79,11 @@ for(const s of ['1080','1920','1350']){
 }
 
 // nav
+/* Stepping between graphics went with the list. The bar now names the one
+   graphic you have open and whether it is saved. */
 await p.evaluate(()=>{ S.sel=S.items[0].id; commit(); }); await p.waitForTimeout(200);
-const before=await p.evaluate(()=>S.sel);
-await p.click('#btnNext'); await p.waitForTimeout(200);
-chk('Next', before!==await p.evaluate(()=>S.sel));
-await p.click('#btnPrev'); await p.waitForTimeout(200);
-chk('Previous', before===await p.evaluate(()=>S.sel));
-chk('Counter reads position', /^\d+ \/ \d+$/.test((await p.textContent('#editingWhat')).trim()));
+chk('Bar names the open graphic', /unsaved/.test((await p.textContent('#editingWhat')).trim()),
+    (await p.textContent('#editingWhat')).trim());
 
 /* The contact sheet went with the list: browsing is the library's job now,
    and libtest.mjs covers it. */
@@ -93,8 +91,8 @@ chk('Counter reads position', /^\d+ \/ \d+$/.test((await p.textContent('#editing
 
 // export
 await p.click('.tab[data-p=export]'); await p.waitForTimeout(200);
-await p.fill('#fCaption','CAPTION UNDER TEST'); await p.waitForTimeout(500);
-chk('Caption field', (await S()).cap==='CAPTION UNDER TEST');
+/* The caption field went with captions.txt: alt text lives on the graphic
+   and is shown in the library instead. */
 const d1=p.waitForEvent('download',{timeout:30000});
 await p.click('#btnOne'); const f1=await d1;
 chk('Just this one', /\.png$/.test(f1.suggestedFilename()), f1.suggestedFilename());

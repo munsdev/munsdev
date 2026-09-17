@@ -77,7 +77,10 @@ const sig=await p.evaluate(async(u)=>{
 chk('served as image/png', sig.type==='image/png', sig.type);
 chk('real PNG bytes', sig.sig.startsWith('137,80,78,71'), sig.sig);
 
-// swap the brand: the font must actually load and the palette must change
+// swap the brand: the font must actually load and the palette must change.
+// Saving now closes the editor, so reopen the panel the control lives in.
+await p.evaluate(()=>{ if(openPanel!=='library') showPanel('library'); });
+await p.waitForTimeout(300);
 const before=await p.evaluate(()=>({g:B.ground,a:B.accent,d:B.display}));
 await p.selectOption('#fBrand','terminal');
 await p.waitForFunction(()=>/Previewing in/.test(document.getElementById('libStatus').textContent),null,{timeout:30000});

@@ -29,12 +29,15 @@ export const launchOpts = (PROXY && REMOTE)
     }
   : { executablePath: CHROMIUM };
 
-/* Wipe the local D1 so each run starts on an empty database and the app
-   seeds its 46 lines, the way it did when state lived in localStorage.
+/* Wipe the local D1 so each run starts empty -- the library included.
+   Leaving collections behind made runs depend on each other: a save would
+   succeed unexpectedly, open the library overlay, and every later click in
+   that run would fail against an overlay nobody asked for.
    --local is deliberate: this must never be pointed at the real database. */
 export function resetDb() {
   execFileSync('npx', ['wrangler', 'd1', 'execute', 'socialmaker-db', '--local', '-y',
-    '--command', 'DELETE FROM items; DELETE FROM projects; DELETE FROM images;'],
+    '--command', 'DELETE FROM items; DELETE FROM projects; DELETE FROM images; ' +
+                 'DELETE FROM graphics; DELETE FROM collections;'],
     { cwd: 'worker', stdio: 'pipe', env: { ...process.env, CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN || 'proxy-injected' } });
 }
 
@@ -122,7 +125,13 @@ export async function bench(p, n = 1) {
   await p.evaluate((count) => {
     S.items = ALL_LINES.slice(0, count).map(([a, b]) => newItem(a, b));
     S.sel = S.items[0].id;
+    /* The renderer and geometry suites need every layout reachable: they are
+       testing drawing, not the photo question. The create flow's filtering is
+       hometest.mjs's job. */
     if (typeof limitVariants === 'function') limitVariants(true);
+    document.querySelectorAll('#segVariant button').forEach(b => { b.hidden = false; });
+    const pb = document.getElementById('photoBlock'); if (pb) pb.hidden = false;
+    const tb = document.getElementById('tuneBlock'); if (tb) tb.hidden = false;
     const home = document.getElementById('home');
     if (home) home.hidden = true;
     commit();

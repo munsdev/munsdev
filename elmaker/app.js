@@ -607,7 +607,7 @@ const el={
   zoom:$('#fZoom'), scrim:$('#fScrim'), vZoom:$('#vZoom'), vScrim:$('#vScrim'),
   darkenField:$('#darkenField'), darkenNote:$('#darkenNote'),
   sizes:$('#sizes'), pvSwitch:$('#pvSwitch'), pvSize:$('#pvSize'),
-  canvas:$('#preview'), status:$('#status'), exportCount:$('#exportCount'), caption:$('#fCaption'),
+  canvas:$('#preview'), status:$('#status'), exportCount:$('#exportCount'),
   dragHint:$('#dragHint'),
   toast:$('#toast'), toastText:$('#toastText')
 };
@@ -849,7 +849,7 @@ function renderList(){
   if(on) on.scrollIntoView({block:'nearest',inline:'nearest'});
   el.count.textContent=S.items.length;
   const n=S.items.length*Object.values(S.sizes).filter(Boolean).length;
-  el.exportCount.textContent = n? n+' files' : 'nothing yet';
+  el.exportCount.textContent = cur()? 'before saving' : 'nothing open';
 }
 
 function libHighlight(){
@@ -902,10 +902,9 @@ function renderLib(){
 
 function syncEditor(){
   const it=cur();
-  const pos = it ? S.items.findIndex(x=>x.id===it.id)+1 : 0;
-  el.editing.textContent=String(pos).padStart(2,'0')+' / '+String(S.items.length).padStart(2,'0');
-  $('#btnPrev').disabled = pos<=1;
-  $('#btnNext').disabled = pos===0 || pos>=S.items.length;
+  el.editing.textContent = it
+    ? (String(it.top).replace(/\n/g,' ').trim().slice(0,28) || 'Untitled') + ' \u00b7 unsaved'
+    : 'Nothing open';
   ['fTop','fBot','fZoom','fScrim'].forEach(id=>{ $('#'+id).disabled=!it; });
   if(!it){ el.cropBlock.style.display='none'; return; }
   el.top.value=it.top; el.bot.value=it.bot;
@@ -960,7 +959,7 @@ el.zoom.addEventListener('input',()=>{ const it=cur(); if(!it)return;
   syncTuneBar(it);
   drawPreview(); save(); });
 el.scrim.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.scrim=+el.scrim.value; el.vScrim.textContent=it.scrim+'%'; drawPreview(); save(); });
-el.caption.addEventListener('input',()=>{ S.caption=el.caption.value; save(); });
+
 $('#btnRecentre').addEventListener('click',()=>{ const it=cur(); if(!it)return;
   const t=cropTarget(it); t.fx=50; t.fy=50; t.zoom=100; commit(); });
 $('#btnFillAll').addEventListener('click',()=>{
@@ -1264,8 +1263,6 @@ function step(d){
   S.sel=S.items[i].id; commit();
 }
 try{ new ResizeObserver(fitCanvasToStage).observe(document.getElementById('frame')); }catch(e){}
-$('#btnPrev').addEventListener('click',()=>step(-1));
-$('#btnNext').addEventListener('click',()=>step(1));
 
 
 
@@ -1377,9 +1374,8 @@ document.getElementById('gridMode').addEventListener('click',e=>{
 });
 function openGrid(){ if(!S.items.length) return; buildGrid(); gridView.hidden=false; }
 function closeGrid(){ gridView.hidden=true; }
-document.getElementById('btnGrid').addEventListener('click',()=>{
-  gridView.hidden ? openGrid() : closeGrid();
-});
+/* The contact sheet button went with the list; the library replaced it.
+   The sheet itself still answers Escape, so leave the rest alone. */
 document.getElementById('gridClose').addEventListener('click',closeGrid);
 gridView.addEventListener('click',e=>{ if(e.target===gridView) closeGrid(); });
 
@@ -1407,6 +1403,61 @@ document.addEventListener('click',e=>{
   if(tuning && S.pv!==tuning){ S.pv=tuning; buildChips(); }
   commit();
 });
+
+/* ---------- in-app notices and dialogs ---------- */
+/* alert(), confirm() and prompt() block the page, look nothing like the rest
+   of this, and cannot appear over the library overlay. These replace them. */
+let noticeT=null;
+function say(msg, kind){
+  const n=document.getElementById('notice'), t=document.getElementById('noticeText');
+  if(!n||!t) return;
+  t.textContent=msg;
+  n.className='notice'+(kind?' '+kind:'');
+  n.hidden=false;
+  clearTimeout(noticeT);
+  noticeT=setTimeout(()=>{ n.hidden=true; }, kind==='bad'?6500:4000);
+}
+
+const dlgAsk=document.getElementById('dlgAsk');
+function ask({title,hint,label,value}){
+  return new Promise(res=>{
+    document.getElementById('askTitle').textContent=title||'Name';
+    document.getElementById('askHint').textContent=hint||'';
+    document.getElementById('askLabel').textContent=label||'Name';
+    const inp=document.getElementById('askInput');
+    inp.value=value||'';
+    const done=v=>{ dlgAsk.close(); dlgAsk.removeEventListener('close',onClose); res(v); };
+    const onClick=e=>{
+      if(e.target.id==='askOk')  { dlgAsk.removeEventListener('click',onClick); done(inp.value.trim()||null); }
+      if(e.target.id==='askCancel'){ dlgAsk.removeEventListener('click',onClick); done(null); }
+    };
+    const onKey=e=>{ if(e.key==='Enter'){ e.preventDefault(); dlgAsk.removeEventListener('keydown',onKey);
+      dlgAsk.removeEventListener('click',onClick); done(inp.value.trim()||null); } };
+    const onClose=()=>res(null);                 // Escape
+    dlgAsk.addEventListener('click',onClick);
+    dlgAsk.addEventListener('keydown',onKey);
+    dlgAsk.addEventListener('close',onClose,{once:true});
+    dlgAsk.showModal();
+    setTimeout(()=>inp.focus(),30);
+  });
+}
+
+const dlgConfirm=document.getElementById('dlgConfirm');
+function confirmThat({title,body,ok}){
+  return new Promise(res=>{
+    document.getElementById('confTitle').textContent=title||'Are you sure?';
+    document.getElementById('confBody').innerHTML=body||'';
+    document.getElementById('confOk').textContent=ok||'Yes, do it';
+    const done=v=>{ dlgConfirm.close(); res(v); };
+    const onClick=e=>{
+      if(e.target.id==='confOk'){ dlgConfirm.removeEventListener('click',onClick); done(true); }
+      if(e.target.id==='confCancel'){ dlgConfirm.removeEventListener('click',onClick); done(false); }
+    };
+    dlgConfirm.addEventListener('click',onClick);
+    dlgConfirm.addEventListener('close',()=>res(false),{once:true});
+    dlgConfirm.showModal();
+  });
+}
 
 /* ---------- library panel ---------- */
 let COLLECTIONS=[], BRANDS=[];
@@ -1463,10 +1514,11 @@ document.addEventListener('click', async e=>{
   if(!t) return;
 
   if(t.id==='btnNewCollection'){
-    const name=prompt('Name for the new collection');
-    if(!name||!name.trim()) return;
+    const name=await ask({title:'New collection', label:'Name',
+      hint:'A collection is a folder of finished graphics. You can rename it later.'});
+    if(!name) return;
     try{
-      const c=await (await api('/api/collections',{method:'POST',...asJson({name:name.trim()})})).json();
+      const c=await (await api('/api/collections',{method:'POST',...asJson({name})})).json();
       COLLECTIONS.push({...c, count:0}); fillCollections();
       document.getElementById('fCollection').value=c.id;
       libStatus('Collection "'+c.name+'" created.','ok');
@@ -1486,10 +1538,12 @@ document.addEventListener('click', async e=>{
       fillCollections();
       document.getElementById('fCollection').value=cid;
       libStatus('Saved. '+r.sizes.length+' sizes filed under '+(c?c.name:'the collection')+'.','ok');
-      afterSave(cid);
-      /* Saved means finished. Clear the bench rather than leave a graphic
-         open that further edits would not change in the library. */
+      /* Saved means finished: clear the bench, shut the editor, and put you
+         in the library looking at what you just made. Leaving a panel open
+         over a blank canvas invites edits that cannot go anywhere. */
       S.items=[]; S.sel=null; commit();
+      closeDrawer();
+      afterSave(cid);
     }catch(err){
       libStatus(String(err.message||err),'bad');
     }finally{ t.disabled=false; }
@@ -1657,7 +1711,7 @@ async function downloadOne(g,pl){
   try{
     const bytes=await fetchRender(g,pl.size);
     download(new Blob([bytes],{type:'image/png'}), pl.id+'_'+slug(g.title||g.top)+'_'+pl.size+'.png');
-  }catch(e){ alert(String(e.message||e)); }
+  }catch(e){ say(String(e.message||e),'bad'); }
 }
 
 /* A platform folder each, duplicating the bytes where two platforms want the
@@ -1682,15 +1736,16 @@ async function downloadPack(graphics, platforms){
   const pls=platforms||PLATFORMS;
   try{
     const {files,missing}=await buildPack(graphics,pls);
-    if(!files.length){ alert('Nothing in those platforms for what you picked.'); return; }
+    if(!files.length){ say('Nothing saved for those platforms.','bad'); return; }
     files.push({name:'image-descriptions.txt', data:new TextEncoder().encode(
       'Image descriptions, for the alt text field when you post.\n'+
       'Generated from the layout and the words. Read it before you use it.\n\n'+
       graphics.map(g=>(g.title||g.top)+'\n  '+(g.alt||'')).join('\n\n')+'\n')});
     download(zip(files), 'electionlog_'+slug(libWhere.collection?libWhere.collection.name:'graphics')+'.zip');
-    if(missing.length) alert(missing.length+' graphic'+(missing.length===1?' was':'s were')+
-      ' left out: nothing saved for those platforms.');
-  }catch(e){ alert(String(e.message||e)); }
+    if(missing.length) say(missing.length+' graphic'+(missing.length===1?' was':'s were')+
+      ' left out \u2014 nothing saved for those platforms.','bad');
+    else say(files.length-1+' files downloaded.','ok');
+  }catch(e){ say(String(e.message||e),'bad'); }
 }
 
 /* ---------- the platform checklist ---------- */
@@ -1735,12 +1790,14 @@ async function restyleCollection(){
   const brand=BRANDS.find(b=>b.id===B.id);
   const n=libGraphics.length;
   if(!n) return;
-  const ok=confirm(
-    'Remake all '+n+' graphic'+(n===1?'':'s')+' in "'+c.name+'" using '+(brand?brand.name:B.id)+'?\n\n'+
-    'This replaces the pictures in the library for this collection. Anything already '+
-    'downloaded or posted stays as it is.\n\n'+
-    'It cannot be undone from here, but switching back to the old brand and doing this '+
-    'again restores the look.');
+  const ok=await confirmThat({
+    title:'Remake this collection?',
+    ok:'Remake '+n+' graphic'+(n===1?'':'s'),
+    body:'<b style="color:#fff">'+esc(c.name)+'</b> will be redrawn in <b style="color:#fff">'+
+      esc(brand?brand.name:B.id)+'</b>.<br><br>'+
+      'It replaces the pictures in the library for this collection. Anything already '+
+      'downloaded or posted stays exactly as it is.<br><br>'+
+      'Switching back to the old brand and doing this again restores the look.'});
   if(!ok) return;
 
   let done=0, failed=[];
@@ -1753,7 +1810,8 @@ async function restyleCollection(){
   libEl('libCount').textContent = failed.length
     ? done+' remade, '+failed.length+' failed'
     : done+' graphics remade';
-  if(failed.length) alert('These could not be remade:\n'+failed.join('\n'));
+  if(failed.length) say('Could not remake: '+failed.join(', '),'bad');
+  else say(done+' graphic'+(done===1?'':'s')+' remade in '+(brand?brand.name:B.id)+'.','ok');
 }
 
 document.getElementById('btnLibrary').addEventListener('click',openLib);
@@ -1779,9 +1837,15 @@ const PHOTO_VARIANTS=['stack','bleed','band'];
 
 function showHome(){
   homeView.hidden=false;
-  document.getElementById('homeClose').hidden = !S.items.length;
-  document.getElementById('homeSub').textContent =
-    S.items.length ? 'A graphic is open' : '';
+  const open=!!S.items.length;
+  document.getElementById('homeClose').hidden = !open;
+  document.getElementById('homeSub').textContent = open
+    ? 'A graphic is open and unsaved'
+    : '';
+  /* Starting a second graphic would throw away the unsaved one, so say so
+     rather than let the button quietly do it. */
+  const nw=document.getElementById('homeNew');
+  if(nw) nw.textContent = open ? 'Start a different graphic' : 'Make a graphic';
   const box=document.getElementById('homeCols');
   box.innerHTML = COLLECTIONS.length
     ? '<div class="eyebrow" style="margin-bottom:7px">Collections</div>'+
@@ -1802,6 +1866,10 @@ function limitVariants(withPhoto){
   });
   document.getElementById('photoBlock').hidden=!withPhoto;
   const t=document.getElementById('tuneBlock'); if(t) t.hidden=!withPhoto;
+  const h=document.getElementById('variantHint');
+  if(h) h.textContent = withPhoto
+    ? 'The three layouts that hold a photo.'
+    : 'The four layouts that are type only.';
 }
 
 function startGraphic(withPhoto){
@@ -1832,10 +1900,21 @@ homeView.addEventListener('click',async e=>{
     if(c) await openCollection(c);
   }
 });
-dlgStart.addEventListener('click',e=>{
+dlgStart.addEventListener('click',async e=>{
   if(e.target.id==='startCancel'){ dlgStart.close(); return; }
-  if(e.target.id==='startPhoto'){ dlgStart.close(); startGraphic(true); return; }
-  if(e.target.id==='startType'){ dlgStart.close(); startGraphic(false); return; }
+  const withPhoto = e.target.id==='startPhoto' ? true
+                  : e.target.id==='startType'  ? false : null;
+  if(withPhoto===null) return;
+  dlgStart.close();
+  if(S.items.length){
+    const ok=await confirmThat({
+      title:'Throw away the graphic you have open?',
+      ok:'Start a new one',
+      body:'The one on the bench has not been saved to a collection, so it '+
+           'will be lost. Save it first if you want to keep it.'});
+    if(!ok){ showHome(); return; }
+  }
+  startGraphic(withPhoto);
 });
 
 /* ---------- boot ---------- */
@@ -1888,7 +1967,7 @@ async function pull(){
   if(S.items.length && (!S.sel || !S.items.find(i=>i.id===S.sel))) S.sel=S.items[0].id;
 
   if(S.guides){ const g=$('#btnGuides'); g.setAttribute('aria-pressed','true'); g.textContent='Hide safe margins'; }
-  el.caption.value=S.caption||'';
+
   buildChips(); commit();
   await loadLibraryMeta();
   if(S.withPhoto!==undefined) limitVariants(!!S.withPhoto);
