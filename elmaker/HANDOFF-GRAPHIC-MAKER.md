@@ -24,6 +24,22 @@ photo. Preview on canvas, and every graphic is made at all three sizes -- 1:1,
 4:5, 9:16 -- whether it is saved into a collection or downloaded on the spot
 as a zip with a captions.txt alongside.
 
+**WHERE IT LIVES**
+- **https://socialmaker.muns.dev** — one shared password, held as the
+  `GATE_PASSWORD` Worker secret. It is not written down in this repository and
+  should not be; ask the team.
+- Cloudflare account `muns.dev`: Worker `socialmaker`, D1 `socialmaker-db`,
+  R2 `socialmaker-images`.
+- Work goes on the branch `claude/cloudflare-r2-d1-setup-qoae1r`.
+- The live library holds two collections: **See It, Log It** (the campaign's
+  46 lines) and **To organizations** (4 outreach lines). Every graphic has all
+  three sizes and sits at rev 1, except the four that `repair.mjs` redrew.
+- Inside an agent sandbox, `wrangler` needs `CLOUDFLARE_API_TOKEN=proxy-injected`
+  and the egress proxy supplies the real credential. `testlib.mjs` already
+  knows how to reach the live site through that proxy without weakening TLS
+  (it pins the proxy's CA by public-key hash); do not be tempted to turn
+  certificate checking off instead.
+
 **WHAT IT NEVER DOES**
 No accounts. No analytics. Nothing from a third-party host: `default-src
 'none'` and `connect-src 'self'`, set by the Worker and checked by
