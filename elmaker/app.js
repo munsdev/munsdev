@@ -1978,7 +1978,14 @@ async function pull(){
 
   buildChips(); commit();
   await loadLibraryMeta();
-  if(S.withPhoto!==undefined) limitVariants(!!S.withPhoto);
+  /* A graphic saved before the photo question existed has no S.withPhoto, and
+     without one nothing filters the layouts -- you get all seven and a photo
+     panel on a type-only graphic. Infer it from what the graphic actually is. */
+  if(S.withPhoto===undefined && S.items.length){
+    const it=S.items.find(i=>i.id===S.sel)||S.items[0];
+    S.withPhoto = !!(it && (it.img || !TEXT_ONLY.has(it.variant)));
+  }
+  if(S.items.length) limitVariants(!!S.withPhoto);
   /* Nothing on the bench means there is nothing to edit, so open on home. */
   if(!S.items.length) showHome();
 

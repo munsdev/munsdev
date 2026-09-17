@@ -103,8 +103,13 @@ localStorage. It generates its own photo fixture; none is committed.
 - `node csptest.mjs` — reads the CSP off a real response, checks the
   directives, and proves the zip and PNG exports still download under it.
   Exports are what a tightened policy silently breaks.
-- `node audit-geom.mjs` — reachability and touch-target geometry. This one
-  reports roughly 89 nits as its baseline; read the diff, not the count.
+- `node audit-geom.mjs` — reachability and touch-target geometry. **The
+  baseline is 0.** It was 89 when the rail, the list panel and the contact
+  sheet were still there; anything above zero now is a regression.
+- `node uxaudit.mjs` — drives every control in every state and reports
+  anything unreachable, blocked, contradictory or left over. Also 0.
+- `node hometest.mjs` — the create flow: home, the photo question, and what
+  each answer offers.
 
 **WHAT "BROKEN" LOOKS LIKE**
 Any `FAIL`, any `errors:` other than `none`, or any `constant: false`.
@@ -447,6 +452,29 @@ triple the storage for 9:16 to no purpose.
 no override uses the graphic's own crop, which is why `per` stays empty until
 somebody tunes one. Choosing a size to tune also switches the preview to it,
 because showing a 9:16 crop on a 4:5 preview would be a lie.
+
+**THE HIDDEN ATTRIBUTE NEEDS HELP**
+`[hidden]{display:none!important}` near the top of the stylesheet is
+load-bearing. The hidden attribute only sets `display:none` at the weakest
+specificity there is, so every class that declares its own display -- `.btn`,
+`.seg button`, `.chip` -- silently beats it. Without that rule the photo
+question sets `.hidden` on four layout buttons and all seven keep showing,
+which is exactly how it shipped broken once.
+
+**SEGMENTS ARE FLEX, NOT GRID**
+`.seg` was a fixed four-column grid, so hiding a button left a hole. Flex
+closes the row up around whatever is visible. Do not put the columns back.
+
+**NO NATIVE DIALOGS**
+`alert()`, `confirm()` and `prompt()` block the page, cannot appear over the
+library overlay, and look nothing like the rest of this. Use `say()`,
+`ask()` and `confirmThat()`. A blocking dialog also makes every other
+control appear dead, which is a miserable thing to debug.
+
+**LEGACY STATE HAS NO PHOTO ANSWER**
+A graphic saved before the photo question existed has no `S.withPhoto`, so
+boot infers it from the graphic itself. Without that, anyone resuming older
+work gets all seven layouts and a photo panel on type-only graphics.
 
 **TWO HAZARDS, BOTH ALREADY HANDLED -- DO NOT UNDO THEM**
 - `ensurePhoto()` is awaited before every real render. `effVariant()`
