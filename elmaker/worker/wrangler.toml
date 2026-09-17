@@ -2,9 +2,10 @@ name = "socialmaker"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 
-# The built page is compiled into the Worker as a text module. Run
-# `node build.mjs` in ../ first; there is no offline copy of the app.
-rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = true }]
+# The app is no longer served from here. It moved into the ElectionLog team
+# hub and this Worker is a notice plus the reads a migration needs, so there
+# is no built page to compile in any more and `node build.mjs` is not part of
+# deploying. See src/retired.ts.
 
 [[d1_databases]]
 binding = "DB"

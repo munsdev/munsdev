@@ -1,5 +1,24 @@
 # socialmaker — the Worker behind the graphic maker
 
+> **Closed.** The graphic maker moved into the ElectionLog team hub and is the
+> *Social media content* tool at `team.electionlog.org/social/`. This Worker no
+> longer serves the app: it answers with a notice (`src/retired.ts`), refuses
+> every write with a 410, and keeps the password gate over the reads a
+> migration needs — `/api/state`, `/api/collections`,
+> `/api/collections/<id>/graphics`, `/api/graphics/<id>`, `/r/…`, `/img/…` and
+> `/thumb/…`.
+>
+> **The D1 database and the R2 bucket still hold the only copy of the 50
+> finished graphics.** They have not been copied into the hub. Do not delete
+> them. Once they have been, this Worker and its resources can go in one step;
+> until then this is an archive with the door locked and the lights off.
+>
+> `api.ts`, `images.ts` and `library.ts` still carry their write functions.
+> Nothing routes to them any more — they are left because a migration will
+> want to read through the same shapes, and deleting them would only make that
+> harder.
+
+
 The graphic maker used to be one HTML file with no network at all. It now has
 a server, because photos could not survive a reload without one. Everything it
 talks to is same-origin; no third-party host appears anywhere.
