@@ -19,9 +19,10 @@ features for anyone else. Requests to generalise it should be met with a
 question about who is asking.
 
 **WHAT IT DOES**
-A list of graphics, each one a top line, a bottom line, a layout, and an
-optional photo. Preview on canvas, export every graphic at every ticked size
-as a zip, with a captions.txt alongside.
+One graphic at a time: a top line, a bottom line, a layout, and an optional
+photo. Preview on canvas, and every graphic is made at all three sizes -- 1:1,
+4:5, 9:16 -- whether it is saved into a collection or downloaded on the spot
+as a zip with a captions.txt alongside.
 
 **WHAT IT NEVER DOES**
 No accounts. No analytics. Nothing from a third-party host: `default-src
@@ -54,13 +55,22 @@ state lives on the server now.
   will not normally touch this.
 
 **BUILD OUTPUT (never edit this by hand)**
-- `worker/src/page.html` — the single-file app, ~187KB, compiled into the
+- `worker/src/page.html` — the single-file app, ~215KB, compiled into the
   Worker bundle as a text module. Generated, and not in git.
 
 **THE SERVER**
 `worker/` holds the Worker that serves the page, gates it behind the password,
 and owns the D1 and R2 bindings. Read `worker/README.md` before changing it.
-`worker/schema.sql` is the database.
+`worker/schema.sql` is the database; `schema-library.sql` adds the library and
+`schema-brands.sql` the `rev` column (and the `brands` table, which nothing
+reads any more -- see section 10).
+
+**ONE-OFF SCRIPTS, KEPT AS A RECORD**
+`migrate.mjs` brought the editor's 46 lines into the library, `makeorg.mjs`
+made the four outreach graphics, and `repair.mjs` cleaned up after test runs
+that had been pointed at production. They all drive the app's own save path in
+a real browser, which is why the graphics they made are ordinary graphics.
+None of them needs running again.
 
 **BUILD**
 ```
@@ -110,6 +120,21 @@ localStorage. It generates its own photo fixture; none is committed.
   anything unreachable, blocked, contradictory or left over. Also 0.
 - `node hometest.mjs` — the create flow: home, the photo question, and what
   each answer offers.
+- `node savetest.mjs` — save to library end to end, and the revision the
+  Worker commits renders through.
+- `node libtest.mjs` — the library browser: collections, the design cards,
+  the platform bar, all three download paths.
+
+**LOOKING AT IT**
+```
+node look.mjs            # six viewports -> /tmp/look
+node look.mjs ip14 se    # just those two
+```
+Not a test: it drives the whole arc at each viewport and leaves screenshots
+to **look at**. Several things nothing asserts -- a card at the wrong aspect,
+a column of empty black, a preview clipped by the size switcher -- were only
+ever found by opening these. `prodshot.mjs` is the same idea against the real
+library: `SM_BASE=https://socialmaker.muns.dev node prodshot.mjs`.
 
 **WHAT "BROKEN" LOOKS LIKE**
 Any `FAIL`, any `errors:` other than `none`, or any `constant: false`.
@@ -163,8 +188,8 @@ colour.
 
 **ENTRY POINT**
 `render(ctx, W, H, item, guides)` in `app.js`. `renderTo(canvas, W, H, ...)`
-sizes a canvas and calls it. Everything downstream — preview, list thumbnails,
-contact sheet, export — goes through it.
+sizes a canvas and calls it. Everything downstream — the preview, the three
+saved renders, the quick download — goes through it.
 
 **GEOMETRY**
 `metrics(W,H)` returns the margin `M`, the safe areas (the 1080x1920 size holds
@@ -245,9 +270,10 @@ Deleting a photo detaches it immediately but leaves the bytes in R2 until the
 undo toast expires. Deleting first would make undo a re-upload.
 
 **FIRST RUN**
-An empty store loads all 46 campaign lines from `GROUPS`. Saved work is never
-overwritten. The `All 46` button in the list footer and `Load all 46 lines` in
-the List panel both append the same set.
+The app opens on home with an empty bench. `GROUPS` still holds the campaign's
+46 lines, but nothing in the UI loads them any more: the library holds the
+finished versions, and `bench()` in `testlib.mjs` is the only thing that reads
+`ALL_LINES` now.
 
 ---
 
@@ -255,12 +281,12 @@ the List panel both append the same set.
 
 **A zip, written by hand, with no compression.**
 
-**BATCH**
-Renders every item at every ticked size, names files
-`01_slug-of-top-line_1080x1350.png` (the numeric prefix exists because two
-items with the same words used to overwrite each other in the zip), appends
-`captions.txt`, and downloads one zip. 46 graphics at three sizes is about
-12MB and takes under three seconds.
+**THE QUICK DOWNLOAD**
+The graphic on the bench, at all three sizes, plus `captions.txt`, in one zip.
+There is no size picker: a graphic is made at 1:1, 4:5 and 9:16 or not at all,
+which is also what `saveToLibrary()` does. The panel is for a graphic you have
+not saved yet -- the library is where finished work is downloaded from, and it
+can hand you a folder per platform.
 
 **THE ZIP WRITER**
 Hand-rolled, store method only, because PNGs are already compressed. Local file
@@ -322,9 +348,8 @@ plainly, what it does not.
   It is not access control -- see `worker/README.md`.
 - **Undo is one step, via the toast.** Dismiss the toast and the removal is
   final. There is no history.
-- **`audit-geom.mjs` reports ~89 issues as its baseline.** They are mostly
-  small controls inside panels on phones. The count has not been driven to
-  zero and the number alone means nothing; compare against this baseline.
+- **`audit-geom.mjs`'s baseline is 0, and `uxaudit.mjs`'s is 0.** Anything
+  above zero is a regression, not a baseline to compare against.
 - **Alt text is generated, not written.** It describes the layout and repeats
   the words. It is a starting point for whoever posts, not finished copy.
 - **`embedded-fonts.css` has no regeneration script.** If a font ever needs
@@ -335,90 +360,113 @@ plainly, what it does not.
   wrap and therefore the size it lands on.
 - **Nothing here has been used in anger yet.** It has been tested hard but the
   campaign has not run through it.
-- **`migrate.mjs` has not been run against production.** It was rehearsed
-  against a local copy of the real rows, 46 of 46. Running it for real is one
-  command, and the editor's own rows should be cleared afterwards or the app
-  will keep opening on a bench full of graphics that are already filed.
-- **A restyle is still one browser tab's work.** It renders and uploads from
-  the page that started it, so closing the tab stops it. That is survivable:
-  it can be stopped on purpose, and running it again skips whatever already
-  carries the new brand, so it resumes rather than starting over.
-- **The 45 graphics in the editor are stranded.** They predate the library and
-  there is no in-app path to bring them across, because creation is being
-  reshaped to one graphic at a time. They need a one-time migration that
-  drives the real renderer through headless Chromium. A migration is not a
-  feature, so it does not reopen bulk creation.
+- **Running a test suite against production writes to production.** The suites
+  seed a bench and save graphics; `testlib.mjs` only ever wipes the **local**
+  database. Two stray test graphics and four restyled real ones had to be
+  cleaned out of the live library afterwards -- see `repair.mjs`, which is the
+  record of it. Point tests at `wrangler dev`; `prodshot.mjs` is read-only and
+  is the one thing meant for the real site.
+- **A graphic can only be re-rendered by a script.** Brand styles were what
+  drove it from the UI and they are gone. The Worker still commits renders
+  through `rev+1`, so `repair.mjs` shows the shape of it if a re-render is
+  ever needed again.
 
 
-## 1 0 — T H E   L I B R A R Y   A N D   B R A N D S
+## 1 0 — T H E   L I B R A R Y
 
 **Library > Collections > Graphics. A finished graphic is finished.**
 
 **THE RULE THAT REMOVES THE MACHINERY**
 A graphic in the library is never edited again. That single rule is why there
 is no version history, no publishes table and no staleness tracking: nothing
-can drift from a source it no longer has. Two tables do the whole job,
-`collections` and `graphics`, plus `brands`.
+can drift from a source it no longer has. Two tables do the whole job:
+`collections` and `graphics`.
 
 **THE ROW KEEPS THE RECIPE**
 `graphics` stores what a graphic was made from -- words, layout, align, photo,
 per-size crops. This is not live state and nothing reads it back into an
 editor. It exists so the library can be searched by wording, so alt text can
-be written without decoding a PNG, and -- the reason that matters -- so a
-collection can be re-rendered in a different brand. Delete the recipe and a
-restyle becomes 46 graphics remade by hand.
+be written without decoding a PNG, and so a graphic can be re-rendered from
+its own description rather than by hand. Delete the recipe and `repair.mjs`
+would have had no way to put four graphics back into the house style.
 
 **THE REVISION IS IN THE KEY**
 R2 keys are `renders/<id>/<rev>/<size>.png`, served immutable for a year.
-That `rev` is not decoration. Without it a restyle overwrites in place and
+That `rev` is not decoration. Without it a re-render overwrites in place and
 every browser that already loaded a graphic keeps serving the old bytes until
-the cache expires -- the restyle appears to work and silently does nothing.
+the cache expires -- the re-render appears to work and silently does nothing.
 This was a real bug, shipped and then caught.
 
-A restyle writes `rev+1`, and `/finish` commits the row only after confirming
-every size is really in the bucket. The superseded revision is swept after.
-So an abandoned restyle -- closed tab, dropped connection -- is a no-op: the
-graphic still points at renders that all exist. Deleting sweeps every
-revision, not just the live one. **Do not remove the rev from the key to tidy
-it up.**
+A re-render writes `rev+1`, and `/finish` commits the row only after
+confirming every size is really in the bucket. The superseded revision is
+swept after. So an abandoned one -- closed tab, dropped connection -- is a
+no-op: the graphic still points at renders that all exist. Deleting sweeps
+every revision, not just the live one. **Do not remove the rev from the key
+to tidy it up.** Nothing in the app re-renders today, so every live graphic
+sits at rev 1; that is the mechanism being unused, not absent.
 
-**BRANDS ARE ROLES, NOT COLOURS**
-A brand names `ground`, `on_ground`, `accent`, `on_accent`, `muted`, `bar`,
+**COLOURS ARE ROLES, NOT NAMES**
+`B` names `ground`, `on_ground`, `accent`, `on_accent`, `muted`, `bar`,
 `on_bar`, `accent_on_bar` and a display face. The renderer asks for "the type
 on the accent", never for "gold". Section 4's rule that gold carries dark text
 stops being three hardcoded constants at three call sites and becomes a
-property of the brand that can be checked.
+property of the style that can be checked.
 
-Twenty brands are seeded from the site's theme set. Those are *site* themes:
-light paper, dark ink, wordmark knocked out of a dark band. The graphics
-invert that. Copying tokens across ships `letterpress` with a near-white mark
-on the near-white bar -- it renders, it exports, nobody sees it until it is
-posted. So roles are derived **by luminance, not by token name**, and each
-brand takes whichever polarity gives its accent room to read. That is what
-rescues `docket`, `gadsden`, `plain` and `riso`, whose accents are dark
-colours meant for light paper.
-
-**THE CONTRAST FLOOR IS 3:1, DELIBERATELY**
-A brand edit that drops any of the four pairs below 3:1 is refused, naming
-what failed. It is not 4.5:1 because that would reject the house style: the
-gold LOG on the near-white mark bar is 1.9:1 and always has been. Every line
-goes through `fitText()` and lands as display type at 1080px wide, which is
-WCAG large text, where 3:1 is the correct threshold.
+There used to be twenty styles, a brand editor, a contrast gate on the Worker
+and ten woff2 faces in R2 to draw them with. **They were taken out**, along
+with the restyle-a-collection flow: one house style, and a graphic made here
+cannot come out off brand because there is nothing to set. The `brands` table
+and `seed-brands.sql` are still in the database and the repo, unread by
+anything -- the cheapest possible way to keep the work if it is ever wanted
+back. Do not wire them up again without being asked: the point of removing
+them was that the tool is not Canva.
 
 **FONTS**
 The renderer draws with the display face at weight 400 and nothing else. `FM`
-is declared on line 9 and never reaches an export. So a brand costs one woff2
-of about 19KB, not the 445KB of all 28 faces. They no longer need base64
-inlining either -- that existed only for `file://`, which is gone.
+is declared near the top and never reaches an export. The face is embedded in
+`embedded-fonts.css`; the ten brand faces and the `/f/<file>.woff2` route that
+served them went with the styles.
 
-**SAVING**
-`saveToLibrary()` renders every size, uploads each, then calls `/finish`.
-The row only points at the new renders once the Worker has confirmed every
-one is really in the bucket, so a save that dies halfway leaves nothing
-half-finished in the library. `restyleGraphic()` is the same path at rev+1.
+**SAVING MAKES EVERY SIZE, ALWAYS**
+`saveToLibrary()` renders 1:1, 4:5 and 9:16, uploads each, then calls
+`/finish`. The row only points at the new renders once the Worker has
+confirmed every one is really in the bucket, so a save that dies halfway
+leaves nothing half-finished in the library. There is no size picker anywhere
+and `S.sizes` no longer exists: the preview switcher under the graphic only
+chooses which size you are **looking at**.
 
 `savetest.mjs` drives the whole flow in a real browser and is the test to
 run after touching any of it.
+
+**TAP THE WORDS TO CHANGE THEM**
+There is no Words tab. `drawFit()` returns the rectangle it actually painted
+into and `render()` leaves both on the preview context as `ctx.__rects`;
+`hitText()` tests a pointer against them with a fingertip's worth of padding,
+and a hit opens `#p-text` on that line alone, focused, with a dashed marker
+over the type on the canvas. Making a graphic drops you straight into the top
+line.
+
+Three things that look incidental and are not:
+- The hit test runs **before** the photo drag in the same `pointerdown`.
+  Full bleed puts type on the photo, and it is the layout people reach for:
+  without this, tapping the headline pans the picture.
+- The handler calls `preventDefault()`. Otherwise the press completes, the
+  page takes focus back, and the field is focused and blurred in the same
+  gesture -- it looks like the keyboard opens and typing goes nowhere.
+- The stage's click handler closes an open panel when you click empty stage.
+  A tap on the words is a click on the canvas, so `tappedText` tells it to
+  leave this one alone.
+Hit-testing the *layout box* rather than the painted rectangle would swallow
+half the canvas: the box a line is fitted into is several times the height of
+the type that lands in it.
+
+**THE DELETE ON A PHOTO IS ONLY EVER ON ONE PHOTO**
+The thumbnail strip used to carry a red × on every thumbnail, over 42px
+pictures. On a phone that is a row of tripwires -- reported from the field as
+"the thumbnails are too tiny and I accidentally click the X". Thumbnails are
+56px on a phone and 64px elsewhere, and the × is rendered only on the photo
+the graphic is actually using. Undo still catches a real mis-tap; the point is
+that there is now one delete on screen instead of seven.
 
 **ONE GRAPHIC AT A TIME**
 The app opens on `#home`: make one, or browse. Making one asks whether it
@@ -429,20 +477,28 @@ anyone reaching `effVariant()`'s stack-with-no-photo fallback by accident.
 Saving clears the bench. A finished graphic is finished, and leaving it open
 would invite edits that change nothing in the library.
 
-`audit-geom`'s baseline is **12**, not 89. Most of that count was the rail,
-the List panel and the contact sheet, and they are gone.
+`audit-geom`'s baseline is **0**. Most of the original 89 was the rail, the
+List panel and the contact sheet; all three are now gone from the code as
+well as the screen.
 
-**BRAND STYLES**
-`brandview` lists the twenty and edits one: a name, a typeface from the ten
-that ship, and the eight colour roles. The preview draws **every layout** in
-the draft style, because a colour is only judged properly on the thing it
-will produce. Nothing is written until Save, and Save goes through the
-Worker's contrast gate -- a refusal comes back naming the pairing that
-failed, which is the only reason that gate is worth having.
+**THE LIBRARY BROWSES DESIGNS, NOT FILES**
+A card is a graphic at the shape it was composed in -- 4:5, the one the editor
+opens on -- at a fixed aspect, so a collection reads as a wall of designs
+rather than a pile of exports. `designSize()` picks that render; the
+per-platform files live one level in, on the graphic itself, which is the only
+place a shape is a decision anyone makes. Collections carry a `cover`
+(`"<graphic id>/<rev>"` for the newest finished graphic, computed in the
+collection query) so the shelf has pictures on it without a round trip per
+collection.
 
-Editing a style does not touch collections already made in it. Restyling a
-collection is what applies it, and that is deliberate: a brand edit should
-not silently rewrite 46 finished graphics.
+Two traps in those cards, both already paid for:
+- The `<img>` carries `width`/`height` attributes so the browser reserves the
+  right box before the PNG arrives. Those map to presentational width and
+  height, and **a specified height beats `aspect-ratio`** -- without
+  `height:auto` the card renders 1350px tall.
+- `drawLibGraphic()` sets `display:block` on the grid to let one graphic fill
+  the pane. `drawLib()` puts it back. Miss that and the next screen renders
+  its first card at the full width of the window.
 
 **BROWSING**
 The library reads finished PNGs straight out of R2 and never re-renders. A
@@ -496,10 +552,10 @@ work gets all seven layouts and a photo panel on type-only graphics.
   superseded revision is gone must fetch with `cache:'no-store'`, or the
   browser answers from its own cache and the assertion proves nothing.
 
-**FONTS ARE NOT INLINED ANY MORE**
-Ten display faces live in R2 and are served from `/f/<file>.woff2`, immutable.
-They sit **outside** the password gate on purpose: they are public typefaces
-carrying no campaign content, and a font request made from the login page
-would fail if they were behind it. `applyBrand()` awaits the face before
-swapping, because `fitText()` measures whatever is loaded and a fallback
-would export type at the wrong size.
+**THE FACE IS EMBEDDED AGAIN, BECAUSE THERE IS ONLY ONE**
+The ten brand faces lived in R2 behind `/f/<file>.woff2`, outside the password
+gate. Both went with the brand styles. The house faces are base64 in
+`embedded-fonts.css` and always were. If a second face ever comes back, note
+what the old code had to do: wait for it to load before rendering, because
+`fitText()` measures whatever is loaded and a fallback exports type at the
+wrong size.

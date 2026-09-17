@@ -9,7 +9,7 @@ const VIEWS=[
   {n:'phone SE 375x667', w:375, h:667,mob:true, min:32},
   {n:'landscape 844x390',w:844, h:390,mob:true, min:28}
 ];
-const PANELS=['text','layout','photo','sizes','library','export'];
+const PANELS=['layout','photo','library','export'];
 const problems=[];
 for(const v of VIEWS){
   const p=await b.newPage({viewport:{width:v.w,height:v.h},isMobile:v.mob,hasTouch:v.mob});

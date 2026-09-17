@@ -138,5 +138,11 @@ export async function bench(p, n = 1) {
     if (home) home.hidden = true;
     commit();
   }, n);
-  await p.waitForTimeout(250);
+  /* save() debounces by 800ms. A suite that seeds the bench and reloads
+     inside that window reloads into an EMPTY bench -- which opens the home
+     overlay and makes every later click land on it instead of the app. Wait
+     for the push to be confirmed (LAST is the server's last word) rather
+     than guessing at a sleep. */
+  await p.waitForFunction((count) => LAST.size === count, n, { timeout: 20000 });
+  await p.waitForTimeout(150);
 }

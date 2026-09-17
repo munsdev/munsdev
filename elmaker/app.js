@@ -7,16 +7,17 @@
 
 /* Roles, never colour names. The renderer asks for "the type on the accent",
    so HANDOFF section 4's rule that gold carries dark text is a property of
-   the brand that can be checked, not three constants at three call sites.
-   Swapped wholesale by setBrand(); every draw reads through B. */
-const HOUSE={
+   the style that can be checked, not three constants at three call sites.
+   There is one style and it is not editable in the app: brand styles were
+   taken out, and this is what is left of them -- the vocabulary the drawing
+   code speaks. Every draw reads through B. */
+const B={
   id:'mk2', name:'ElectionLog (house)',
   ground:'#121A24', onGround:'#FFFFFF', accent:'#E9A81C', onAccent:'#121A24',
   muted:'#999999', bar:'#FAFAFA', onBar:'#121A24', accentOnBar:'#E9A81C',
   display:'ElectionLog Display'
 };
-let B={...HOUSE};
-let FD='"'+B.display+'"';
+const FD='"'+B.display+'"';
 const FM='"ElectionLog Mono"';
 
 const rgbOf=h=>{
@@ -24,48 +25,20 @@ const rgbOf=h=>{
   return [(n>>16)&255,(n>>8)&255,n&255];
 };
 /* The scrim and the legibility floor paint with the ground, so they follow
-   the brand instead of a navy hardcoded as a decomposed rgb triple. */
+   the style instead of a navy hardcoded as a decomposed rgb triple. */
 const groundRGB=()=>rgbOf(B.ground).join(',');
 const lumOf=h=>{ const [r,g,b]=rgbOf(h); return 0.2126*r+0.7152*g+0.0722*b; };
 
-/* One face per brand, fetched on demand and cached for a year. The house
-   face is already embedded, so it is not in here. */
-const FACES={"Alfa Slab One": {"file": "alfa-slab-one-400.woff2","weight": "400"},"Oswald": {"file": "oswald-500.woff2","weight": "500"},"Courier Prime": {"file": "courier-prime-400.woff2","weight": "400"},"Archivo Black": {"file": "archivo-black-400.woff2","weight": "400"},"Space Grotesk": {"file": "space-grotesk-500.woff2","weight": "500"},"IBM Plex Mono": {"file": "ibm-plex-mono-400.woff2","weight": "400"},"Libre Baskerville": {"file": "libre-baskerville-400.woff2","weight": "400"},"Anton": {"file": "anton-400.woff2","weight": "400"},"Archivo": {"file": "archivo-500.woff2","weight": "500"},"Jost": {"file": "jost-400.woff2","weight": "400"}};
-const LOADED=new Set(['ElectionLog Display']);
-
-async function loadFace(family){
-  if(LOADED.has(family)) return true;
-  const f=FACES[family];
-  if(!f) return false;
-  try{
-    const face=new FontFace(family, 'url(/f/'+f.file+')', {weight:f.weight, style:'normal'});
-    await face.load();
-    document.fonts.add(face);
-    LOADED.add(family);
-    return true;
-  }catch(e){ return false; }
-}
-
-/* A brand whose face has not arrived would render in a fallback and export
-   type at the wrong size, because fitText measures whatever is loaded. So
-   applying a brand waits for its font. */
-async function applyBrand(brand){
-  if(brand && brand.display) await loadFace(brand.display);
-  setBrand(brand);
-}
-
-function setBrand(brand){
-  B={...HOUSE, ...(brand||{})};
-  FD='"'+B.display+'"';
-}
 const MAXPX=2000;                 // longest edge kept for a photo
 
+/* Every graphic is made at all three. Nothing picks a subset: `aspect` is
+   only how a size is named in the UI, where "4:5" reads and "1350" does not. */
 const SIZES=[
-  {id:'1080x1080', w:1080,h:1080, label:'1080 x 1080',
+  {id:'1080x1080', w:1080,h:1080, aspect:'1:1',  label:'1080 x 1080',
    platforms:'Instagram, Facebook, Bluesky (1080 x 1080)'},
-  {id:'1080x1350', w:1080,h:1350, label:'1080 x 1350',
+  {id:'1080x1350', w:1080,h:1350, aspect:'4:5',  label:'1080 x 1350',
    platforms:'Instagram, Threads, Facebook (1080 x 1350)'},
-  {id:'1080x1920', w:1080,h:1920, label:'1080 x 1920',
+  {id:'1080x1920', w:1080,h:1920, aspect:'9:16', label:'1080 x 1920',
    platforms:'Stories, Reels, TikTok (1080 x 1920)'}
 ];
 
@@ -86,7 +59,8 @@ const PLATFORMS=[
 /* ---------- state ---------- */
 let S={
   items:[], sel:null,
-  sizes:{'1080x1080':true,'1080x1350':true,'1080x1920':false},
+  /* No size picker: a graphic is made at all three, always. `pv` is only
+     which one you are looking at. */
   images:{}, pv:'1080x1350', guides:false,
   caption:'ElectionLog is a public record of election problems, written by the people who saw them. '+
           'Site opens shortly. Bookmark it now: electionlog.org'
@@ -138,7 +112,7 @@ function itemsNow(){
   return m;
 }
 function projNow(){
-  return JSON.stringify({caption:S.caption, sizes:S.sizes, pv:S.pv,
+  return JSON.stringify({caption:S.caption, pv:S.pv,
                          guides:S.guides, sel:S.sel});
 }
 
@@ -320,6 +294,9 @@ function fitText(ctx, text, fontFam, weight, box, lh, capSize){
   }
   return best;
 }
+/* Returns the rectangle it actually painted into, in canvas pixels. That is
+   what makes the words tappable: the layout box is much bigger than the type
+   inside it, and hit-testing the box would swallow taps meant for the photo. */
 function drawFit(ctx, fit, fontFam, weight, box, lh, align, color, vAlign){
   ctx.font=weight+' '+fit.size+'px '+fontFam;
   ctx.fillStyle=color; ctx.textBaseline='alphabetic';
@@ -328,7 +305,14 @@ function drawFit(ctx, fit, fontFam, weight, box, lh, align, color, vAlign){
   let y0 = box.y + fit.cap;
   if(vAlign==='center') y0 = box.y + (box.h - fit.h)/2 + fit.cap;
   else if(vAlign==='bottom') y0 = box.y + box.h - fit.h + fit.cap;
-  fit.lines.forEach((ln,i)=> ctx.fillText(ln, x, y0 + i*fit.size*lh));
+  let wide=0;
+  fit.lines.forEach((ln,i)=>{
+    ctx.fillText(ln, x, y0 + i*fit.size*lh);
+    wide=Math.max(wide, ctx.measureText(ln).width);
+  });
+  wide=Math.min(wide||box.w, box.w);
+  return {x: align==='center' ? box.x+box.w/2-wide/2 : box.x,
+          y: y0-fit.cap, w:wide, h:Math.max(fit.h, fit.size)};
 }
 
 /* ===========================================================
@@ -414,8 +398,8 @@ function ensureContrast(ctx,W,H,box,target){
   const lum=sum/Math.max(1,n);
   if(lum<=target) return;
   /* The floor is the luma of the paint itself -- it used to be 21, hand-tuned
-     to the house navy. A brand with a lighter ground cannot darken past its
-     own colour, and pretending otherwise overshoots the alpha. */
+     to the house navy, and a ground of any other lightness cannot darken
+     past its own colour -- pretending otherwise overshoots the alpha. */
   const floor=lumOf(B.ground);
   const a=Math.min(0.88,Math.max(0,(lum-target)/Math.max(1,lum-floor)));
   const c=groundRGB();
@@ -432,6 +416,11 @@ function ensureContrast(ctx,W,H,box,target){
    RENDER
    =========================================================== */
 function render(ctx,W,H,it,guides){
+  /* Where the two lines actually land, so a tap on the canvas can find them.
+     Stamped on the context because render() is also called for the exports,
+     and only the preview's rectangles are of any use to a pointer. */
+  const R={top:null,bot:null};
+  ctx.__rects=R;
   const m=metrics(W,H);
   const img = it.img ? IMG.get(it.img) : null;
   const V=effVariant(it);
@@ -451,8 +440,8 @@ function render(ctx,W,H,it,guides){
       ensureContrast(ctx,W,H,{x:m.M,y:topBox.y,w:bw,h:Math.min(topBox.h,topFit.h*1.08)},104);
       ensureContrast(ctx,W,H,{x:m.M,y:botBox.y+botBox.h-botFit.h,w:bw,h:botFit.h*1.08},84);
     }
-    drawFit(ctx, topFit, FD,'400',topBox,lh,it.align,B.onGround,'top');
-    drawFit(ctx, botFit, FD,'400',botBox,lh,it.align,B.accent,'bottom');
+    R.top=drawFit(ctx, topFit, FD,'400',topBox,lh,it.align,B.onGround,'top');
+    R.bot=drawFit(ctx, botFit, FD,'400',botBox,lh,it.align,B.accent,'bottom');
   }
 
   else if(V==='band'){
@@ -461,10 +450,10 @@ function render(ctx,W,H,it,guides){
     const photoBottom=pr.y+pr.h, bandH=Math.round(m.ch*0.30);
     ctx.fillStyle=B.accent; ctx.fillRect(0,photoBottom,W,bandH);
     const tb={x:m.M,y:photoBottom+Math.round(bandH*0.14),w:bw,h:Math.round(bandH*0.72)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'center');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'center');
     const bb={x:m.M,y:photoBottom+bandH+Math.round(m.ch*0.05),w:bw,
               h:m.contentBot-(photoBottom+bandH)-Math.round(m.ch*0.05)};
-    if(bb.h>40) drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onGround,'center');
+    if(bb.h>40) R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onGround,'center');
   }
 
   else if(V==='type'){
@@ -473,8 +462,8 @@ function render(ctx,W,H,it,guides){
     ctx.fillStyle=B.accent; ctx.fillRect(0,m.contentTop,W,rh);
     const topBox={x:m.M,y:m.contentTop+rh+Math.round(m.ch*0.06),w:bw,h:Math.round(m.ch*0.58)};
     const botBox={x:m.M,y:m.contentBot-Math.round(m.ch*0.20),w:bw,h:Math.round(m.ch*0.20)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'top');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'bottom');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'top');
+    R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'bottom');
   }
 
   /* --- text only: the canvas cut in half, dark question over gold answer --- */
@@ -484,8 +473,8 @@ function render(ctx,W,H,it,guides){
     const pad=Math.round(m.ch*0.07);
     const tb={x:m.M,y:m.contentTop,w:bw,h:(splitY-m.contentTop)-pad};
     const bb={x:m.M,y:splitY+pad*0.7,w:bw,h:(m.barY-splitY)-pad*1.4};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onAccent,'center');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
+    R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.onAccent,'center');
   }
 
   /* --- text only: gold sheet, the answer reversed out of a dark block --- */
@@ -494,10 +483,10 @@ function render(ctx,W,H,it,guides){
     const sqs=(H/W)<1.2;
     const blockH=Math.round(m.ch*(sqs?0.31:0.26)), blockY=m.contentBot-blockH;
     const tb={x:m.M,y:m.contentTop,w:bw,h:(blockY-m.contentTop)-Math.round(m.ch*0.07)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'top');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onAccent,'top');
     ctx.fillStyle=B.ground; ctx.fillRect(0,blockY,W,blockH);
     const bb={x:m.M,y:blockY+Math.round(blockH*0.17),w:bw,h:Math.round(blockH*0.66)};
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'center');
+    R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'center');
   }
 
   /* --- text only: a gold rule drawn all the way round, type centred inside --- */
@@ -512,8 +501,8 @@ function render(ctx,W,H,it,guides){
     const inH=(fb-fy)*0.82, inY=fy+(fb-fy)*0.09;
     const tb={x:inx,y:Math.round(inY),w:inw,h:Math.round(inH*0.60)};
     const bb={x:inx,y:Math.round(inY+inH*0.66),w:inw,h:Math.round(inH*0.34)};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'bottom');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',tb,lh), FD,'400',tb,lh,it.align,B.onGround,'center');
+    R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',bb,lh), FD,'400',bb,lh,it.align,B.accent,'bottom');
   }
 
   else { /* stack */
@@ -521,9 +510,9 @@ function render(ctx,W,H,it,guides){
     const topH=Math.round(m.ch*(sq?0.25:0.29)), botH=Math.round(m.ch*(sq?0.125:0.15));
     const topBox={x:m.M,y:m.contentTop,w:bw,h:topH};
     const botBox={x:m.M,y:pr.y+pr.h+Math.round(m.ch*0.045),w:bw,h:botH};
-    drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'center');
+    R.top=drawFit(ctx, fitText(ctx,it.top,FD,'400',topBox,lh), FD,'400',topBox,lh,it.align,B.onGround,'center');
     drawCover(ctx,img,pr,it.zoom,it.fx,it.fy);
-    drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'center');
+    R.bot=drawFit(ctx, fitText(ctx,it.bot,FD,'400',botBox,lh), FD,'400',botBox,lh,it.align,B.accent,'center');
   }
 
   drawBar(ctx,W,H,m);
@@ -604,11 +593,13 @@ function caption(it){
 const $=s=>document.querySelector(s);
 const el={
   editing:$('#editingWhat'),
-  top:$('#fTop'), bot:$('#fBot'), segV:$('#segVariant'), segA:$('#segAlign'),
+  segV:$('#segVariant'), segA:$('#segAlign'),
   drop:$('#drop'), lib:$('#lib'), cropBlock:$('#cropBlock'),
   zoom:$('#fZoom'), scrim:$('#fScrim'), vZoom:$('#vZoom'), vScrim:$('#vScrim'),
   darkenField:$('#darkenField'), darkenNote:$('#darkenNote'),
-  sizes:$('#sizes'), pvSwitch:$('#pvSwitch'), pvSize:$('#pvSize'),
+  pvSwitch:$('#pvSwitch'), pvSize:$('#pvSize'),
+  line:$('#fLine'), lineLabel:$('#lineLabel'), lineTitle:$('#lineTitle'),
+  textmark:$('#textmark'), frame:$('#frame'),
   canvas:$('#preview'), status:$('#status'), exportCount:$('#exportCount'),
   dragHint:$('#dragHint'),
   toast:$('#toast'), toastText:$('#toastText')
@@ -744,6 +735,18 @@ function canMove(){
 }
 el.canvas.addEventListener('pointerdown',e=>{
   movedPx=0;
+  /* The words come first. Without this a tap on type sitting over a photo
+     would start a pan instead, and the one layout where the type IS on the
+     photo is the one people reach for most. */
+  const hit=hitText(e.clientX,e.clientY);
+  if(hit){
+    /* preventDefault stops the browser handing focus back to the page when
+       the press completes -- without it the field is focused and then
+       immediately blurred, and typing goes nowhere. */
+    e.preventDefault();
+    tappedText=true; editText(hit); return;
+  }
+  if(editing) stopEditing();
   if(!canMove()) return;
   if(e.pointerType!=='mouse' && pinch) return;
   el.canvas.setPointerCapture(e.pointerId);
@@ -769,6 +772,13 @@ function endDrag(e){
 }
 el.canvas.addEventListener('pointerup',endDrag);
 el.canvas.addEventListener('pointercancel',endDrag);
+
+/* A pointer over the words says so, on anything with a real cursor. */
+el.canvas.addEventListener('pointermove',e=>{
+  if(dragging || e.pointerType!=='mouse') return;
+  el.canvas.classList.toggle('overtext', !!hitText(e.clientX,e.clientY));
+});
+el.canvas.addEventListener('pointerleave',()=>el.canvas.classList.remove('overtext'));
 
 el.canvas.addEventListener('wheel',e=>{
   const it=cur(); if(!it||!canMove()) return;
@@ -822,17 +832,22 @@ function renderLib(){
   }
   Object.keys(S.images).forEach(id=>{
     const p=document.createElement('div');
-    p.className='p'+(it&&it.img===id?' on':'');
+    const inUse=!!(it&&it.img===id);
+    p.className='p'+(inUse?' on':'');
     p.dataset.img=id;
+    p.title='Use this photo';
     p.style.backgroundImage='url('+(THUMB.get(id)||S.images[id])+')';
-    p.innerHTML='<button class="x" title="Delete image">&times;</button>';
+    /* Delete only ever appears on the photo in use. Seven of these over a row
+       of thumbnails is how you lose a picture by aiming at one. */
+    p.innerHTML=inUse?'<button class="x" title="Delete this image" aria-label="Delete this image">&times;</button>':'';
     p.addEventListener('click',e=>{
       if(e.target.classList.contains('x')) return;
       const c=cur(); if(!c) return;
       c.img=id;                                  // select only, never unselect
       libHighlight(); renderList(); syncEditor(); drawPreview(); save();
     });
-    p.querySelector('.x').addEventListener('click',e=>{
+    const xb=p.querySelector('.x');
+    if(xb) xb.addEventListener('click',e=>{
       e.stopPropagation();
       const url=S.images[id], img=IMG.get(id), th=THUMB.get(id);
       const used=S.items.filter(i=>i.img===id).map(i=>i.id);
@@ -855,9 +870,9 @@ function syncEditor(){
   el.editing.textContent = it
     ? (String(it.top).replace(/\n/g,' ').trim().slice(0,28) || 'Untitled') + ' \u00b7 unsaved'
     : 'Nothing open';
-  ['fTop','fBot','fZoom','fScrim'].forEach(id=>{ $('#'+id).disabled=!it; });
+  ['fLine','fZoom','fScrim'].forEach(id=>{ $('#'+id).disabled=!it; });
   if(!it){ el.cropBlock.style.display='none'; return; }
-  el.top.value=it.top; el.bot.value=it.bot;
+  if(editing && document.activeElement!==el.line) el.line.value=it[editing];
   [...el.segV.children].forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===it.variant)));
   [...el.segA.children].forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.a===it.align)));
   const cv=cropView(it);
@@ -873,19 +888,90 @@ function syncEditor(){
   el.darkenField.hidden = !darkenApplies;
   el.darkenNote.hidden  = darkenApplies;
 }
+/* ===========================================================
+   TAP THE WORDS TO CHANGE THEM
+   There is no Words tab. The two lines are the only editable text on a
+   graphic, so they are edited where they are: tap one on the canvas and the
+   panel opens on that line alone. render() leaves the rectangles it painted
+   on the preview context; everything here is hit-testing them.
+   =========================================================== */
+let editing=null;                       // 'top' | 'bot' | null
+let tappedText=false;                   // the click after a tap on the words
+
+/* Canvas pixels per CSS pixel, and the canvas rect, in one go. */
+function pvMap(){
+  const r=el.canvas.getBoundingClientRect();
+  return {r, k: el.canvas.width/Math.max(1,r.width)};
+}
+/* Which line is under a pointer, if any. The pad is a fingertip: type sits
+   tight to its own bounding box and nobody taps dead centre. */
+function hitText(clientX, clientY){
+  const rects=previewCtx && previewCtx.__rects; if(!rects) return null;
+  const {r,k}=pvMap();
+  const x=(clientX-r.left)*k, y=(clientY-r.top)*k;
+  const pad=28*k;
+  for(const which of ['top','bot']){
+    const q=rects[which]; if(!q) continue;
+    if(x>=q.x-pad && x<=q.x+q.w+pad && y>=q.y-pad && y<=q.y+q.h+pad) return which;
+  }
+  return null;
+}
+function editText(which){
+  const it=cur(); if(!it) return;
+  editing=which;
+  el.lineLabel.textContent = which==='top' ? 'Top line' : 'Bottom line';
+  el.lineTitle.textContent = which==='top' ? 'Top line' : 'Bottom line';
+  el.line.value=it[which];
+  el.line.placeholder = which==='top' ? 'LONG LINE?' : 'LOG IT.';
+  if(openPanel!=='text') showPanel('text');
+  markEditing();
+  /* Selecting the lot means the first keystroke replaces the placeholder
+     wording, which is what anybody tapping a line called LONG LINE? wants. */
+  el.line.focus({preventScroll:true}); el.line.select();
+  /* Again on the next frame: opening the panel moves the field, and a press
+     that is still in flight can take the focus back with it. */
+  requestAnimationFrame(()=>{
+    if(editing!==which) return;
+    if(document.activeElement!==el.line){ el.line.focus({preventScroll:true}); el.line.select(); }
+    markEditing();
+  });
+}
+/* A dotted box on the line being edited, so it is obvious which one the
+   panel is pointed at. Drawn as an overlay, not into the canvas, so typing
+   does not have to redraw it. */
+function markEditing(){
+  const box=el.textmark; if(!box) return;
+  const rects=previewCtx && previewCtx.__rects;
+  const q=editing && rects && rects[editing];
+  if(!q || openPanel!=='text'){ box.hidden=true; return; }
+  const {r,k}=pvMap(), f=el.frame.getBoundingClientRect(), sc=1/k;
+  box.hidden=false;
+  box.style.left  =(r.left-f.left + q.x*sc - 6)+'px';
+  box.style.top   =(r.top -f.top  + q.y*sc - 6)+'px';
+  box.style.width =(q.w*sc + 12)+'px';
+  box.style.height=(q.h*sc + 12)+'px';
+}
+function stopEditing(){
+  if(!editing) return;
+  editing=null;
+  markEditing();
+  if(openPanel==='text') closeDrawer();
+}
+
 function select(id){ S.sel=id; commit(); }
 function commit(){ renderList(); renderLib(); syncEditor(); drawPreview(); save(); }
 
+/* The stage switcher, and nothing else. Which sizes get made is not a
+   choice any more -- it is all of them -- so the only thing left to pick is
+   which one you are looking at. */
 function buildChips(){
-  el.sizes.innerHTML=''; el.pvSwitch.innerHTML='';
+  el.pvSwitch.innerHTML='';
   SIZES.forEach(s=>{
-    const c=document.createElement('button');
-    c.className='chip sizechip'; c.type='button'; c.textContent=s.platforms;
-    c.setAttribute('aria-pressed', String(!!S.sizes[s.id]));
-    c.addEventListener('click',()=>{ S.sizes[s.id]=!S.sizes[s.id]; c.setAttribute('aria-pressed',String(S.sizes[s.id])); renderList(); save(); });
-    el.sizes.appendChild(c);
     const p=document.createElement('button');
-    p.className='chip'; p.type='button'; p.textContent=s.id.replace('1080x','');
+    /* Aspect, not pixel height: "4:5" is the same word the crop bar uses, and
+       1350 meant nothing to anybody. */
+    p.className='chip'; p.type='button'; p.textContent=s.aspect;
+    p.title=s.label;
     p.setAttribute('aria-pressed', String(S.pv===s.id));
     p.addEventListener('click',()=>{ S.pv=s.id; buildChips(); drawPreview(); save(); });
     el.pvSwitch.appendChild(p);
@@ -893,8 +979,16 @@ function buildChips(){
 }
 
 /* ---------- wiring ---------- */
-el.top.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.top=el.top.value; drawPreview(); save(); });
-el.bot.addEventListener('input',()=>{ const it=cur(); if(!it)return; it.bot=el.bot.value; drawPreview(); save(); });
+el.line.addEventListener('input',()=>{
+  const it=cur(); if(!it||!editing) return;
+  it[editing]=el.line.value;
+  drawPreview(); markEditing(); save();
+});
+/* Enter is a line break inside a line -- that is how somebody controls where
+   it wraps -- so Done is a button and Escape is the way out. */
+el.line.addEventListener('keydown',e=>{ if(e.key==='Escape'){ e.preventDefault(); stopEditing(); } });
+$('#lineDone').addEventListener('click',stopEditing);
+$('#lineOther').addEventListener('click',()=>editText(editing==='top'?'bot':'top'));
 el.segV.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.variant=b.dataset.v; commit(); });
 el.segA.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; const it=cur(); if(!it)return; it.align=b.dataset.a; commit(); });
 el.zoom.addEventListener('input',()=>{ const it=cur(); if(!it)return;
@@ -910,8 +1004,13 @@ $('#btnRecentre').addEventListener('click',()=>{ const it=cur(); if(!it)return;
 /* "Use this photo for all" applied it across the list. One graphic at a
    time means there is no all. */
 $('#btnGuides').addEventListener('click',e=>{
-  S.guides=!S.guides; e.currentTarget.setAttribute('aria-pressed',String(S.guides));
-  e.currentTarget.textContent = S.guides?'Hide safe margins':'Show safe margins';
+  S.guides=!S.guides;
+  /* Short label, long aria-label: the eyebrow above it already says what it
+     toggles, and "Show safe margins" does not fit beside the alignment
+     buttons on a phone in either orientation. */
+  e.currentTarget.setAttribute('aria-pressed',String(S.guides));
+  e.currentTarget.textContent = S.guides?'Hide':'Show';
+  e.currentTarget.setAttribute('aria-label',(S.guides?'Hide':'Show')+' safe margins');
   drawPreview(); save();
 });
 
@@ -966,8 +1065,9 @@ function canvasBlob(c){ return new Promise(r=>c.toBlob(r,'image/png')); }
 /* ===========================================================
    SAVE TO LIBRARY
    A graphic is finished when it is saved, and never edited again. The row
-   keeps the recipe so a collection can be re-rendered in another brand; the
-   PNGs are what everything downstream actually uses.
+   keeps the recipe -- the words, the layout, the crop -- so the library can
+   say what a graphic is without decoding a PNG; the PNGs are what everything
+   downstream actually uses.
    =========================================================== */
 
 /* toBlob falls back to PNG for a type it cannot encode, silently, and the
@@ -1018,7 +1118,7 @@ async function saveToLibrary(it, collectionId, opts){
     title:String(it.top).replace(/\n/g,' ').trim(),
     top:it.top, bot:it.bot, variant:it.variant, align:it.align,
     photo_sha:it.img||null, scrim:it.scrim,
-    per_size:o.perSize||{}, alt:altText(it), brand_id:B.id
+    per_size:o.perSize||{}, alt:altText(it)
   })})).json();
   const id=created.id;
 
@@ -1033,34 +1133,11 @@ async function saveToLibrary(it, collectionId, opts){
   }
   step('Filing it...');
   await api('/api/graphics/'+id+'/finish',{method:'POST',...asJson({
-    sizes:renders.map(r=>r.size), rev:1, brand_id:B.id
+    sizes:renders.map(r=>r.size), rev:1
   })});
   return {id, rev:1, sizes:renders.map(r=>r.size)};
 }
 
-/* Re-render an existing graphic under the current brand. Writes rev+1 and
-   commits only at the end, so an abandoned restyle is a no-op and the old
-   renders keep serving until the new set is complete. */
-async function restyleGraphic(g){
-  const it={id:g.id, top:g.top, bot:g.bot, variant:g.variant, align:g.align,
-            img:g.photo_sha, zoom:100, fx:50, fy:50, scrim:g.scrim};
-  if(g.photo_sha && !S.images[g.photo_sha]){
-    S.images[g.photo_sha]='/img/'+g.photo_sha;
-  }
-  if(!await ensurePhoto(it)) throw new Error('photo missing for '+g.id);
-
-  const sizes=SIZES.filter(sz=>(g.sizes||[]).includes(sz.id));
-  const renders=await renderAll(it, sizes.length?sizes:SIZES, g.per_size);
-  const rev=(g.rev||1)+1;
-  for(const r of renders){
-    await api('/api/graphics/'+g.id+'/renders/'+rev+'/'+r.size,
-              {method:'PUT', headers:{'Content-Type':'image/png'}, body:r.blob});
-  }
-  await api('/api/graphics/'+g.id+'/finish',{method:'POST',...asJson({
-    sizes:renders.map(r=>r.size), rev, brand_id:B.id
-  })});
-  return rev;
-}
 function download(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click();
@@ -1086,36 +1163,32 @@ $('#btnCopy').addEventListener('click',async()=>{
 });
 $('#btnCancel').addEventListener('click',()=>{ cancelExport=true; status('Stopping...'); });
 $('#btnExport').addEventListener('click',async()=>{
-  const sizes=SIZES.filter(s=>S.sizes[s.id]);
-  if(!S.items.length) return status('Nothing in the list','err');
-  if(!sizes.length) return status('No sizes ticked','err');
+  const it=cur();
+  if(!it) return status('Nothing on the bench','err');
   const btn=$('#btnExport'), stop=$('#btnCancel');
   btn.disabled=true; stop.hidden=false; cancelExport=false;
-  const files=[], cap=[];
-  const total=S.items.length*sizes.length; let n=0;
+  const files=[];
+  const base=slug(it.top);
   const work=document.createElement('canvas');
   try{
-    for(let i=0;i<S.items.length && !cancelExport;i++){
-      const it=S.items[i];
-      const base=String(i+1).padStart(2,'0')+'_'+slug(it.top);
-      cap.push('== '+it.top.replace(/\n/g,' ')+' '+it.bot.replace(/\n/g,' ')+' ==');
-      cap.push('FILES: '+sizes.map(s=>base+'_'+s.id+'.png').join(', '));
-      cap.push('','CAPTION:',caption(it),'','IMAGE DESCRIPTION:',altText(it),'','');
-      for(const s of sizes){
-        if(cancelExport) break;
-        renderTo(work,s.w,s.h,it,false);
-        const b=await canvasBlob(work);
-        files.push({name:base+'_'+s.id+'.png', data:new Uint8Array(await b.arrayBuffer())});
-        n++; status('Rendering '+n+' of '+total+'...');
-        await new Promise(r=>setTimeout(r,0));
-      }
+    let n=0;
+    for(const s of SIZES){
+      if(cancelExport) break;
+      renderTo(work,s.w,s.h,it,false);
+      const b=await canvasBlob(work);
+      files.push({name:base+'_'+s.id+'.png', data:new Uint8Array(await b.arrayBuffer())});
+      n++; status('Rendering '+n+' of '+SIZES.length+'...');
+      await new Promise(r=>setTimeout(r,0));
     }
     if(cancelExport){ status('Stopped. Nothing downloaded.','err'); return; }
-    const head='ELECTIONLOG GRAPHICS\nGenerated '+new Date().toLocaleString()+'\n'+
-      files.length+' images, '+S.items.length+' graphics, sizes: '+sizes.map(s=>s.label).join(' / ')+
-      '\n\nNothing here is approved copy. Check it before it goes out.\n\n\n';
-    files.push({name:'captions.txt', data:new TextEncoder().encode(head+cap.join('\n'))});
-    download(zip(files),'electionlog-graphics_'+new Date().toISOString().slice(0,10)+'.zip');
+    const head='ELECTIONLOG GRAPHIC\nGenerated '+new Date().toLocaleString()+'\n'+
+      SIZES.map(s=>s.label).join(' / ')+
+      '\n\nNothing here is approved copy. Check it before it goes out.\n\n\n'+
+      '== '+it.top.replace(/\n/g,' ')+' '+it.bot.replace(/\n/g,' ')+' ==\n'+
+      'FILES: '+SIZES.map(s=>base+'_'+s.id+'.png').join(', ')+'\n\n'+
+      'CAPTION:\n'+caption(it)+'\n\nIMAGE DESCRIPTION:\n'+altText(it)+'\n';
+    files.push({name:'captions.txt', data:new TextEncoder().encode(head)});
+    download(zip(files),'electionlog-graphic_'+new Date().toISOString().slice(0,10)+'.zip');
     status(files.length+' files in the zip. Done.','ok');
   }catch(e){
     status('Export failed: '+e.message,'err');
@@ -1131,6 +1204,8 @@ let openPanel=null;
 function showPanel(name){
   if(openPanel===name){ closeDrawer(); return; }
   openPanel=name; drawer.hidden=false;
+  /* Any other panel means the words are no longer what is being edited. */
+  if(name!=='text'){ editing=null; if(el.textmark) el.textmark.hidden=true; }
   drawer.querySelectorAll('.panel').forEach(p=>{ p.hidden=(p.id!=='p-'+name); });
   tabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-expanded', String(t.dataset.p===name)));
   drawer.scrollTop=0;
@@ -1140,6 +1215,7 @@ function showPanel(name){
 }
 function closeDrawer(){
   openPanel=null; drawer.hidden=true;
+  editing=null; if(el.textmark) el.textmark.hidden=true;
   document.body.classList.remove('drawer-open');
   tabs.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-expanded','false'));
   requestAnimationFrame(drawPreview);
@@ -1155,34 +1231,19 @@ document.getElementById('stage').addEventListener('click',e=>{
   const onEmptyStage = t.id==='stage' || t.id==='frame' || t===el.canvas;
   if(!onEmptyStage) return;
   if(t===el.canvas && movedPx>3) return;
+  /* A tap that landed on the words opened the editor a moment ago in
+     pointerdown. Closing the panel here would undo it before a finger has
+     left the glass. */
+  if(tappedText){ tappedText=false; return; }
   if(openPanel) closeDrawer();
 });
 document.addEventListener('keydown',e=>{
   if(document.querySelector('dialog[open]')) return;
   if(e.key==='Escape'&&!libView.hidden){ closeLib(); return; }
-  if(e.key==='Escape'&&!gridView.hidden){ closeGrid(); return; }
   if(e.key==='Escape'&&openPanel){ closeDrawer(); return; }
-  if(/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
-  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return;
-  if(!gridView.hidden){
-    /* while the sheet is open the arrows move the highlight inside it */
-    if(gridMode!=='all') return;
-    step(e.key==='ArrowLeft'?-1:1);
-    const cards=[...document.querySelectorAll('.gcard')];
-    const i=S.items.findIndex(x=>x.id===S.sel);
-    cards.forEach((c,k)=>c.classList.toggle('on',k===i));
-    if(cards[i]) cards[i].scrollIntoView({block:'nearest'});
-    return;
-  }
-  step(e.key==='ArrowLeft'?-1:1);
 });
-function step(d){
-  if(!S.items.length) return;
-  let i=S.items.findIndex(x=>x.id===S.sel);
-  i = i<0 ? 0 : clamp(i+d,0,S.items.length-1);
-  S.sel=S.items[i].id; commit();
-}
-try{ new ResizeObserver(fitCanvasToStage).observe(document.getElementById('frame')); }catch(e){}
+try{ new ResizeObserver(()=>{ fitCanvasToStage(); markEditing(); })
+       .observe(document.getElementById('frame')); }catch(e){}
 
 
 
@@ -1234,65 +1295,7 @@ const GROUPS=[
    harness still seeds a bench from it. */
 const ALL_LINES=GROUPS.reduce((a,g)=>a.concat(g.lines),[]);
 
-/* ===========================================================
-   CONTACT SHEET
-   Twenty graphics you can only see one at a time is twenty
-   graphics nobody checks. This shows the whole set at once.
-   The renderer is resolution independent, so a card is just
-   the same render at a smaller width.
-   =========================================================== */
-const gridView=document.getElementById('grid');
-let gridMode='all';
-function buildGrid(){
-  const wrap=document.getElementById('gridWrap');
-  wrap.innerHTML='';
-  const cw=360;
-  if(gridMode==='one'){
-    /* the same graphic at all three sizes, which is the only way to catch a
-       crop that works square and fails at 9:16 */
-    const it=cur();
-    if(!it){ gridMode='all'; return buildGrid(); }
-    SIZES.forEach(sz=>{
-      const card=document.createElement('div'); card.className='gcard';
-      const c=document.createElement('canvas');
-      renderTo(c,cw,Math.round(cw*sz.h/sz.w),it,false);
-      const l=document.createElement('div'); l.className='gl'; l.textContent=sz.platforms;
-      card.appendChild(c); card.appendChild(l);
-      card.addEventListener('click',()=>{ S.pv=sz.id; buildChips(); closeGrid(); commit(); });
-      wrap.appendChild(card);
-    });
-    document.getElementById('gridCount').textContent=it.top.replace(/\n/g,' ')+' at all three sizes';
-    return;
-  }
-  const sz=SIZES.find(s=>s.id===S.pv)||SIZES[1];
-  const chh=Math.round(cw*sz.h/sz.w);
-  S.items.forEach((it,i)=>{
-    const card=document.createElement('div');
-    card.className='gcard'+(it.id===S.sel?' on':'');
-    const c=document.createElement('canvas');
-    renderTo(c,cw,chh,it,false);
-    const l=document.createElement('div');
-    l.className='gl';
-    l.textContent=String(i+1).padStart(2,'0')+' · '+it.top.replace(/\n/g,' ');
-    card.appendChild(c); card.appendChild(l);
-    card.addEventListener('click',()=>{ S.sel=it.id; closeGrid(); commit(); });
-    wrap.appendChild(card);
-  });
-  document.getElementById('gridCount').textContent=
-    S.items.length+' graphics at '+sz.label;
-}
-document.getElementById('gridMode').addEventListener('click',e=>{
-  const btn=e.target.closest('button'); if(!btn) return;
-  gridMode=btn.dataset.g;
-  [...e.currentTarget.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.g===gridMode)));
-  buildGrid();
-});
-function openGrid(){ if(!S.items.length) return; buildGrid(); gridView.hidden=false; }
-function closeGrid(){ gridView.hidden=true; }
-/* The contact sheet button went with the list; the library replaced it.
-   The sheet itself still answers Escape, so leave the rest alone. */
-document.getElementById('gridClose').addEventListener('click',closeGrid);
-gridView.addEventListener('click',e=>{ if(e.target===gridView) closeGrid(); });
+
 
 /* ---------- per-size crop bar ---------- */
 function syncTuneBar(it){
@@ -1375,7 +1378,7 @@ function confirmThat({title,body,ok}){
 }
 
 /* ---------- library panel ---------- */
-let COLLECTIONS=[], BRANDS=[];
+let COLLECTIONS=[];
 const libStatus=(msg,kind)=>{
   const n=document.getElementById('libStatus'); if(!n) return;
   n.textContent=msg||''; n.className='status'+(kind?' '+kind:'');
@@ -1383,13 +1386,9 @@ const libStatus=(msg,kind)=>{
 
 async function loadLibraryMeta(){
   try{
-    const [cs,bs]=await Promise.all([
-      (await api('/api/collections')).json(),
-      (await api('/api/brands')).json()
-    ]);
-    COLLECTIONS=cs.collections||[]; BRANDS=bs.brands||[];
-  }catch(e){ COLLECTIONS=[]; BRANDS=[]; }
-  fillCollections(); fillBrands();
+    COLLECTIONS=(await (await api('/api/collections')).json()).collections||[];
+  }catch(e){ COLLECTIONS=[]; }
+  fillCollections();
 }
 function fillCollections(){
   const sel=document.getElementById('fCollection'); if(!sel) return;
@@ -1402,33 +1401,11 @@ function fillCollections(){
     : '<option value="">No collections yet</option>';
   if(keep && COLLECTIONS.some(c=>c.id===keep)) sel.value=keep;
 }
-function fillBrands(){
-  const sel=document.getElementById('fBrand'); if(!sel) return;
-  sel.innerHTML=BRANDS.map(b=>'<option value="'+b.id+'"'+(b.id===B.id?' selected':'')+'>'+esc(b.name)+'</option>').join('');
-}
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-function brandFromRow(r){
-  return {id:r.id, name:r.name, ground:r.ground, onGround:r.on_ground,
-          accent:r.accent, onAccent:r.on_accent, muted:r.muted, bar:r.bar,
-          onBar:r.on_bar, accentOnBar:r.accent_on_bar, display:r.display};
-}
-
-document.addEventListener('change', async e=>{
-  if(e.target && e.target.id==='fBrand'){
-    const row=BRANDS.find(b=>b.id===e.target.value); if(!row) return;
-    libStatus('Loading '+row.name+'...');
-    await applyBrand(brandFromRow(row));
-    commit();
-    libStatus('Previewing in '+row.name+'. Saving files it under this brand.','ok');
-  }
-});
 
 document.addEventListener('click', async e=>{
   const t=e.target;
   if(!t) return;
-
-  if(t.id==='btnEditBrands'){ await openBrands(); return; }
 
   if(t.id==='btnNewCollection'){
     const name=await ask({title:'New collection', label:'Name',
@@ -1482,10 +1459,17 @@ let libWhere={view:'home', collection:null, graphic:null, platform:null};
 let libSelecting=false;
 const libSel=new Set();
 let libGraphics=[];
-let restyleStop=false;
 
 const libEl=id=>document.getElementById(id);
 const renderURL=(g,size)=>'/r/'+g.id+'/'+(g.rev||1)+'/'+size+'.png';
+/* The library browses DESIGNS, not files. A card shows the graphic at the
+   shape it was composed in -- 4:5, the one the editor opens on -- so a
+   collection reads as a set of designs rather than a pile of exports. The
+   per-platform files are one level in, on the graphic itself, which is the
+   only place a shape is a decision. */
+const DESIGN_SIZE='1080x1350';
+const designSize=g=>((g.sizes||[]).includes(DESIGN_SIZE) ? DESIGN_SIZE : (g.sizes||[])[0]);
+const designURL=g=>renderURL(g, designSize(g));
 const platformsFor=g=>PLATFORMS.filter(pl=>(g.sizes||[]).includes(pl.size));
 
 async function openLib(){
@@ -1499,7 +1483,6 @@ function closeLib(){ libView.hidden=true; libSelecting=false; libSel.clear(); }
 function libChrome(){
   libEl('libBack').hidden = libWhere.view==='home';
   libEl('libSelect').hidden = libWhere.view!=='collection';
-  libEl('libRestyle').hidden = libWhere.view!=='collection';
   libEl('libDownloadSel').hidden = !(libWhere.view==='collection' && libSelecting);
   libEl('libSelect').textContent = libSelecting ? 'Done' : 'Select';
   libEl('libTitle').textContent =
@@ -1517,6 +1500,10 @@ function libChrome(){
 function drawLib(){
   libChrome();
   const w=libEl('libWrap'); w.innerHTML='';
+  /* One graphic fills the pane rather than sitting in a grid cell, so that
+     view sets display:block. Put it back, or the next screen renders its
+     first card at the full width of the window. */
+  w.style.display='';
   if(libWhere.view==='home') return drawLibHome(w);
   if(libWhere.view==='collection') return drawLibCollection(w);
   return drawLibGraphic(w);
@@ -1529,9 +1516,14 @@ function drawLibHome(w){
   }
   for(const c of COLLECTIONS){
     const card=document.createElement('div');
-    card.className='gcard';
-    card.innerHTML='<div class="gl" style="font-size:15px;color:var(--white)">'+esc(c.name)+'</div>'+
-                   '<div class="gl">'+c.count+' graphic'+(c.count===1?'':'s')+'</div>';
+    card.className='gcard ccard';
+    /* A collection with nothing in it has no cover, so it gets a plate
+       rather than a broken image. */
+    card.innerHTML=(c.cover
+        ? '<img class="cover" src="/r/'+esc(c.cover)+'/'+DESIGN_SIZE+'.png" alt="" loading="lazy" decoding="async">'
+        : '<div class="cover empty">Empty</div>')+
+      '<div class="cname">'+esc(c.name)+'</div>'+
+      '<div class="gl">'+c.count+' graphic'+(c.count===1?'':'s')+'</div>';
     card.addEventListener('click',()=>openCollection(c));
     w.appendChild(card);
   }
@@ -1555,9 +1547,11 @@ function drawLibCollection(w){
   for(const g of libGraphics){
     const card=document.createElement('div');
     card.className='gcard'+(libSel.has(g.id)?' sel':'');
-    const first=(g.sizes||[])[0];
+    /* 46 cards means 46 full-size PNGs; lazy is the difference between a
+       library that opens and one that thinks about it. */
     card.innerHTML=(libSelecting?'<span class="pick"></span>':'')+
-      '<img src="'+renderURL(g,first)+'" alt="'+esc(g.alt||'')+'" style="width:100%;display:block;border-radius:2px">'+
+      '<img class="design" src="'+designURL(g)+'" alt="'+esc(g.alt||'')+'" '+
+        'width="1080" height="1350" loading="lazy" decoding="async">'+
       '<div class="gl">'+esc(g.title||'')+'</div>';
     card.addEventListener('click',()=>{
       if(libSelecting){
@@ -1619,196 +1613,6 @@ libView.addEventListener('click', async e=>{
     askPlatforms(chosen);
     return;
   }
-  if(t.id==='libRestyle'){
-    if(t.textContent==='Stop'){ restyleStop=true; t.disabled=true;
-      setTimeout(()=>{t.disabled=false;},400); return; }
-    await restyleCollection(); return;
-  }
-});
-
-/* ===========================================================
-   BRAND STYLES
-   Twenty of them, hand-authored. Editing is colours and a face, nothing
-   more: no layout controls, no spacing, no new roles. The contrast gate on
-   the Worker is what stops an edit shipping type nobody can read, and the
-   preview here shows every layout so you can see what a change does before
-   it lands on 46 graphics.
-   =========================================================== */
-const brandView=document.getElementById('brandview');
-let brandWhere={view:'list', brand:null};
-let brandDraft=null;
-
-const ROLE_FIELDS=[
-  ['ground','The graphic\u2019s background'],
-  ['on_ground','Type on the background'],
-  ['accent','Accent: rules, bands, second line'],
-  ['on_accent','Type sitting ON the accent'],
-  ['muted','The .ORG of the mark'],
-  ['bar','The mark bar'],
-  ['on_bar','ELECTION, in the bar'],
-  ['accent_on_bar','LOG, in the bar']
-];
-
-async function openBrands(){
-  brandView.hidden=false;
-  await loadLibraryMeta();
-  brandWhere={view:'list', brand:null};
-  drawBrands();
-}
-function closeBrands(){ brandView.hidden=true; brandDraft=null; }
-
-function drawBrands(){
-  document.getElementById('brandBack').hidden = brandWhere.view==='list';
-  document.getElementById('brandTitle').textContent =
-    brandWhere.view==='list' ? 'Brand styles' : brandDraft.name;
-  document.getElementById('brandCount').textContent =
-    brandWhere.view==='list' ? BRANDS.length+' styles' : 'in use by '+(brandWhere.brand.used||0)+' collection'+((brandWhere.brand.used||0)===1?'':'s');
-  const w=document.getElementById('brandWrap');
-  w.innerHTML='';
-  if(brandWhere.view==='list'){ w.style.display=''; return drawBrandList(w); }
-  w.style.display='block'; drawBrandEdit(w);
-}
-
-function drawBrandList(w){
-  for(const row of BRANDS){
-    const card=document.createElement('div');
-    card.className='bcard'+(row.id===B.id?' on':'');
-    card.innerHTML=
-      '<div class="bswatch" style="background:'+esc(row.ground)+'">'+
-        '<b style="color:'+esc(row.accent)+'">Aa</b>'+
-        '<i style="background:'+esc(row.on_ground)+'"></i>'+
-      '</div>'+
-      '<div class="bmeta"><div class="bname">'+esc(row.name)+(row.id===B.id?' \u00b7 in use':'')+'</div>'+
-      '<div class="bface">'+esc(row.display)+'</div></div>';
-    card.addEventListener('click',()=>openBrand(row));
-    w.appendChild(card);
-  }
-}
-
-async function openBrand(row){
-  brandWhere={view:'edit', brand:row};
-  brandDraft={...row};
-  await loadFace(row.display);
-  drawBrands();
-  paintBrandPreview();
-}
-
-function drawBrandEdit(w){
-  const faces=Object.keys(FACES).concat(['ElectionLog Display']).sort();
-  w.innerHTML=
-    '<div class="bedit">'+
-      '<div>'+
-        '<div class="eyebrow" style="margin-bottom:8px">Every layout, in this style</div>'+
-        '<div class="bpreview"><canvas id="bCanvas"></canvas></div>'+
-        '<div class="note" style="margin-top:8px">Nothing is saved until you press Save. Collections already made in this style are not touched until you restyle them.</div>'+
-      '</div>'+
-      '<div>'+
-        '<label class="field"><span class="eyebrow">Name</span>'+
-          '<input type="text" id="bName" value="'+esc(brandDraft.name)+'"></label>'+
-        '<label class="field"><span class="eyebrow">Typeface</span>'+
-          '<select id="bFace">'+faces.map(f=>'<option'+(f===brandDraft.display?' selected':'')+'>'+esc(f)+'</option>').join('')+'</select></label>'+
-        '<div class="eyebrow" style="margin:14px 0 8px">Colours</div>'+
-        ROLE_FIELDS.map(([k,lab])=>
-          '<div class="brow"><label for="c_'+k+'">'+esc(lab)+'</label>'+
-          '<input type="text" class="hex" id="h_'+k+'" value="'+esc(brandDraft[k])+'">'+
-          '<input type="color" id="c_'+k+'" value="'+esc(brandDraft[k])+'"></div>').join('')+
-        '<div id="bWarn"></div>'+
-        '<div class="row wrap" style="margin-top:14px">'+
-          '<button class="btn gold" id="bSave">Save style</button>'+
-          '<button class="btn ghost" id="bRevert">Revert</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-  paintBrandPreview();
-}
-
-/* Every layout at once, so a colour change is judged on the thing it will
-   actually produce rather than on a swatch. */
-function paintBrandPreview(){
-  const c=document.getElementById('bCanvas'); if(!c) return;
-  const keep={...B};
-  setBrand(brandFromRow(brandDraft));
-  const order=['stack','bleed','band','type','split','slab','stamp'];
-  const cw=300, chh=375, cols=4, rows=2, gap=10;
-  c.width=cols*cw+(cols+1)*gap; c.height=rows*chh+(rows+1)*gap;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,c.width,c.height);
-  order.forEach((v,i)=>{
-    const x=gap+(i%cols)*(cw+gap), y=gap+Math.floor(i/cols)*(chh+gap);
-    const off=document.createElement('canvas');
-    const it={...newItem('SHORT LINE?','LOG IT.'), variant:v, align:'center',
-              img:TEXT_ONLY.has(v)?null:(Object.keys(S.images)[0]||null)};
-    renderTo(off, cw, chh, it, false);
-    ctx.drawImage(off,x,y);
-  });
-  setBrand(keep);
-}
-
-function brandWarn(msg){
-  const n=document.getElementById('bWarn'); if(!n) return;
-  n.innerHTML = msg ? '<div class="bwarn">'+msg+'</div>' : '';
-}
-
-brandView.addEventListener('input', e=>{
-  const t=e.target; if(!t.id) return;
-  if(t.id==='bName'){ brandDraft.name=t.value; return; }
-  const hex=t.id.startsWith('h_') && t.id.slice(2);
-  const col=t.id.startsWith('c_') && t.id.slice(2);
-  const key=hex||col;
-  if(!key) return;
-  let v=t.value.trim();
-  if(!/^#[0-9a-fA-F]{6}$/.test(v)) return;
-  v=v.toUpperCase();
-  brandDraft[key]=v;
-  const other=document.getElementById((hex?'c_':'h_')+key);
-  if(other) other.value=v;
-  paintBrandPreview();
-});
-brandView.addEventListener('change', async e=>{
-  if(e.target.id!=='bFace') return;
-  const fam=e.target.value;
-  brandWarn('');
-  const ok=await loadFace(fam);
-  if(!ok && fam!=='ElectionLog Display'){ brandWarn('That typeface could not be loaded.'); return; }
-  brandDraft.display=fam;
-  paintBrandPreview();
-});
-
-brandView.addEventListener('click', async e=>{
-  const t=e.target;
-  if(t.id==='brandClose'){ closeBrands(); return; }
-  if(t.id==='brandBack'){ brandWhere={view:'list',brand:null}; brandDraft=null; drawBrands(); return; }
-  if(t.id==='bRevert'){ brandDraft={...brandWhere.brand}; drawBrands(); brandWarn(''); return; }
-  if(t.id==='bSave'){
-    t.disabled=true; brandWarn('');
-    try{
-      const body={name:brandDraft.name, display:brandDraft.display};
-      ROLE_FIELDS.forEach(([k])=>{ body[k]=brandDraft[k]; });
-      const r=await fetch('/api/brands/'+brandWhere.brand.id,
-        {method:'PATCH',credentials:'same-origin',
-         headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      const d=await r.json();
-      if(r.status===422){
-        /* The Worker refuses an edit that would ship unreadable type. Say
-           which pairing failed rather than just "no". */
-        brandWarn('<b>Not saved.</b> '+(d.failed||[]).map(esc).join('<br>')+
-          '<br><br>Type on a graphic is set large, so the floor is 3:1.');
-        return;
-      }
-      if(!r.ok) throw new Error(d.error||('save failed: '+r.status));
-      await loadLibraryMeta();
-      const fresh=BRANDS.find(x=>x.id===brandWhere.brand.id);
-      brandWhere.brand=fresh||brandWhere.brand;
-      brandDraft={...brandWhere.brand};
-      if(B.id===brandWhere.brand.id){ await applyBrand(brandFromRow(brandDraft)); commit(); }
-      say('Saved '+brandDraft.name+'.','ok');
-      drawBrands();
-    }catch(err){ brandWarn(esc(String(err.message||err))); }
-    finally{ t.disabled=false; }
-    return;
-  }
-  const card=t.closest && t.closest('.bcard');
-  if(card) return;
 });
 
 /* ---------- downloads ---------- */
@@ -1897,52 +1701,6 @@ dlgPlat.addEventListener('click',async e=>{
   }
 });
 
-/* ---------- restyle a whole collection ---------- */
-async function restyleCollection(){
-  const c=libWhere.collection; if(!c) return;
-  const brand=BRANDS.find(b=>b.id===B.id);
-  const n=libGraphics.length;
-  if(!n) return;
-  const ok=await confirmThat({
-    title:'Remake this collection?',
-    ok:'Remake '+n+' graphic'+(n===1?'':'s'),
-    body:'<b style="color:#fff">'+esc(c.name)+'</b> will be redrawn in <b style="color:#fff">'+
-      esc(brand?brand.name:B.id)+'</b>.<br><br>'+
-      'It replaces the pictures in the library for this collection. Anything already '+
-      'downloaded or posted stays exactly as it is.<br><br>'+
-      'Switching back to the old brand and doing this again restores the look.'});
-  if(!ok) return;
-
-  /* A restyle is one tab's work: it renders and uploads every size for every
-     graphic from the page that started it. It can be stopped, and because a
-     graphic only moves to rev+1 once all of its sizes are committed, stopping
-     leaves the ones not yet reached on their old renders. Running it again
-     skips whatever already carries the new brand, so it resumes rather than
-     starting over. */
-  restyleStop=false;
-  libEl('libRestyle').textContent='Stop';
-  let done=0, failed=[], skipped=0, stopped=false;
-  for(const g of libGraphics){
-    if(restyleStop){ stopped=true; break; }
-    if(g.brand_id===B.id){ skipped++; continue; }
-    libEl('libCount').textContent='Remaking '+(done+skipped+1)+' of '+n+'...';
-    try{ await restyleGraphic(g); done++; }
-    catch(e){ failed.push(g.title||g.id); }
-  }
-  libEl('libRestyle').textContent='Restyle collection';
-  await openCollection(c);
-  if(stopped){
-    say('Stopped. '+done+' remade, '+(n-done-skipped)+' still on the old style \u2014 run it again to carry on.','bad');
-    return;
-  }
-  if(skipped) say(skipped+' already in this style, '+done+' remade.','ok');
-  libEl('libCount').textContent = failed.length
-    ? done+' remade, '+failed.length+' failed'
-    : done+' graphic'+(done===1?'':'s')+' remade';
-  if(failed.length) say('Could not remake: '+failed.join(', '),'bad');
-  else say(done+' graphic'+(done===1?'':'s')+' remade in '+(brand?brand.name:B.id)+'.','ok');
-}
-
 document.getElementById('btnLibrary').addEventListener('click',openLib);
 /* Land in the library after a save, with the collection open, so the graphic
    you just finished is visibly filed rather than vanished. */
@@ -1977,9 +1735,15 @@ function showHome(){
   if(nw) nw.textContent = open ? 'Start a different graphic' : 'Make a graphic';
   const box=document.getElementById('homeCols');
   box.innerHTML = COLLECTIONS.length
-    ? '<div class="eyebrow" style="margin-bottom:7px">Collections</div>'+
-      COLLECTIONS.map(c=>'<button class="btn" data-col="'+c.id+'" style="margin:0 7px 7px 0">'+
-        esc(c.name)+' &middot; '+c.count+'</button>').join('')
+    ? '<div class="eyebrow" style="margin-bottom:9px">Collections</div>'+
+      '<div class="homecols">'+
+      COLLECTIONS.map(c=>'<button class="homecol" data-col="'+c.id+'">'+
+        (c.cover
+          ? '<img class="cover" src="/r/'+esc(c.cover)+'/'+DESIGN_SIZE+'.png" alt="" loading="lazy" decoding="async">'
+          : '<span class="cover empty">Empty</span>')+
+        '<span class="cname">'+esc(c.name)+'</span>'+
+        '<span class="cmeta">'+c.count+' graphic'+(c.count===1?'':'s')+'</span>'+
+      '</button>').join('')+'</div>'
     : '<div class="note">No collections yet. One is made for you when you save.</div>';
 }
 function hideHome(){ homeView.hidden=true; }
@@ -2010,7 +1774,9 @@ function startGraphic(withPhoto){
   limitVariants(withPhoto);
   hideHome();
   commit();
-  showPanel('text');
+  /* Straight into the words: it is the first thing anybody changes, and it
+     teaches the tap-the-line interaction on the way past. */
+  editText('top');
 }
 
 document.getElementById('btnHome').addEventListener('click',async()=>{
@@ -2021,7 +1787,6 @@ homeView.addEventListener('click',async e=>{
   if(t.id==='homeClose'){ hideHome(); return; }
   if(t.id==='homeNew'){ dlgStart.showModal(); return; }
   if(t.id==='homeBrowse'){ hideHome(); await openLib(); return; }
-  if(t.id==='homeBrands'){ hideHome(); await openBrands(); return; }
   const col=t.closest && t.closest('[data-col]');
   if(col){
     hideHome();
@@ -2057,7 +1822,6 @@ async function pull(){
   S.items = d.items.map(it=>({...newItem(it.top,it.bot), ...it}));
   if(d.project){
     S.caption = d.project.caption || S.caption;
-    S.sizes   = Object.keys(d.project.sizes||{}).length ? d.project.sizes : S.sizes;
     S.pv      = d.project.pv || S.pv;
     S.guides  = !!d.project.guides;
     S.sel     = d.project.sel;
@@ -2096,7 +1860,8 @@ async function pull(){
   if(!S.items.length) S.sel=null;
   if(S.items.length && (!S.sel || !S.items.find(i=>i.id===S.sel))) S.sel=S.items[0].id;
 
-  if(S.guides){ const g=$('#btnGuides'); g.setAttribute('aria-pressed','true'); g.textContent='Hide safe margins'; }
+  if(S.guides){ const g=$('#btnGuides'); g.setAttribute('aria-pressed','true');
+                g.textContent='Hide'; g.setAttribute('aria-label','Hide safe margins'); }
 
   buildChips(); commit();
   await loadLibraryMeta();

@@ -1,5 +1,5 @@
 /* Drives the library browser: browse, platform bar, the three download
-   paths, per-size crops, and a whole-collection restyle. */
+   paths, per-size crops, and the design cards the collection is browsed by. */
 import { chromium } from 'playwright';
 import { CHROMIUM, openApp, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer();
@@ -122,23 +122,16 @@ chk('zip is foldered by platform', entries.some(n=>n.startsWith('facebook/')) &&
     entries.slice(0,3).join(', '));
 chk('alt text file included', true);
 
-// RESTYLE the whole collection
-await p.evaluate(()=>{ const row=BRANDS.find(b=>b.id==='stadium'); return applyBrand(brandFromRow(row)); });
-await p.waitForTimeout(600);
-const before=await p.evaluate(()=>libGraphics.map(g=>g.rev));
-await p.click('#libRestyle');
-/* Restyling asks first, in an in-app dialog rather than a native confirm. */
-await p.waitForFunction(()=>document.getElementById('dlgConfirm').open,null,{timeout:15000});
-await p.click('#confOk');
-await p.waitForFunction(()=>/graphics remade|failed/.test(document.getElementById('libCount').textContent),null,{timeout:180000});
-const after=await p.evaluate(()=>libGraphics.map(g=>({rev:g.rev,brand:g.brand_id})));
-chk('every graphic re-rendered', after.every(a=>a.rev===2), JSON.stringify(after.map(a=>a.rev)));
-chk('collection now records the new brand', after.every(a=>a.brand==='stadium'), JSON.stringify(after.map(a=>a.brand)));
-const served=await p.evaluate(async()=>{
-  const g=libGraphics[0];
-  return (await fetch('/r/'+g.id+'/'+g.rev+'/1080x1350.png',{credentials:'same-origin',cache:'no-store'})).status;
+// the cards are DESIGNS: one per graphic, all at the shape it was composed in
+const cards=await p.evaluate(()=>{
+  const imgs=[...document.querySelectorAll('#libWrap .gcard img.design')];
+  return {n:imgs.length, graphics:libGraphics.length,
+          srcs:imgs.map(i=>i.getAttribute('src')),
+          boxes:imgs.map(i=>{const r=i.getBoundingClientRect();return +(r.width/r.height).toFixed(2);})};
 });
-chk('restyled renders serve', served===200, String(served));
+chk('one card per graphic', cards.n===cards.graphics, cards.n+' cards, '+cards.graphics+' graphics');
+chk('cards show the 4:5 design', cards.srcs.every(u=>u.endsWith('/1080x1350.png')), cards.srcs[0]);
+chk('cards are all one shape', cards.boxes.every(r=>Math.abs(r-0.8)<0.02), cards.boxes.join(' '));
 
 console.log(R.join('\n'));
 console.log('FAILURES:', R.filter(x=>x.startsWith('FAIL')).length);

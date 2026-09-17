@@ -31,7 +31,7 @@ const clickIf=async(sel,label)=>{
   catch(e){
     const why=await p.evaluate(()=>({
       dialogs:[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id),
-      overlays:['home','libview','grid','brandview'].filter(id=>{const n=document.getElementById(id);return n&&!n.hidden;})
+      overlays:['home','libview'].filter(id=>{const n=document.getElementById(id);return n&&!n.hidden;})
     })).catch(()=>({dialogs:['?'],overlays:['?']}));
     note(label,'click blocked on '+sel+' | open dialogs: '+(why.dialogs.join(',')||'none')+
          ' | overlays: '+(why.overlays.join(',')||'none'));
@@ -132,11 +132,11 @@ if(!await vis('#tuneBlock')) note('photo-path','per-size crop bar hidden after a
 /* ---------- 4. EVERY VISIBLE CONTROL IN EVERY PANEL ---------- */
 const closeOverlays=async()=>{
   await p.evaluate(()=>{
-    for(const id of ['libview','home','grid','brandview']){ const n=document.getElementById(id); if(n) n.hidden=true; }
+    for(const id of ['libview','home']){ const n=document.getElementById(id); if(n) n.hidden=true; }
   });
   await p.waitForTimeout(120);
 };
-for(const panel of ['text','layout','photo','sizes','library','export']){
+for(const panel of ['layout','photo','library','export']){
   await closeOverlays();
   await p.evaluate(x=>{ if(openPanel!==x) showPanel(x); }, panel);
   await p.waitForTimeout(260);
@@ -210,21 +210,20 @@ if(after.libOpen){
     cards:document.querySelectorAll('#libWrap .gcard').length,
     back:!document.getElementById('libBack').hidden,
     sel:!document.getElementById('libSelect').hidden,
-    restyle:!document.getElementById('libRestyle').hidden
+    designs:document.querySelectorAll('#libWrap .gcard img.design').length
   }));
   if(!lib.cards) note('library','no cards after saving into this collection');
+  if(lib.cards!==lib.designs) note('library',lib.cards+' cards but '+lib.designs+' designs on them');
   await p.locator('#libWrap .gcard').first().click().catch(()=>{});
   await p.waitForTimeout(700);
   const one=await p.evaluate(()=>({
     plats:document.querySelectorAll('#libPlat button').length,
     shot:!!document.getElementById('libShot'),
     one:!!document.getElementById('libOne'), pack:!!document.getElementById('libPack'),
-    selVisible:!document.getElementById('libSelect').hidden,
-    restyleVisible:!document.getElementById('libRestyle').hidden
+    selVisible:!document.getElementById('libSelect').hidden
   }));
   if(one.plats!==7) note('library','platform bar shows '+one.plats+' platforms');
   if(one.selVisible) note('library','"Select" offered while viewing a single graphic');
-  if(one.restyleVisible) note('library','"Restyle collection" offered while viewing a single graphic');
 }
 
 console.log('--- PROBLEMS ---');

@@ -7,7 +7,7 @@ import { haveImage, putImage, putThumb, getImage, deleteImage } from "./images";
 import {
   listCollections, createCollection, renameCollection,
   listGraphics, getGraphic, createGraphic, putRender, finishGraphic,
-  deleteGraphic, getRender, listBrands, updateBrand, getFont,
+  deleteGraphic, getRender,
 } from "./library";
 
 /* The tool used to be a single file with `connect-src 'none'` and no server.
@@ -95,9 +95,6 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
-
-    const fontMatch = /^\/f\/([a-z0-9-]{1,60}\.woff2)$/.exec(path);
-    if (fontMatch) return harden(await getFont(env, fontMatch[1]));
 
     if (path === "/login") {
       if (request.method === "POST") return handleLogin(request, env);
@@ -205,10 +202,6 @@ async function api(request: Request, env: Env, path: string): Promise<Response> 
     /^\/api\/graphics\/([0-9a-f-]{36})\/renders\/(\d{1,6})\/(\d{2,5}x\d{2,5})$/.exec(path);
   if (gfxRender && method === "PUT")
     return putRender(env, gfxRender[1], Number(gfxRender[2]), gfxRender[3], request);
-
-  if (path === "/api/brands" && method === "GET") return listBrands(env);
-  const brandOne = /^\/api\/brands\/([A-Za-z0-9_-]{1,64})$/.exec(path);
-  if (brandOne && method === "PATCH") return updateBrand(env, brandOne[1], await request.json());
 
   const haveApi = /^\/api\/have\/([0-9a-f]{64})$/.exec(path);
   if (haveApi && method === "GET") return haveImage(env, haveApi[1]);

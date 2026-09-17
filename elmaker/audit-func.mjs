@@ -8,7 +8,7 @@ p.on('console',m=>{if(m.type()==='error')errs.push('CONSOLE '+m.text())});
 const R=[]; const chk=(n,ok,note='')=>R.push((ok?'PASS ':'FAIL ')+n+(note?'   ['+note+']':''));
 const S=()=>p.evaluate(()=>({n:S.items.length,sel:S.sel,top:cur()?.top,bot:cur()?.bot,
   v:cur()?.variant,al:cur()?.align,z:cur()?.zoom,sc:cur()?.scrim,img:!!cur()?.img,
-  fx:cur()?.fx,fy:cur()?.fy,pv:S.pv,sizes:{...S.sizes},g:S.guides,cap:S.caption}));
+  fx:cur()?.fx,fy:cur()?.fy,pv:S.pv,g:S.guides,cap:S.caption}));
 await openApp(p);
 await bench(p, 46);
 
@@ -24,10 +24,29 @@ chk('Rules closes', !(await p.isVisible('#dlgHelp')));
    every control that survived. */
 
 let a;
-// words
-await p.click('.tab[data-p=text]'); await p.waitForTimeout(200);
-await p.fill('#fTop','TOP TEST?'); await p.fill('#fBot','BOTTOM TEST.'); await p.waitForTimeout(400);
+/* Words. There is no Words tab any more: you tap the line on the canvas and
+   the panel opens on that line. Both taps are real clicks at the coordinates
+   render() says the type landed on. */
+const tapLine=async(which)=>{
+  const at=await p.evaluate(w=>{
+    const r=previewCtx.__rects[w], c=document.getElementById('preview').getBoundingClientRect();
+    const k=c.width/document.getElementById('preview').width;
+    return {x:c.left+(r.x+r.w/2)*k, y:c.top+(r.y+r.h/2)*k};
+  }, which);
+  await p.mouse.click(at.x, at.y); await p.waitForTimeout(350);
+};
+chk('no Words tab', await p.evaluate(()=>!document.querySelector('.tab[data-p=text]')));
+await tapLine('top');
+chk('tapping the top line opens it', await p.evaluate(()=>editing==='top' && openPanel==='text'));
+chk('the line is marked on the canvas', await p.evaluate(()=>!document.getElementById('textmark').hidden));
+await p.fill('#fLine','TOP TEST?'); await p.waitForTimeout(350);
+await tapLine('bot');
+chk('tapping the bottom line switches to it', await p.evaluate(()=>editing==='bot'));
+await p.fill('#fLine','BOTTOM TEST.'); await p.waitForTimeout(400);
 a=await S(); chk('Top line field', a.top==='TOP TEST?'); chk('Bottom line field', a.bot==='BOTTOM TEST.');
+await p.click('#lineDone'); await p.waitForTimeout(250);
+chk('Done closes the editor', await p.evaluate(()=>editing===null && openPanel===null &&
+    document.getElementById('textmark').hidden));
 
 // layout
 await p.click('.tab[data-p=layout]'); await p.waitForTimeout(200);
@@ -60,20 +79,19 @@ chk('Delete image', await p.evaluate(()=>Object.keys(S.images).length===0));
 await p.click('#toastUndo'); await p.waitForTimeout(300);
 chk('Undo delete image', await p.evaluate(()=>Object.keys(S.images).length===1));
 
-// sizes
-await p.click('.tab[data-p=sizes]'); await p.waitForTimeout(200);
-const chips=await p.$$('#sizes .chip');
-await chips[2].click(); await p.waitForTimeout(200);
-chk('Size chip toggles', (await S()).sizes['1080x1920']===true);
+// safe margins (they live with the layout now that sizes are not a choice)
+await p.click('.tab[data-p=layout]'); await p.waitForTimeout(200);
+chk('No size picker anywhere', await p.evaluate(()=>!document.getElementById('sizes') &&
+    !document.querySelector('.tab[data-p=sizes]') && S.sizes===undefined));
 await p.click('#btnGuides'); await p.waitForTimeout(250);
 chk('Guides on', (await S()).g===true);
-chk('Guides label changes', (await p.textContent('#btnGuides')).includes('Hide'));
+chk('Guides label changes', (await p.textContent('#btnGuides')).trim()==='Hide');
 await p.click('#btnGuides'); await p.waitForTimeout(200);
 
 // preview size switcher
-for(const s of ['1080','1920','1350']){
-  await p.click(`.stage-sizes .chip:text-is("${s}")`); await p.waitForTimeout(200);
-  chk('Preview switch '+s, (await S()).pv.endsWith(s));
+for(const [label,id] of [['1:1','1080x1080'],['9:16','1080x1920'],['4:5','1080x1350']]){
+  await p.click(`.stage-sizes .chip:text-is("${label}")`); await p.waitForTimeout(200);
+  chk('Preview switch '+label, (await S()).pv===id);
 }
 
 // nav

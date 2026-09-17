@@ -50,10 +50,10 @@ await panel(p,'photo');
 chk('the photo block is shown', !(await p.locator('#photoBlock').isHidden()));
 
 // type the words, attach a photo, save
-await panel(p,'text');
-await p.fill('#fTop','ALREADY WATCHING?');
-await p.fill('#fBot','LOG IT TOO.');
-await p.waitForTimeout(300);
+await p.evaluate(()=>editText('top'));
+await p.fill('#fLine','ALREADY WATCHING?'); await p.waitForTimeout(250);
+await p.evaluate(()=>editText('bot'));
+await p.fill('#fLine','LOG IT TOO.'); await p.waitForTimeout(300);
 await panel(p,'photo');
 const ch=await Promise.all([p.waitForEvent('filechooser'), p.click('#drop')]).then(r=>r[0]);
 await ch.setFiles(testPhoto()); await p.waitForTimeout(2500);

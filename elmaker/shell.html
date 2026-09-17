@@ -40,13 +40,9 @@ header.top{
 .lockup .a{color:#fff}.lockup .b{color:var(--gold)}.lockup .c{color:var(--grey)}
 .tool-name{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--grey)}
 .hdr-right{display:flex;gap:8px;align-items:center}
-/* One graphic at a time: the rail, the contact sheet and the List panel were
-   the multi-graphic UI. The code behind them still runs on hidden nodes; a
-   later pass can take it out properly. */
-
-/* ---------- main: stage + rail ---------- */
-/* One column. The second used to hold the rail; with the rail gone it was
-   just a dead strip, and the preview is better off with the width. */
+/* ---------- main: the stage ---------- */
+/* One column, at every width. The second used to hold the rail; with the
+   rail gone it was a dead strip that the preview was being squeezed by. */
 .main{display:grid;grid-template-columns:minmax(0,1fr);min-height:0}
 
 /* --panelw / --sheeth is the space permanently reserved for the open panel.
@@ -58,15 +54,30 @@ header.top{
   padding:16px; padding-right:calc(var(--panelw) + 16px);
   background:radial-gradient(120% 90% at 50% 0%, #16212D 0%, #0A1018 70%, #06090D 100%);
 }
-.frame{position:relative;width:100%;height:100%;display:grid;place-items:center;min-width:0;min-height:0;padding-bottom:38px}
+/* The bottom padding is the room the size switcher sits in. It has to be
+   bigger than the switcher: at 38px, for a switcher 38px tall, the chips
+   landed on the mark bar and the graphic read as cut off. */
+.frame{position:relative;width:100%;height:100%;display:grid;place-items:center;
+       min-width:0;min-height:0;padding-bottom:48px}
 #preview{
   max-width:100%;max-height:100%;display:block;
   box-shadow:0 18px 60px rgba(0,0,0,.72);border-radius:2px;touch-action:none
 }
 #preview.grab{cursor:grab}
 #preview.grabbing{cursor:grabbing}
+/* The words are the one thing on the canvas you can click into. */
+#preview.overtext{cursor:text}
+/* Outline only. A scrim over the rest of the graphic dimmed the very colours
+   somebody is standing there judging. */
+.textmark{
+  position:absolute;z-index:5;pointer-events:none;border-radius:4px;
+  border:2px dashed var(--gold)
+}
+.textmark[hidden]{display:none}
+/* The preview switcher sits under the graphic, centred, at every width: it
+   belongs to the picture, not to the panel it used to be tucked beside. */
 .stage-sizes{
-  position:absolute;right:0;bottom:0;z-index:6;gap:6px;
+  position:absolute;left:50%;transform:translateX(-50%);bottom:0;z-index:6;gap:6px;
   background:rgba(6,9,13,.78);padding:5px;border-radius:999px;backdrop-filter:blur(3px)
 }
 .stage-tag{
@@ -76,44 +87,7 @@ header.top{
 }
 .stage-tag .hintdrag{color:var(--gold)}
 
-/* ---------- the rail: the list, always visible ---------- */
-.rail{background:var(--rail);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
-.rail-head{
-  display:flex;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--line);flex:none
-}
-.rail-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);flex:1}
-.items{flex:1;min-height:0;min-width:0;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:10px}
-.items::-webkit-scrollbar{width:9px}
-.items::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
-.rail-foot{
-  display:flex;gap:6px;padding:9px 10px;border-top:1px solid var(--line);flex:none
-}
 
-.item{
-  display:flex;gap:9px;align-items:center;background:var(--panel);
-  border:1px solid var(--line);border-left:3px solid var(--line);border-radius:6px;
-  padding:7px 8px;cursor:pointer;position:relative
-}
-.item:hover{border-color:var(--grey)}
-.item.on{border-color:var(--gold);border-left-color:var(--gold);background:var(--panel2)}
-.item .thumb{
-  width:36px;height:36px;flex:none;border-radius:4px;background:var(--black);
-  background-size:cover;background-position:center;border:1px solid var(--line);
-  display:grid;place-items:center;font-family:var(--mono);font-size:7.5px;color:var(--muted)
-}
-.item .txt{flex:1;min-width:0}
-.item .t1{font-family:var(--display);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .t2{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--grey);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .ops{display:flex;gap:2px;flex:none;opacity:0;transition:opacity .12s}
-.item:hover .ops,.item.on .ops{opacity:1}
-.item .ops button{
-  width:22px;height:22px;border:0;background:transparent;color:var(--muted);cursor:pointer;
-  border-radius:4px;font-size:13px;line-height:1;padding:0;display:grid;place-items:center
-}
-.item .ops button:hover{background:var(--line);color:#fff}
-.item .ops button.rm:hover{background:rgba(168,29,51,.22);color:#ff8fa0}
-.item .ops button:disabled{opacity:.25;cursor:not-allowed}
-.item.dragging{opacity:.4}
 
 /* ---------- drawer ---------- */
 .drawer{
@@ -251,15 +225,21 @@ label.field{display:block}
   color:var(--muted);font-size:12.5px;background:var(--panel)
 }
 .drop:hover,.drop.over{border-color:var(--gold);color:#fff}
-.lib{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-.lib .p{width:50px;height:50px;border-radius:4px;background-size:cover;background-position:center;border:1px solid var(--line);cursor:pointer;position:relative}
+.lib{display:flex;flex-wrap:wrap;gap:9px;margin-top:9px}
+.lib .p{width:64px;height:64px;border-radius:5px;background-size:cover;background-position:center;
+        border:1px solid var(--line);cursor:pointer;position:relative}
 .lib .p.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(233,168,28,.32)}
 .lib .p.none{
   display:grid;place-items:center;background:var(--panel);
   font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:var(--muted);text-align:center
 }
 .lib .p.none.on{color:var(--gold)}
-.lib .p .x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:var(--crimson);color:#fff;border:0;cursor:pointer;font-size:11px;line-height:17px;padding:0}
+/* Only the photo in use carries a delete, and it hangs off the corner rather
+   than sitting on the picture. Seven red buttons over seven 42px thumbnails
+   is a row of tripwires: the thing you mean to tap is the photo. */
+.lib .p .x{position:absolute;top:-10px;right:-10px;width:28px;height:28px;border-radius:50%;
+           background:var(--crimson);color:#fff;border:2px solid var(--black);cursor:pointer;
+           font-size:14px;line-height:1;padding:0;display:grid;place-items:center}
 
 .status{font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--grey);margin-top:10px;min-height:17px}
 .status.ok{color:#7FD4C4}.status.err{color:#FF8FA0}
@@ -272,14 +252,43 @@ label.field{display:block}
   display:flex;align-items:center;gap:10px;padding:12px 16px;
   background:var(--black);border-bottom:1px solid var(--line);flex:none
 }
+/* Every button in an overlay header keeps its size and the title is what
+   gives. Without this the flex line shrank the buttons instead: on a 390px
+   phone "Back" wrapped onto two lines and Close was pushed off the screen
+   entirely, with nothing to scroll it back. */
+.gridhead > .btn{flex:none}
+.gridhead .panel-title{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto
+}
+.gridhead .panel-num{flex:none}
+.gridhead .headmeta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gridwrap{
   flex:1;min-height:0;overflow-y:auto;padding:16px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px;align-content:start
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:14px;align-content:start
 }
-.gcard{cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:7px;background:var(--panel)}
+.gcard{cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel)}
+/* A card is a DESIGN. Fixed 4:5 box, contain not cover, so the grid is even
+   and nothing is cropped to make it so. */
+.gcard .design{
+  /* height:auto matters. The img carries width/height attributes so the
+     browser reserves the right box before the PNG arrives, and those map to
+     presentational width/height -- a specified height beats aspect-ratio, so
+     without this the card renders 1350px tall. */
+  width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;display:block;
+  border-radius:3px;background:#06090D
+}
+/* Collections: a shelf with pictures on it. */
+.ccard .cover{
+  width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 0;display:block;
+  border-radius:3px;background:#06090D
+}
+.ccard .cover.empty{
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line)
+}
+.ccard .cname{font-family:var(--display);font-size:17px;line-height:1.15;margin-top:9px;color:var(--white)}
+.ccard .gl{margin-top:3px}
 .gcard:hover{border-color:var(--grey)}
-.gcard.on{border-color:var(--gold);background:var(--panel2)}
-.gcard canvas{width:100%;height:auto;display:block;border-radius:2px}
 #libview .gcard.sel{outline:2px solid var(--gold);outline-offset:2px}
 #libview .gcard .pick{position:absolute;top:9px;left:9px;width:18px;height:18px;border-radius:3px;
   border:2px solid var(--white);background:rgba(18,26,36,.6)}
@@ -287,54 +296,87 @@ label.field{display:block}
 #libview .gcard{position:relative}
 #platList label{display:flex;gap:9px;align-items:center;font-size:13px;color:var(--white)}
 #dlgPlatforms{max-width:420px;width:calc(100% - 32px)}
-/* Home */
-.homeinner{max-width:620px;margin:0 auto;padding:18px 0 40px}
-.homelede{margin:0 0 20px;font-family:var(--display);font-size:clamp(20px,3.2vw,30px);
-  line-height:1.15;color:var(--white);letter-spacing:-.01em}
+/* Home. On a wide screen this used to be a 620px column pinned to the top of
+   a 900px window, with two thirds of the page empty under it. */
+#homeWrap{padding:0}
+.homeinner{max-width:1120px;margin:0 auto;padding:clamp(20px,5vh,56px) 20px 48px;
+  display:grid;gap:clamp(22px,4vw,44px)}
+/* Wide: the pitch and the buttons on the left, the shelf on the right. It
+   was a 620px column pinned to the top of the window with the rest empty. */
+@media (min-width:900px){
+  .homeinner{grid-template-columns:minmax(320px,420px) minmax(0,1fr);align-items:start}
+}
+/* A phone on its side is wide but only 390px tall, so the shelf has to come
+   up beside the pitch rather than sit under it, off the bottom. */
+@media (min-width:740px) and (max-height:619px){
+  .homeinner{grid-template-columns:minmax(260px,340px) minmax(0,1fr);
+             padding-top:14px;gap:20px}
+  .homelede{font-size:20px;margin-bottom:14px}
+  .homeactions .btn{min-width:0;flex:1 1 140px}
+}
+.homelede{margin:0 0 22px;font-family:var(--display);font-size:clamp(23px,2.8vw,34px);
+  line-height:1.12;color:var(--white);letter-spacing:-.015em}
 .homeactions{display:flex;flex-wrap:wrap;gap:10px}
-.homeactions .btn{flex:0 0 auto;width:auto;min-width:220px;justify-content:center}
+.homeactions .btn{flex:0 0 auto;width:auto;min-width:210px;justify-content:center}
 #homeCols .eyebrow{display:block}
-@media (max-width:560px){ .homeactions .btn{width:100%;min-width:0} }
+/* The collections, as a shelf rather than a row of buttons. */
+.homecols{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:12px}
+.homecol{
+  display:block;width:100%;text-align:left;cursor:pointer;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:8px;
+  transition:border-color .12s, transform .12s
+}
+.homecol:hover{border-color:var(--grey);transform:translateY(-1px)}
+.homecol .cover{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 0;
+  display:block;border-radius:3px;background:#06090D}
+.homecol .cover.empty{display:grid;place-items:center;font-family:var(--mono);font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line)}
+/* These are spans inside a button, so they need telling they are blocks or
+   the name and the count run into each other. */
+.homecol .cname{display:block;font-family:var(--display);font-size:16px;line-height:1.15;
+  margin-top:8px;color:var(--white)}
+.homecol .cmeta{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--grey);margin-top:3px}
+@media (max-width:560px){
+  .homeactions .btn{width:100%;min-width:0}
+  .homecols{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px}
+}
 /* The library's single-graphic view. The picture used to fill the screen and
    push the download buttons and the description below the fold. */
 .oneview{display:grid;gap:18px;align-items:start;max-width:1080px;margin:0 auto}
 @media (min-width:980px){ .oneview{grid-template-columns:minmax(0,1fr) 300px} }
 .oneshot{width:auto;max-width:100%;max-height:64vh;object-fit:contain;display:block;
   margin:0 auto;border-radius:4px}
-.oneside .seg{flex-direction:column}
-@media (min-width:980px){ .oneside .seg button{min-width:0;text-align:left;justify-content:flex-start;padding-left:12px} }
+/* Wide: a list down the side. Narrow: a wrapped row -- seven platforms in a
+   column pushed the download buttons a screen and a half down a phone. */
+@media (min-width:980px){
+  .oneside .seg{flex-direction:column}
+  .oneside .seg button{min-width:0;text-align:left;justify-content:flex-start;padding-left:12px}
+}
+@media (max-width:979px){ .oneshot{max-height:44vh} }
 .oneside .btn{width:100%;margin-bottom:8px}
 .oneside textarea{width:100%;background:var(--panel);color:var(--white);border:1px solid var(--line);
   border-radius:6px;padding:9px 11px;font:inherit;font-size:12px;line-height:1.5;resize:vertical}
-/* Brand styles */
-.bcard{cursor:pointer;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);
-  transition:border-color .12s, transform .12s}
-.bcard:hover{border-color:var(--grey);transform:translateY(-1px)}
-.bcard.on{border-color:var(--gold)}
-.bswatch{height:96px;display:flex;align-items:center;justify-content:center;position:relative}
-.bswatch b{font-size:26px;line-height:1;letter-spacing:-.01em}
-.bswatch i{position:absolute;right:9px;bottom:9px;width:20px;height:20px;border-radius:4px;font-style:normal}
-.bmeta{padding:9px 11px}
-.bname{font-family:var(--struct);font-weight:600;font-size:13px;color:var(--white)}
-.bface{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--grey);margin-top:3px}
-.bedit{display:grid;gap:18px;max-width:1020px;margin:0 auto}
-@media (min-width:980px){ .bedit{grid-template-columns:minmax(0,1fr) 320px} }
-.brow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.brow label{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--grey)}
-.brow input[type=color]{width:46px;height:34px;padding:0;border:1px solid var(--line);border-radius:6px;
-  background:var(--panel);cursor:pointer}
-.brow .hex{width:88px;padding:7px 8px;font-family:var(--mono);font-size:11px;color:var(--white);
-  background:var(--panel);border:1px solid var(--line);border-radius:6px}
-.bpreview{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
-.bpreview canvas{width:100%;height:auto;display:block}
-.bwarn{border-left:3px solid var(--crimson);padding:8px 11px;margin-top:10px;font-size:12px;
-  line-height:1.55;color:#ff9b9b;background:rgba(206,32,39,.08)}
+
 .notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));
   z-index:200;max-width:min(560px,calc(100% - 28px));padding:11px 16px;border-radius:8px;
   background:var(--panel2);border:1px solid var(--line);color:var(--white);
   font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.45)}
 .notice.bad{border-color:var(--crimson)}
 .notice.ok{border-color:var(--gold)}
+/* Two across on a phone. One 212px-wide card per row meant scrolling past
+   46 of them one at a time. */
+@media (max-width:560px){
+  .gridwrap{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:12px}
+  .ccard .cname{font-size:15px}
+}
+/* A phone on its side has 340px of height for the whole grid: smaller cards
+   are the difference between seeing one row and seeing the collection. */
+@media (max-height:619px){
+  .gridwrap{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:12px}
+  .ccard .cname{font-size:14px}
+  .gcard .gl{font-size:9px;margin-top:5px}
+}
 #dlgAsk,#dlgConfirm{max-width:440px;width:calc(100% - 32px)}
 #askInput{width:100%;padding:10px 12px;font:inherit;color:var(--white);background:var(--panel);
   border:1px solid var(--line);border-radius:6px}
@@ -346,17 +388,13 @@ label.field{display:block}
   background:var(--panel);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .drawer select:focus{outline:2px solid var(--gold);outline-offset:1px}
 .btn.sm{min-height:32px}
-.lib .p .x{min-width:28px;min-height:28px;font-size:16px;line-height:1}
+.lib .p .x{min-width:28px;min-height:28px;font-size:14px;line-height:1}
 .gcard .gl{
   font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--grey);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
 }
 .gcard{transition:border-color .12s, transform .12s}
 .gcard:hover{transform:translateY(-1px)}
-/* size chips carry platform names, so they read as a list rather than pills */
-#sizes{flex-direction:column;align-items:stretch;gap:6px}
-.sizechip{text-transform:none;letter-spacing:.01em;font-size:12px;padding:9px 12px;
-          border-radius:6px;text-align:left}
 .alert{
   background:#7D5B10;color:#fff;padding:9px 16px;font-size:12.5px;line-height:1.45;
   border-bottom:1px solid var(--line)
@@ -375,6 +413,15 @@ label.field{display:block}
 
 dialog{background:var(--panel);color:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;max-width:520px;width:92vw}
 dialog::backdrop{background:rgba(0,0,0,.75)}
+
+/* ================= BIG SCREENS ================= */
+/* 14px was sized for the phone sheet. On a desktop it just looks far away. */
+@media (min-width:1200px){
+  body{font-size:15px}
+  .stage{--panelw:360px}
+  .hint{font-size:12.5px}
+  .btn{padding:9px 14px}
+}
 
 /* ================= NARROW SCREENS ================= */
 @media (max-width:900px) and (min-height:620px){
@@ -410,37 +457,16 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .drawer .btn.lg{padding:10px 14px;font-size:12px}
   .drawer .drop{padding:10px;font-size:12px}
   .drawer .lib{margin-top:7px}
-  .drawer .lib .p{width:42px;height:42px}
+  .drawer .lib .p{width:56px;height:56px}
   #storeWarn:not([hidden]){display:block;font-size:11px;padding:5px 0 0 9px;margin:0}
-  /* Sizes: the chips and the safe-margins toggle on one line, so the panel
-     fits the sheet. --sheeth has to stay constant across panels (see the
-     reserved-space rule), so the content is what gives. */
-  #p-sizes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  #p-sizes .chips{flex:1;min-width:0;margin:0}
-  #p-sizes .row{margin:0;flex:0 0 auto}
-  #p-sizes #btnGuides{white-space:nowrap}
   #cropBlock .row{gap:6px;margin-top:2px}
   #cropBlock .row .btn{flex:1}
-  .stage-sizes{right:50%;transform:translateX(50%);bottom:0}
-  .rail{border-left:0;border-top:1px solid var(--line);flex-direction:row;align-items:stretch}
-  .rail-head{display:none}
-  .rail-foot{border-top:0;border-right:1px solid var(--line);flex-direction:column;padding:6px;gap:5px;justify-content:center}
-  .rail-foot .btn{padding:7px 10px;font-size:13px;font-weight:700;min-width:44px}
-  #btnBulk{display:none}
-  .items{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:8px;gap:6px;align-items:stretch}
-  .item{
-    flex:none;width:116px;flex-direction:column;align-items:stretch;gap:2px;
-    padding:5px 6px;border-left-width:1px;border-top:3px solid var(--line)
-  }
-  .item.on{border-top-color:var(--gold)}
-  .item .thumb{display:none}
-  .item .t1{font-size:11px;white-space:normal;line-height:1.15;max-height:2.3em;overflow:hidden}
-  .item .t2{display:none}
-  .item .ops{opacity:1;justify-content:space-between;border-top:1px solid var(--line);padding-top:1px;margin-top:auto}
-  .item .ops button{width:20px;height:18px;font-size:12px}
-  .items{padding:6px;gap:5px}
-  .rail-foot{padding:5px;gap:4px}
-  .rail-foot .btn{padding:5px 9px;font-size:12px}
+  /* Alignment and safe margins share a line. Stacked, the second one sat
+     under the tab bar: the sheet is a fixed height by design (see the
+     reserved-space rule at the top) so the content is what gives. */
+  #alignRow{display:flex;gap:10px;align-items:flex-start}
+  #alignRow > .field{flex:1;margin:0}
+  #alignRow #btnGuides{width:100%;white-space:nowrap}
 }
 @media (max-width:720px) and (min-height:620px){
   header.top{padding:9px 12px;gap:8px}
@@ -454,7 +480,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .chip{padding:5px 10px;font-size:10px}
 
   .stage-tag{display:none}
-  .stage-sizes{right:50%;transform:translateX(50%);bottom:6px;padding:4px}
+  .stage-sizes{bottom:6px;padding:4px}
 
   .drawer{max-height:52vh;padding:13px 13px 16px}
   .panel-sub{display:none}
@@ -468,12 +494,15 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .nav{flex:1;gap:6px}
   .nav button{width:auto;min-width:52px;flex:1;height:36px;font-size:17px}
   .counter{align-self:center;min-width:62px}
-  .tabs{order:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;overflow:visible}
-  .tab{padding:0 1px;height:36px;display:flex;align-items:center;justify-content:center;
-       text-align:center;font-size:9px;letter-spacing:0;overflow:hidden}
+  /* Five tabs across, not six: Sizes went when every graphic started being
+     made at every size. The extra fifth of the width is what lets the labels
+     sit at a readable size instead of 9px. */
+  .tabs{order:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;overflow:visible}
+  .tab{padding:0 4px;height:38px;display:flex;align-items:center;justify-content:center;
+       text-align:center;font-size:11px;letter-spacing:.03em;overflow:hidden}
 }
 @media (max-width:380px) and (min-height:620px){
-  .tab{font-size:8.5px}
+  .tab{font-size:9.5px}
 }
 @media (max-width:900px) and (min-height:620px) and (max-height:780px){ .stage{--sheeth:150px} }
 @media (max-width:900px) and (min-height:620px) and (max-height:680px){ .stage{--sheeth:138px} }
@@ -483,8 +512,10 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
    panel goes back to the side where the width is. */
 @media (max-height:619px){
   .toast{top:52px}
-  .main{grid-template-columns:minmax(0,1fr) 196px}
-  .stage{--panelw:264px; --sheeth:0px; padding:10px; padding-right:274px}
+  /* The 196px second column was the rail's. With the rail gone it was a dead
+     strip that the stage was being squeezed by -- at 844x390 the bottom of
+     the graphic, mark bar and all, was cut off by it. */
+  .stage{--panelw:250px; --sheeth:0px; padding:10px; padding-right:260px}
   /* The side drawer runs to the bottom of the window where the tab bar sits
      over it, so the last control could not be reached even by scrolling. */
   .drawer{padding-bottom:86px}
@@ -497,15 +528,19 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .drawer #photoBlock{display:flex;gap:8px;align-items:center}
   .drawer #photoBlock .drop{flex:0 0 104px;padding:8px;font-size:11px;line-height:1.25;min-height:44px}
   .drawer #photoBlock .lib{flex:1;min-width:0;margin:0;flex-wrap:nowrap;overflow-x:auto}
-  .drawer #photoBlock .lib .p{flex:none;width:40px;height:40px}
+  .drawer #photoBlock .lib .p{flex:none;width:52px;height:52px}
   /* The crop controls are what the panel is for; put the labels beside them
      and the buttons on one line so the whole set clears the bar. */
   .drawer label.field{display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:8px;margin:0 0 7px}
   .drawer .eyebrow{margin:0;font-size:9px;letter-spacing:.09em}
   #cropBlock .row{gap:6px;margin-top:4px}
   #cropBlock .row .btn{flex:1}
+  #alignRow{display:flex;gap:9px;align-items:flex-start}
+  #alignRow > .field{flex:1;margin:0}
+  #alignRow #btnGuides{width:100%;white-space:nowrap}
   #tuneBlock{margin-bottom:8px}
-  .frame{padding-bottom:26px}
+  /* Same reservation, for the switcher at its compact size. */
+  .frame{padding-bottom:44px}
   .stage-tag{display:none}
   .drawer{width:var(--panelw);padding:12px;top:0;right:0;bottom:0;left:auto;height:auto;
           border-left:1px solid var(--line);border-top:0}
@@ -515,15 +550,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   .drawer .cols{display:block}
   .drawer .field{margin:0 0 9px}
   .drawer textarea{min-height:42px}
-  .rail{flex-direction:column;border-left:1px solid var(--line);border-top:0}
-  .rail-head{display:flex;padding:6px 8px}
-  .rail-foot{flex-direction:row;padding:6px 8px;border-top:1px solid var(--line);border-right:0}
-  .items{flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:7px;gap:5px}
-  .item{width:auto;flex-direction:row;align-items:center;border-top-width:1px;border-left-width:3px}
-  .item .thumb{display:none}
-  .item .t1{white-space:nowrap;max-height:none;font-size:11px}
-  .item .t2{display:none}
-  .item .ops{opacity:1;border-top:0;margin-top:0;padding-top:0}
   .bar{flex-direction:row;padding:6px 10px}
   .tabs{display:flex;grid-template-columns:none}
   .tab{height:auto;padding:7px 10px;font-size:9.5px;letter-spacing:.06em}
@@ -534,8 +560,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 @media (pointer:coarse){
   .btn,.chip,.tab,.seg button{min-height:36px}
   .btn.sm{min-height:34px}
-  .item .ops button{width:34px;height:30px;font-size:14px}
-  .lib .p .x{width:22px;height:22px;line-height:22px;top:-7px;right:-7px}
+  .lib .p .x{width:32px;height:32px;top:-12px;right:-12px;font-size:15px}
   input[type=range]{height:30px}
   .nav button{min-height:36px}
 }
@@ -568,18 +593,23 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <div class="frame" id="frame">
       <canvas id="preview" width="1080" height="1350"></canvas>
       <div class="stage-tag"><span id="pvSize">1080 x 1350</span><span class="hintdrag" id="dragHint" hidden>Drag to move  ·  scroll to zoom</span></div>
+      <!-- Marks the line being edited. An overlay, so typing never has to
+           redraw it into the canvas. -->
+      <div class="textmark" id="textmark" hidden></div>
       <div class="chips stage-sizes" id="pvSwitch"></div>
     </div>
 <div class="drawer" id="drawer" hidden>
   <div class="scrollfade" aria-hidden="true"></div>
 
+  <!-- No tab opens this one. You get here by tapping the words themselves. -->
   <section class="panel" id="p-text" hidden>
-    <div class="panel-head"><span class="panel-num">01</span><span class="panel-title">Words</span><span class="panel-sub">One idea per graphic</span></div>
-    <div class="cols">
-      <label class="field"><span class="eyebrow">Top line</span><textarea id="fTop" rows="2" placeholder="LONG LINE?"></textarea></label>
-      <label class="field"><span class="eyebrow">Bottom line</span><textarea id="fBot" rows="2" placeholder="LOG IT."></textarea></label>
+    <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title" id="lineTitle">Top line</span><span class="panel-sub">Tap either line to change it</span></div>
+    <label class="field"><span class="eyebrow" id="lineLabel">Top line</span><textarea id="fLine" rows="2" placeholder="LONG LINE?"></textarea></label>
+    <div class="row wrap">
+      <button class="btn gold" id="lineDone">Done</button>
+      <button class="btn ghost" id="lineOther">The other line</button>
     </div>
-    <div class="hint">Both lines size themselves to fit. Press Enter to break a line where you want it.</div>
+    <div class="hint" style="margin-top:10px">The type sizes itself to fit. Press Enter to break a line where you want it.</div>
   </section>
 
   <section class="panel" id="p-layout" hidden>
@@ -598,15 +628,25 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
         </div>
         <div class="hint" id="variantHint">Only the layouts that suit this graphic are shown.</div>
       </div>
-      <div class="field">
-        <span class="eyebrow">Alignment</span>
-        <div class="seg two" id="segAlign">
-          <button data-a="left" aria-pressed="false">Left</button>
-          <button data-a="center" aria-pressed="true">Centre</button>
+      <div id="alignRow">
+        <div class="field">
+          <span class="eyebrow">Alignment</span>
+          <div class="seg two" id="segAlign">
+            <button data-a="left" aria-pressed="false">Left</button>
+            <button data-a="center" aria-pressed="true">Centre</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="eyebrow">Safe margins</span>
+          <button class="btn sm ghost" id="btnGuides" aria-pressed="false"
+                  aria-label="Show safe margins">Show</button>
+          <div class="hint" style="margin-top:6px">Preview only, never in a file. The tall size keeps
+            240px clear top and bottom so nothing lands under a platform&rsquo;s own buttons.</div>
         </div>
       </div>
     </div>
-    <div class="note" id="variantNote">You chose this at the start. To switch between photo and type-only layouts, start a new graphic.</div>
+    <div class="note" id="variantNote">You chose photo or type-only at the start. To switch, start a new graphic.
+      Every graphic is made at all three sizes &mdash; 1:1, 4:5 and 9:16 &mdash; so there is nothing to pick.</div>
   </section>
 
   <section class="panel" id="p-photo" hidden>
@@ -640,41 +680,26 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
   </section>
 
 
-  <section class="panel" id="p-sizes" hidden>
-    <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Sizes</span><span class="panel-sub">What you are looking at</span></div>
-    <div class="chips" id="sizes"></div>
-    <div class="note">Saving always stores all three, so these only choose what you preview and what a quick download includes. The 1080 x 1920 size holds 240px clear top and bottom so nothing lands under a platform's own buttons.</div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn sm ghost" id="btnGuides" aria-pressed="false">Show safe margins</button>
-      <span class="hint">Guides are preview only. They are never in an exported file.</span>
-    </div>
-  </section>
-
   <section class="panel" id="p-library" hidden>
-    <div class="panel-head"><span class="panel-num">06</span><span class="panel-title">Library</span><span class="panel-sub">Save this graphic, finished</span></div>
+    <div class="panel-head"><span class="panel-num">04</span><span class="panel-title">Library</span><span class="panel-sub">Save this graphic, finished</span></div>
     <div class="cols">
       <div>
         <label class="field">
           <span class="eyebrow">Collection</span>
           <select id="fCollection"></select>
         </label>
-        <label class="field" style="margin-top:10px">
-          <span class="eyebrow">Brand style</span>
-          <select id="fBrand"></select>
-        </label>
         <button class="btn gold lg" id="btnSaveLib" style="margin-top:12px">Save to the library</button>
         <div class="row wrap" style="margin-top:9px">
           <button class="btn" id="btnNewCollection">New collection</button>
-          <button class="btn ghost" id="btnEditBrands">Brand styles</button>
         </div>
         <div class="status" id="libStatus"></div>
       </div>
-      <div class="note" style="margin-top:0">Saving renders every size and files them under the collection. A saved graphic is finished: it is not edited again, so make another one if it needs to change.</div>
+      <div class="note" style="margin-top:0">Saving renders all three sizes and files them under the collection. A saved graphic is finished: it is not edited again, so make another one if it needs to change.</div>
     </div>
   </section>
 
   <section class="panel" id="p-export" hidden>
-    <div class="panel-head"><span class="panel-num">07</span><span class="panel-title">Quick download</span><span class="panel-sub" id="exportCount">before saving</span></div>
+    <div class="panel-head"><span class="panel-num">05</span><span class="panel-title">Quick download</span><span class="panel-sub" id="exportCount">before saving</span></div>
     <div class="cols">
       <div>
         <button class="btn gold lg" id="btnExport">Download all three sizes</button>
@@ -685,7 +710,7 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
         </div>
         <div class="status" id="status"></div>
       </div>
-      <div class="note" style="margin-top:0">For a graphic you have not saved yet. Saving it to a collection is the usual way &mdash; the library keeps every size and can hand you a pack per platform.</div>
+      <div class="note" style="margin-top:0">For a graphic you have not saved yet: a zip of all three sizes and the caption. Saving it to a collection is the usual way &mdash; the library keeps every size and can hand you a pack per platform.</div>
     </div>
   </section>
 
@@ -701,46 +726,31 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <div class="counter" id="editingWhat">Nothing open</div>
   </div>
   <div class="tabs" id="tabs">
-    <button class="tab" data-p="text"   aria-expanded="false">Words</button>
     <button class="tab" data-p="layout" aria-expanded="false">Layout</button>
     <button class="tab" data-p="photo"  aria-expanded="false">Photo</button>
-    <button class="tab" data-p="sizes"  aria-expanded="false">Sizes</button>
     <button class="tab" data-p="library" aria-expanded="false">Library</button>
     <button class="tab go" data-p="export" aria-expanded="false">Export</button>
   </div>
-</div>
-
-<div class="sheetview" id="grid" hidden>
-  <div class="gridhead">
-    <span class="panel-num">&#9632;</span>
-    <span class="panel-title">All graphics</span>
-    <span class="rail-title" id="gridCount" style="flex:1"></span>
-    <div class="seg" id="gridMode" style="width:260px">
-      <button data-g="all" aria-pressed="true">All graphics</button>
-      <button data-g="one" aria-pressed="false">This one, all sizes</button>
-    </div>
-    <button class="btn gold sm" id="gridClose">Close</button>
-  </div>
-  <div class="gridwrap" id="gridWrap"></div>
 </div>
 
 <div class="sheetview" id="home" hidden>
   <div class="gridhead">
     <span class="panel-num">&#9632;</span>
     <span class="panel-title">ElectionLog Graphic Maker</span>
-    <span class="rail-title" id="homeSub" style="flex:1"></span>
+    <span class="headmeta" id="homeSub" style="flex:1"></span>
     <button class="btn gold sm" id="homeClose" hidden>Back to the graphic</button>
   </div>
   <div class="gridwrap" id="homeWrap" style="display:block">
     <div class="homeinner">
-      <p class="homelede">Make the campaign&rsquo;s social graphics. One at a time, on brand, at every size.</p>
-      <div class="homeactions">
-        <button class="btn gold lg" id="homeNew">Make a graphic</button>
-        <button class="btn lg" id="homeBrowse">Browse the library</button>
-        <button class="btn lg" id="homeBrands">Brand styles</button>
+      <div>
+        <p class="homelede">Make the campaign&rsquo;s social graphics. One at a time, on brand, at every size.</p>
+        <div class="homeactions">
+          <button class="btn gold lg" id="homeNew">Make a graphic</button>
+          <button class="btn lg" id="homeBrowse">Browse the library</button>
+        </div>
+        <div class="note" style="margin-top:16px">Every graphic is made at all three sizes &mdash; 1:1, 4:5 and 9:16 &mdash; and filed in a collection when it is done. Finished graphics are not edited again: make another one instead.</div>
       </div>
-      <div class="note" style="margin-top:14px">A graphic is saved into a collection when it is done. Finished graphics are not edited again &mdash; make another one instead.</div>
-      <div id="homeCols" style="margin-top:24px"></div>
+      <div id="homeCols"></div>
     </div>
   </div>
 </div>
@@ -760,10 +770,9 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
     <button class="btn sm ghost" id="libBack" hidden>&#8592; Back</button>
     <span class="panel-num">&#9632;</span>
     <span class="panel-title" id="libTitle">Library</span>
-    <span class="rail-title" id="libCount" style="flex:1"></span>
+    <span class="headmeta" id="libCount" style="flex:1"></span>
     <button class="btn sm" id="libSelect" hidden>Select</button>
     <button class="btn sm" id="libDownloadSel" hidden>Download selected</button>
-    <button class="btn sm ghost" id="libRestyle" hidden>Restyle collection</button>
     <button class="btn gold sm" id="libClose">Close</button>
   </div>
   <div class="gridwrap" id="libWrap"></div>
@@ -784,16 +793,6 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
      this, and cannot be shown over the library overlay. -->
 <div class="notice" id="notice" hidden><span id="noticeText"></span></div>
 
-<div class="sheetview" id="brandview" hidden>
-  <div class="gridhead">
-    <button class="btn sm ghost" id="brandBack" hidden>&#8592; Back</button>
-    <span class="panel-num">&#9632;</span>
-    <span class="panel-title" id="brandTitle">Brand styles</span>
-    <span class="rail-title" id="brandCount" style="flex:1"></span>
-    <button class="btn gold sm" id="brandClose">Close</button>
-  </div>
-  <div class="gridwrap" id="brandWrap"></div>
-</div>
 
 <dialog id="dlgAsk">
   <div class="panel-head"><span class="panel-num">&#9632;</span><span class="panel-title" id="askTitle">Name</span></div>
@@ -825,10 +824,10 @@ dialog::backdrop{background:rgba(0,0,0,.75)}
 <dialog id="dlgHelp">
   <div class="panel-head"><span class="panel-num">??</span><span class="panel-title">What this tool will not let you do</span></div>
   <p class="hint" style="line-height:1.7">
-  You cannot set a colour or a typeface on a single graphic. Both come from the brand style the collection is made in, and the layouts are a fixed set of seven, so a graphic made here cannot come out off brand.<br><br>
+  You cannot set a colour or a typeface at all. There is one house style and the layouts are a fixed set of seven, so a graphic made here cannot come out off brand.<br><br>
   <b style="color:#fff">One idea per graphic.</b> One top line, one bottom line. A second point is a second graphic.<br><br>
   <b style="color:#fff">The mark sits in the white bar and nothing else goes in there.</b><br><br>
-  <b style="color:#fff">The accent carries dark text, never white.</b> In the house style that is gold, and it is why the gold band flips the text colour. A brand style cannot be saved that breaks it.<br><br>
+  <b style="color:#fff">The accent carries dark text, never white.</b> That is the gold, and it is why the gold band flips the text colour.<br><br>
   <b style="color:#fff">A card may not characterise a report or draw a conclusion from one.</b> Describe what someone saw. Never why it happened, never who did it.<br><br>
   <b style="color:#fff">Words that do not go on a graphic:</b> defend, fight, resist, stolen, rigged, crisis.
   </p>

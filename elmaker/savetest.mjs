@@ -1,5 +1,5 @@
-/* Drives the real save-to-library flow in a browser: photo upload, brand
-   swap, save, and the restyle path. */
+/* Drives the real save-to-library flow in a browser: photo upload, save,
+   and the revision mechanism the Worker commits renders through. */
 import { chromium } from 'playwright';
 import { BASE, CHROMIUM, openApp, resetDb, assertServer, testPhoto , bench} from './testlib.mjs';
 await assertServer();
@@ -8,12 +8,13 @@ const R=[]; const chk=(n,ok,note='')=>R.push((ok?'PASS ':'FAIL ')+n+(note?'   ['
 const b=await chromium.launch({executablePath:CHROMIUM});
 const p=await b.newPage({viewport:{width:1400,height:900}});
 const errs=[]; p.on('pageerror',e=>errs.push('PAGEERROR '+e.message));
-/* The sweep check below deliberately asks for a render that should be gone,
-   so its own 404 is not a failure. */
-let expect404=false;
+/* The revision checks below deliberately ask for a render that should be
+   gone (404) and commit a revision that was never uploaded (409), so those
+   two responses are the test working rather than the app failing. */
+let expectFail=false;
 p.on('console',m=>{
   if(m.type()!=='error') return;
-  if(expect404 && /404/.test(m.text())) return;
+  if(expectFail && /\b(404|409)\b/.test(m.text())) return;
   errs.push('CONSOLE '+m.text());
 });
 await openApp(p);
@@ -21,9 +22,14 @@ await openApp(p);
    covers the real create flow. */
 await bench(p, 1);
 
-// brands reached the client
-const brands=await p.evaluate(()=>BRANDS.length);
-chk('20 brands loaded', brands===20, String(brands));
+// brand styles are gone, front and back. Asking for the route that used to
+// serve them is another deliberate 404.
+chk('no brand picker', await p.evaluate(()=>!document.getElementById('fBrand')));
+expectFail=true;
+chk('brands API is gone', await p.evaluate(async()=>
+  (await fetch('/api/brands',{credentials:'same-origin'})).status===404));
+await p.waitForTimeout(200);
+expectFail=false;
 
 // make a collection
 await p.click('.tab[data-p=library]'); await p.waitForTimeout(250);
@@ -65,8 +71,9 @@ chk('every render serves 200', Object.values(saved.codes).every(c=>c===200), JSO
 chk('recipe stored', saved.g.top===wordsBefore, saved.g.top);
 chk('photo recorded on the row', !!saved.g.photo_sha);
 chk('alt text written', (saved.g.alt||'').length>40);
-chk('brand recorded', saved.g.brand_id==='mk2', String(saved.g.brand_id));
 chk('starts at rev 1', saved.g.rev===1);
+chk('every size is a real shape', ['1080x1080','1080x1350','1080x1920']
+     .every(x=>saved.g.sizes.includes(x)), saved.g.sizes.join(','));
 
 // PNG is really a PNG
 const sig=await p.evaluate(async(u)=>{
@@ -77,38 +84,43 @@ const sig=await p.evaluate(async(u)=>{
 chk('served as image/png', sig.type==='image/png', sig.type);
 chk('real PNG bytes', sig.sig.startsWith('137,80,78,71'), sig.sig);
 
-// swap the brand: the font must actually load and the palette must change.
-// Saving now closes the editor, so reopen the panel the control lives in.
-await p.evaluate(()=>{ if(openPanel!=='library') showPanel('library'); });
-await p.waitForTimeout(300);
-const before=await p.evaluate(()=>({g:B.ground,a:B.accent,d:B.display}));
-await p.selectOption('#fBrand','terminal');
-await p.waitForFunction(()=>/Previewing in/.test(document.getElementById('libStatus').textContent),null,{timeout:30000});
-const after=await p.evaluate(()=>({g:B.ground,a:B.accent,d:B.display,loaded:document.fonts.check('400 40px "IBM Plex Mono"')}));
-chk('brand palette swapped', after.g!==before.g && after.a!==before.a, before.g+' -> '+after.g);
-chk('brand font loaded', after.loaded===true);
-chk('renderer uses new face', after.d==='IBM Plex Mono', after.d);
-
-// restyle the saved graphic under the new brand
-expect404=true;
-const re=await p.evaluate(async()=>{
-  const cid=document.getElementById('fCollection').value;
-  const d=await (await api('/api/collections/'+cid+'/graphics')).json();
-  const rev=await restyleGraphic(d.graphics[0]);
-  const d2=await (await api('/api/collections/'+cid+'/graphics')).json();
-  const g=d2.graphics[0];
+/* Nothing in the app re-renders a finished graphic any more -- restyling was
+   what did -- but the Worker still commits renders through a revision, and
+   that is what keeps a half-written set from ever being served. Drive it
+   directly: rev 2 lands, the row moves, rev 1 is swept. */
+expectFail=true;
+const re=await p.evaluate(async(id)=>{
+  const c=document.createElement('canvas');
+  const put=async(rev,size)=>{
+    const [w,h]=size.split('x').map(Number);
+    c.width=w; c.height=h;
+    const g=c.getContext('2d'); g.fillStyle='#E9A81C'; g.fillRect(0,0,w,h);
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    await api('/api/graphics/'+id+'/renders/'+rev+'/'+size,
+              {method:'PUT',headers:{'Content-Type':'image/png'},body:blob});
+  };
+  const sizes=['1080x1080','1080x1350','1080x1920'];
+  for(const s of sizes) await put(2,s);
+  /* A rev the bucket has not got must be refused, or a graphic could point
+     at renders that are not there. */
+  const bogus=await fetch('/api/graphics/'+id+'/finish',
+    {method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({sizes,rev:3})});
+  await api('/api/graphics/'+id+'/finish',
+    {method:'POST',...asJson({sizes,rev:2})});
+  const row=await (await api('/api/graphics/'+id)).json();
   /* no-store, because renders are served immutable and this page already
      fetched rev 1 above -- a plain fetch would answer from cache and tell us
      nothing about what is in the bucket. */
-  const now=(await fetch('/r/'+g.id+'/'+g.rev+'/1080x1350.png',{credentials:'same-origin',cache:'no-store'})).status;
-  const old=(await fetch('/r/'+g.id+'/1/1080x1350.png',{credentials:'same-origin',cache:'no-store'})).status;
-  return {rev, g, now, old};
-});
-chk('restyle bumped the revision', re.g.rev===2, 'rev '+re.g.rev);
-chk('restyled brand recorded', re.g.brand_id==='terminal', String(re.g.brand_id));
+  const now=(await fetch('/r/'+id+'/2/1080x1350.png',{credentials:'same-origin',cache:'no-store'})).status;
+  const old=(await fetch('/r/'+id+'/1/1080x1350.png',{credentials:'same-origin',cache:'no-store'})).status;
+  return {bogus:bogus.status, rev:row.graphic?row.graphic.rev:row.rev, now, old};
+}, saved.g.id);
+chk('a rev with no renders is refused', re.bogus===409, String(re.bogus));
+chk('revision moved to 2', re.rev===2, 'rev '+re.rev);
 chk('new revision serves', re.now===200, String(re.now));
 chk('old revision swept', re.old===404, String(re.old));
-expect404=false;
+expectFail=false;
 
 console.log(R.join('\n'));
 console.log('FAILURES:', R.filter(x=>x.startsWith('FAIL')).length);

@@ -75,7 +75,7 @@ const grid=await p.evaluate(async()=>{
 chk('all layouts x all sizes render', grid.every(x=>x.endsWith(':ok')), grid.filter(x=>!x.endsWith(':ok')).join(', ')||'12/12');
 
 // rapid tab switching leaves exactly one panel open
-for(const tb of ['text','layout','photo','sizes','library','export','text','export']){
+for(const tb of ['layout','photo','library','export','layout','export']){
   await p.click(`.tab[data-p=${tb}]`);
 }
 await p.waitForTimeout(250);

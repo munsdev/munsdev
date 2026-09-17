@@ -53,16 +53,29 @@ await p.mouse.move(bx.x+bx.width/2+90,bx.y+bx.height/2,{steps:6}); await p.mouse
 await p.mouse.wheel(0,-300); await p.waitForTimeout(200);
 chk('no-photo drag/zoom inert', z0===await p.evaluate(()=>cur().zoom));
 
-// 6 export guards
+/* 6 an empty bench is refused. Sizes used to be the guard here -- "no sizes
+   ticked" -- and there is no such state any more: a graphic is made at all
+   three or not at all. The only thing left to refuse is nothing to draw. */
 await p.click('.tab[data-p=export]'); await p.waitForTimeout(150);
-await p.evaluate(()=>{ SIZES.forEach(s=>S.sizes[s.id]=false); buildChips(); });
+const kept=await p.evaluate(()=>{ const k=[...S.items], sel=S.sel; S.items=[]; S.sel=null;
+                                  window.__kept={k,sel}; return k.length; });
 await p.click('#btnExport'); await p.waitForTimeout(300);
-chk('no sizes ticked is refused', (await p.textContent('#status')).includes('No sizes'));
-await p.evaluate(()=>{ S.sizes['1080x1350']=true; buildChips(); });
+chk('nothing on the bench is refused', (await p.textContent('#status')).includes('Nothing'));
+/* Put it straight back in the page rather than reloading: an empty bench
+   pushed to the server would delete the items this run is still using. */
+await p.evaluate(()=>{ S.items=window.__kept.k; S.sel=window.__kept.sel; commit(); });
+await p.waitForTimeout(250);
+chk('bench restored', await p.evaluate(()=>S.items.length>0), 'was '+kept);
 
-// 7 cancel stops an export
-await p.evaluate(()=>{ SIZES.forEach(s=>S.sizes[s.id]=true); buildChips(); });
-await p.click('#btnExport'); await p.waitForTimeout(120); await p.click('#btnCancel');
+/* 7 cancel stops an export. Both clicks go through the DOM in one task: an
+   export used to be 46 graphics and there was time to reach for the button,
+   and now it is three renders of one graphic and there is not. btnExport's
+   handler runs up to its first await, then Stop sets the flag the loop
+   checks -- the same sequence a fast finger would produce. */
+await p.evaluate(()=>{
+  document.getElementById('btnExport').click();
+  document.getElementById('btnCancel').click();
+});
 await p.waitForTimeout(1500);
 chk('cancel stops export', (await p.textContent('#status')).includes('Stopped'));
 chk('export button re-enabled', !(await p.locator('#btnExport').isDisabled()));
