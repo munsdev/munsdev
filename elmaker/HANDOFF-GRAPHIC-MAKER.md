@@ -8,6 +8,43 @@ Read this before changing anything. Section 4 is the part that will bite you.
 
 ---
 
+> ## THE TOOL HAS MOVED
+>
+> **It now lives in the ElectionLog team hub**, as the *Social media content*
+> tool at `team.electionlog.org/social/`, in the `ElectionLog-TEAM`
+> repository. It is reached through the hub's sign-in — your email address,
+> not the shared password — and its code is `src/social.js`, `src/graphics.js`
+> and the three files in `public/social/`.
+>
+> **This document is still the reference for how the renderer works**, and
+> sections 4, 5 and 10 in particular still describe the code that moved. What
+> is no longer true here:
+>
+> - **Sections 2, 3 and 8 — the files, the tests and the deploy.** There is no
+>   build step any more: `shell.html`'s inline `<style>` and `<script>` became
+>   real files, and the base64 fonts became real font files, because the hub's
+>   policy is `style-src 'self'`, `script-src 'self'` and `font-src 'self'`.
+>   The Playwright suites in this directory are written against the gate and
+>   the endpoints below, and do not run against the hub.
+> - **Section 6 — state.** The bench belongs to the signed-in member now, and
+>   the API root is `/api/social/…`.
+> - **Section 1 — where it lives.** `socialmaker.muns.dev` no longer serves the
+>   editor. It answers with a notice, refuses every write, and still serves
+>   the library for reading. `src/retired.ts` is that notice.
+>
+> **The 50 finished graphics have not been copied across yet.** The D1
+> database and the R2 bucket here are still the only copy. Do not delete
+> either. The hub's README, under "What is built, and what is not", says what
+> moving them involves — the R2 keys are identical on both sides, so nothing
+> has to be rewritten.
+>
+> The source files in this directory (`shell.html`, `app.js`,
+> `embedded-fonts.css`, the one-off scripts and the test suites) are kept as
+> the record of where the tool came from. They are no longer built or
+> deployed.
+
+---
+
 ## 1 — W H A T   T H I S   I S
 
 **One tool, one campaign, one team.**

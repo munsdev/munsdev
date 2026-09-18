@@ -1,29 +1,12 @@
-import PAGE from "./page.html";
 import type { Env } from "./types";
 import { cookieFrom, mintToken, tokenValid, passwordOk, setCookieHeader, clearCookieHeader } from "./auth";
 import { loginPage } from "./login";
-import { getState, putProject, putItems, deleteItems } from "./api";
-import { haveImage, putImage, putThumb, getImage, deleteImage } from "./images";
+import { getState } from "./api";
+import { getImage } from "./images";
 import {
-  listCollections, createCollection, renameCollection,
-  listGraphics, getGraphic, createGraphic, putRender, finishGraphic,
-  deleteGraphic, getRender,
+  listCollections, listGraphics, getGraphic, getRender,
 } from "./library";
-
-/* The tool used to be a single file with `connect-src 'none'` and no server.
-   It now has both, so that photos survive a reload -- see HANDOFF section 1.
-   Everything it talks to is same-origin; no third-party host appears here. */
-const APP_CSP = [
-  "default-src 'none'",
-  "img-src 'self' data: blob:",
-  "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
-  "font-src 'self' data:",
-  "connect-src 'self'",
-  "form-action 'none'",
-  "base-uri 'none'",
-  "frame-ancestors 'none'",
-].join("; ");
+import { retiredPage, retiredWrite } from "./retired";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Robots-Tag": "noindex, nofollow",
@@ -91,10 +74,20 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
   return res;
 }
 
+/* CLOSED. The editor moved into the ElectionLog team hub -- see retired.ts.
+   What is left is the notice, the gate, and the reads a migration needs to
+   copy the 50 finished graphics across. Nothing here writes any more, and
+   nothing here serves the app: `page.html` is no longer built or bundled. */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    /* Every write, in one place and before anything else, so a script still
+       pointed here fails loudly instead of appearing to work. */
+    if (request.method !== "GET" && request.method !== "HEAD" && path !== "/login") {
+      return harden(retiredWrite());
+    }
 
     if (path === "/login") {
       if (request.method === "POST") return handleLogin(request, env);
@@ -110,9 +103,9 @@ export default {
       });
     }
 
-    /* Everything below this line is behind the password -- the app shell, the
-       API and the image bytes alike. Gating only the page would leave the
-       photos and the copy readable to anyone who guessed a URL. */
+    /* The graphics are still behind the password. The notice is not: it says
+       only that a tool moved and where to, and somebody still holding the
+       bookmark should not need a password they no longer have to find out. */
     if (!authed) {
       if (
         path.startsWith("/api/") || path.startsWith("/img/") ||
@@ -120,7 +113,7 @@ export default {
       ) {
         return json({ error: "unauthorized" }, 401);
       }
-      return harden(loginPage(false));
+      return harden(retiredPage());
     }
 
     // --- finished graphics ---
@@ -151,71 +144,23 @@ export default {
       );
     }
 
-    /* The app is one 186KB file, so it rides inside the Worker bundle rather
-       than through an assets binding: one artifact, one deploy, nothing to
-       get out of step with the code that serves it. */
-    return harden(
-      new Response(PAGE, {
-        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" },
-      }),
-      APP_CSP,
-    );
+    return harden(retiredPage());
   },
 };
 
+/* Reads only, and only the ones that let the finished graphics be listed and
+   fetched. Everything the editor used to call -- saving a bench, uploading a
+   photo, committing a render -- is gone, and the write guard above catches
+   those before they reach here anyway. */
 async function api(request: Request, env: Env, path: string): Promise<Response> {
-  const method = request.method;
-
-  if (path === "/api/state" && method === "GET") return getState(env);
-
-  if (path === "/api/project" && method === "PUT") return putProject(env, await request.json());
-  if (path === "/api/items" && method === "PUT") return putItems(env, await request.json());
-  if (path === "/api/items/delete" && method === "POST")
-    return deleteItems(env, await request.json());
-
-  // --- library ---
-  if (path === "/api/collections") {
-    if (method === "GET") return listCollections(env);
-    if (method === "POST") return createCollection(env, await request.json());
-    return json({ error: "method not allowed" }, 405);
-  }
-  const colOne = /^\/api\/collections\/([0-9a-f-]{36})$/.exec(path);
-  if (colOne && method === "PATCH") return renameCollection(env, colOne[1], await request.json());
+  if (path === "/api/state") return getState(env);
+  if (path === "/api/collections") return listCollections(env);
 
   const colGfx = /^\/api\/collections\/([0-9a-f-]{36})\/graphics$/.exec(path);
-  if (colGfx && method === "GET") return listGraphics(env, colGfx[1]);
-
-  if (path === "/api/graphics" && method === "POST")
-    return createGraphic(env, await request.json());
+  if (colGfx) return listGraphics(env, colGfx[1]);
 
   const gfxOne = /^\/api\/graphics\/([0-9a-f-]{36})$/.exec(path);
-  if (gfxOne) {
-    if (method === "GET") return getGraphic(env, gfxOne[1]);
-    if (method === "DELETE") return deleteGraphic(env, gfxOne[1]);
-    return json({ error: "method not allowed" }, 405);
-  }
-
-  const gfxDone = /^\/api\/graphics\/([0-9a-f-]{36})\/finish$/.exec(path);
-  if (gfxDone && method === "POST") return finishGraphic(env, gfxDone[1], await request.json());
-
-  const gfxRender =
-    /^\/api\/graphics\/([0-9a-f-]{36})\/renders\/(\d{1,6})\/(\d{2,5}x\d{2,5})$/.exec(path);
-  if (gfxRender && method === "PUT")
-    return putRender(env, gfxRender[1], Number(gfxRender[2]), gfxRender[3], request);
-
-  const haveApi = /^\/api\/have\/([0-9a-f]{64})$/.exec(path);
-  if (haveApi && method === "GET") return haveImage(env, haveApi[1]);
-
-  const imgApi = /^\/api\/images\/([0-9a-f]{64})$/.exec(path);
-  if (imgApi) {
-    const sha = imgApi[1];
-    if (method === "PUT") return putImage(env, sha, request);
-    if (method === "DELETE") return deleteImage(env, sha);
-    return json({ error: "method not allowed" }, 405);
-  }
-
-  const thumbApi = /^\/api\/thumbs\/([0-9a-f]{64})$/.exec(path);
-  if (thumbApi && method === "PUT") return putThumb(env, thumbApi[1], request);
+  if (gfxOne) return getGraphic(env, gfxOne[1]);
 
   return json({ error: "not found" }, 404);
 }
